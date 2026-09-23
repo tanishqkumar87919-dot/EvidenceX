@@ -15,23 +15,38 @@ def check_supabase_connectivity() -> Dict[str, Any]:
             "connected": False
         }
     
-    # Try connecting to Supabase REST health endpoint
     start_time = time.time()
     try:
-        url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/"
+        # If service role key is available, check REST API; if anon key, check Auth settings endpoint
+        if settings.SUPABASE_SERVICE_ROLE_KEY:
+            url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/"
+            key = settings.SUPABASE_SERVICE_ROLE_KEY
+        else:
+            url = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/settings"
+            key = settings.SUPABASE_ANON_KEY
+
         headers = {
-            "apikey": settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY,
-            "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY}"
+            "apikey": key,
+            "Authorization": f"Bearer {key}"
         }
-        with httpx.Client(timeout=4.0) as client:
+        with httpx.Client(timeout=5.0) as client:
             resp = client.get(url, headers=headers)
             latency_ms = round((time.time() - start_time) * 1000, 2)
-            if resp.status_code in [200, 404]: # REST base root responding
+            if resp.status_code == 200:
                 return {
                     "status": "operational",
                     "connected": True,
                     "latency_ms": latency_ms,
-                    "endpoint": settings.SUPABASE_URL
+                    "endpoint": settings.SUPABASE_URL,
+                    "auth_role": "service_role" if settings.SUPABASE_SERVICE_ROLE_KEY else "anon"
+                }
+            elif resp.status_code == 404:
+                return {
+                    "status": "operational",
+                    "connected": True,
+                    "latency_ms": latency_ms,
+                    "endpoint": settings.SUPABASE_URL,
+                    "auth_role": "anon"
                 }
             else:
                 return {
@@ -58,9 +73,8 @@ def check_postgres_connectivity() -> Dict[str, Any]:
             "connected": False
         }
     
-    # Note: Requires asyncpg or psycopg2 / sqlalchemy installed
     try:
-        import psycopg2 # type: ignore
+        import psycopg2  # type: ignore
         start_time = time.time()
         conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=4)
         cur = conn.cursor()
@@ -78,7 +92,7 @@ def check_postgres_connectivity() -> Dict[str, Any]:
         return {
             "status": "driver_missing",
             "connected": False,
-            "message": "psycopg2 / asyncpg driver not installed."
+            "message": "psycopg2 driver not installed."
         }
     except Exception as e:
         return {
