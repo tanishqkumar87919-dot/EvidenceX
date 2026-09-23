@@ -29,8 +29,14 @@ class ServiceNotReadyException(EvidenceXException):
         self,
         message: str = "The requested service is not implemented yet in Phase 1.",
         code: str = "SERVICE_NOT_READY",
+        investigation_id: Optional[str] = None,
+        input_type: Optional[str] = None,
+        input_mode: Optional[str] = None,
         details: Optional[Any] = None,
     ):
+        self.investigation_id = investigation_id
+        self.input_type = input_type
+        self.input_mode = input_mode
         super().__init__(
             message=message,
             code=code,
@@ -118,6 +124,15 @@ async def evidencex_exception_handler(
             "details": exc.details,
         },
     }
+    if hasattr(exc, "investigation_id") and exc.investigation_id:
+        content["investigation_id"] = exc.investigation_id
+    if hasattr(exc, "input_type") and exc.input_type:
+        content["input_type"] = exc.input_type
+        content["modality"] = exc.input_type
+    if hasattr(exc, "input_mode") and exc.input_mode:
+        content["input_mode"] = exc.input_mode
+        content["mode"] = exc.input_mode
+
     return JSONResponse(status_code=exc.status_code, content=content)
 
 

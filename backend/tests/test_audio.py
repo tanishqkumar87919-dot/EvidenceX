@@ -6,7 +6,7 @@ from backend.app.main import app
 client = TestClient(app)
 
 
-def test_valid_wav_audio_upload():
+def test_valid_wav_audio_upload_preserves_metadata():
     # Valid RIFF WAV header bytes (44 bytes standard header)
     wav_header = b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00D\xac\x00\x00\x88X\x01\x00\x02\x00\x10\x00data\x00\x00\x00\x00"
     file_payload = ("test_speech.wav", io.BytesIO(wav_header), "audio/wav")
@@ -14,7 +14,8 @@ def test_valid_wav_audio_upload():
     response = client.post(
         "/api/v1/verify/audio",
         files={"file": file_payload},
-        data={"depth": "standard", "mode": "LIVE"},
+        data={"depth": "standard"},  # Notice: mode is omitted to test LIVE default
+        headers={"X-Request-ID": "audio-test-req-001"},
     )
     # Status should be 501 (Service Not Ready in Phase 1)
     assert response.status_code == 501
@@ -22,14 +23,36 @@ def test_valid_wav_audio_upload():
     assert data["status"] == "service_not_ready"
     assert "Whisper" in data["message"] or "pipeline" in data["message"].lower()
 
+    # Preservation checks
+    assert data["request_id"] == "audio-test-req-001"
+    assert "investigation_id" in data and len(data["investigation_id"]) > 0
+    assert data["input_type"] == "AUDIO"
+    assert data["input_mode"] == "LIVE"  # Default is LIVE
+
     # CRITICAL: Verify NO fake transcripts or claims are returned
     assert "transcript" not in data
     assert "claims" not in data
     assert "verdict" not in data
 
 
+def test_audio_preserves_client_investigation_id():
+    wav_header = b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00D\xac\x00\x00\x88X\x01\x00\x02\x00\x10\x00data\x00\x00\x00\x00"
+    file_payload = ("test_speech.wav", io.BytesIO(wav_header), "audio/wav")
+
+    client_inv_id = "inv_custom_client_888"
+    response = client.post(
+        "/api/v1/verify/audio",
+        files={"file": file_payload},
+        data={"investigation_id": client_inv_id, "mode": "LIVE"},
+    )
+    assert response.status_code == 501
+    data = response.json()
+    assert data["investigation_id"] == client_inv_id
+    assert data["input_type"] == "AUDIO"
+    assert data["input_mode"] == "LIVE"
+
+
 def test_valid_mp3_audio_upload():
-    # Mock MP3 content
     mp3_bytes = b"\xff\xfb\x90d" + b"\x00" * 100
     file_payload = ("sample_recording.mp3", io.BytesIO(mp3_bytes), "audio/mpeg")
 
@@ -41,6 +64,8 @@ def test_valid_mp3_audio_upload():
     assert response.status_code == 501
     data = response.json()
     assert data["status"] == "service_not_ready"
+    assert data["input_type"] == "AUDIO"
+    assert data["input_mode"] == "LIVE"
 
 
 def test_empty_audio_upload_rejected():

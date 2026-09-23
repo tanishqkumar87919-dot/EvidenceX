@@ -11,6 +11,10 @@ class TextVerifyRequest(BaseModel):
         max_length=50000,
         description="The statement or content text to verify.",
     )
+    investigation_id: Optional[str] = Field(
+        default=None,
+        description="Optional existing investigation ID to associate with this claim.",
+    )
     depth: VerificationDepth = Field(
         default=VerificationDepth.STANDARD,
         description="Verification depth level.",
@@ -37,6 +41,10 @@ class UrlVerifyRequest(BaseModel):
     url: HttpUrl = Field(
         ...,
         description="Public URL pointing to article or claim to verify.",
+    )
+    investigation_id: Optional[str] = Field(
+        default=None,
+        description="Optional existing investigation ID to associate with this claim.",
     )
     depth: VerificationDepth = Field(
         default=VerificationDepth.STANDARD,

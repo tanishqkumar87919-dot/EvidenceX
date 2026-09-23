@@ -36,7 +36,16 @@ class ServiceNotReadyResponse(BaseModel):
         description="Explanatory message regarding implementation phase.",
     )
     request_id: str = Field(..., description="Correlation request ID.")
-    mode: ExecutionMode = Field(
+    investigation_id: Optional[str] = Field(
+        default=None, description="Preserved or generated investigation ID."
+    )
+    input_type: Optional[str] = Field(
+        default=None, description="Input modality: TEXT, IMAGE, URL, AUDIO."
+    )
+    input_mode: Optional[str] = Field(
+        default="LIVE", description="Execution mode: LIVE (default) or DEMO."
+    )
+    mode: Optional[ExecutionMode] = Field(
         default=ExecutionMode.LIVE,
         description="Execution mode requested (LIVE or DEMO).",
     )

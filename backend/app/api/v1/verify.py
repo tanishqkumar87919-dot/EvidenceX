@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 from fastapi import APIRouter, File, Form, Request, UploadFile
 
@@ -29,11 +30,17 @@ async def verify_text(
 ) -> ServiceNotReadyResponse:
     """
     Intake endpoint for text claim verification.
-    Phase 1: Strictly validates payload. Does NOT fabricate claims or verdicts.
+    Phase 1: Validates payload bounds. Preserves request_id, investigation_id, input_type=TEXT, input_mode.
+    Does NOT fabricate claims or verdicts.
     """
     text_service.validate_text(payload.text)
+    investigation_id = payload.investigation_id or f"inv_{uuid.uuid4().hex[:12]}"
+    mode_str = payload.mode.value if hasattr(payload.mode, "value") else str(payload.mode)
     raise ServiceNotReadyException(
-        message="Text verification service is not implemented yet in Phase 1."
+        message="Text verification service is not implemented yet in Phase 1.",
+        investigation_id=investigation_id,
+        input_type="TEXT",
+        input_mode=mode_str,
     )
 
 
@@ -48,11 +55,17 @@ async def verify_url(
 ) -> ServiceNotReadyResponse:
     """
     Intake endpoint for URL claim verification.
-    Phase 1: Validates URL format. Does NOT scrape or fabricate evidence.
+    Phase 1: Validates URL format. Preserves request_id, investigation_id, input_type=URL, input_mode.
+    Does NOT scrape or fabricate evidence.
     """
     url_service.validate_url(str(payload.url))
+    investigation_id = payload.investigation_id or f"inv_{uuid.uuid4().hex[:12]}"
+    mode_str = payload.mode.value if hasattr(payload.mode, "value") else str(payload.mode)
     raise ServiceNotReadyException(
-        message="URL verification service is not implemented yet in Phase 1."
+        message="URL verification service is not implemented yet in Phase 1.",
+        investigation_id=investigation_id,
+        input_type="URL",
+        input_mode=mode_str,
     )
 
 
@@ -64,7 +77,8 @@ async def verify_url(
 )
 async def verify_image(
     request: Request,
-    file: UploadFile = File(..., description="Uploaded image screenshot/document"),
+    file: UploadFile = File(..., description="Uploaded image screenshot or document (multipart/form-data)"),
+    investigation_id: Optional[str] = Form(default=None, description="Optional investigation ID to associate"),
     depth: VerificationDepth = Form(default=VerificationDepth.STANDARD),
     mode: ExecutionMode = Form(default=ExecutionMode.LIVE),
     evidence_preference: EvidencePreference = Form(
@@ -73,11 +87,21 @@ async def verify_image(
 ) -> ServiceNotReadyResponse:
     """
     Intake endpoint for image/screenshot claim verification.
-    Phase 1: Validates image size, MIME type, and extension. Does NOT run OCR or fake text.
+    Phase 1: Validates image size, MIME type, and extension. Preserves request_id, investigation_id, input_type=IMAGE, input_mode.
+    Does NOT run OCR or fake text.
     """
     image_service.validate_image(file)
+    eff_inv_id = (
+        investigation_id.strip()
+        if investigation_id and investigation_id.strip()
+        else f"inv_{uuid.uuid4().hex[:12]}"
+    )
+    mode_str = mode.value if hasattr(mode, "value") else str(mode)
     raise ServiceNotReadyException(
-        message="Image OCR and visual claim verification service is not implemented yet in Phase 1."
+        message="Image OCR and visual claim verification service is not implemented yet in Phase 1.",
+        investigation_id=eff_inv_id,
+        input_type="IMAGE",
+        input_mode=mode_str,
     )
 
 
@@ -85,29 +109,65 @@ async def verify_image(
     "/audio",
     response_model=ServiceNotReadyResponse,
     status_code=501,
-    summary="Verify Audio Claim (Contract)",
+    summary="Verify Audio Claim (Multipart Form Contract)",
 )
 async def verify_audio(
     request: Request,
-    file: UploadFile = File(..., description="Uploaded audio recording"),
-    depth: VerificationDepth = Form(default=VerificationDepth.STANDARD),
-    mode: ExecutionMode = Form(default=ExecutionMode.LIVE),
+    file: UploadFile = File(
+        ...,
+        description="Uploaded audio recording file (multipart/form-data: wav, mp3, mp4, m4a, webm, ogg, flac)",
+    ),
+    investigation_id: Optional[str] = Form(
+        default=None,
+        description="Optional client-provided investigation ID to preserve",
+    ),
+    depth: VerificationDepth = Form(
+        default=VerificationDepth.STANDARD,
+        description="Verification depth level (quick, standard, deep)",
+    ),
+    mode: ExecutionMode = Form(
+        default=ExecutionMode.LIVE,
+        description="Execution mode: LIVE (default) or DEMO",
+    ),
     evidence_preference: EvidencePreference = Form(
-        default=EvidencePreference.BALANCED
+        default=EvidencePreference.BALANCED,
+        description="Preferred evidence source weighting (balanced, official)",
     ),
 ) -> ServiceNotReadyResponse:
     """
-    Intake endpoint for audio recording verification.
-    Phase 1:
-      - Validates MIME type
-      - Validates file extension
-      - Validates file size
-      - Rejects empty files (0 bytes)
-      - Rejects unsupported formats (415)
-      - Does NOT run Whisper or Speech-to-Text
-      - Does NOT fabricate transcripts, claims, or verdicts
+    Intake endpoint for audio recording verification via multipart/form-data file upload.
+    
+    Phase 1 Requirements:
+      - Multipart upload contract (UploadFile / Form)
+      - MIME validation
+      - Extension validation
+      - File size validation
+      - Empty file validation (rejects 0 bytes with HTTP 400)
+      - Unsupported format validation (rejects unsupported formats with HTTP 415)
+      - Strictly does NOT perform Whisper or Speech-to-Text processing
+      - Strictly does NOT generate a transcript
+      - Preserves:
+          * request_id
+          * investigation_id (preserves client ID or assigns unique identifier)
+          * input_type = AUDIO
+          * input_mode = LIVE by default (or requested mode)
+      - Returns transparent SERVICE_NOT_READY structured response upon successful validation
     """
+    # 1. Enforce strict upload validations
     audio_service.validate_audio(file)
+
+    # 2. Preserve or generate investigation ID
+    effective_investigation_id = (
+        investigation_id.strip()
+        if investigation_id and investigation_id.strip()
+        else f"inv_{uuid.uuid4().hex[:12]}"
+    )
+    effective_mode = mode.value if hasattr(mode, "value") else str(mode)
+
+    # 3. Transparent SERVICE_NOT_READY response preserving all required metadata
     raise ServiceNotReadyException(
-        message="Audio Speech-to-Text pipeline (Whisper) is not implemented yet in Phase 1."
+        message="Audio Speech-to-Text pipeline (Whisper) is not implemented yet in Phase 1.",
+        investigation_id=effective_investigation_id,
+        input_type="AUDIO",
+        input_mode=effective_mode,
     )
