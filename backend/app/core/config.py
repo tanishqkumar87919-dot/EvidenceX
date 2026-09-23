@@ -73,9 +73,9 @@ class Settings(BaseSettings):
     FACT_CHECK_PROVIDER: str = "google_factcheck"
     FACT_CHECK_API_KEY: str = ""
     STT_PROVIDER: str = "whisper"
-    WHISPER_MODEL: str = "base"
+    WHISPER_MODEL: str = "tiny"
     STT_API_KEY: str = ""
-    OCR_ENGINE: str = "paddleocr"
+    OCR_ENGINE: str = "tesseract"
 
     model_config = SettingsConfigDict(
         env_file=".env",

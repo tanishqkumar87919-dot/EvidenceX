@@ -78,10 +78,21 @@ class InvestigationRepository:
         audio_duration: Optional[float] = None,
         content_hash: Optional[str] = None,
         metadata_dict: Optional[Dict[str, Any]] = None,
+        extracted_text: Optional[str] = None,
+        audio_transcript: Optional[str] = None,
+        audio_transcription_confidence: Optional[float] = None,
+        audio_transcription_status: Optional[str] = None,
     ) -> InputModel:
         # For text inputs, compute content hash if not provided
         if not content_hash and original_text:
             content_hash = compute_content_hash(original_text)
+        elif not content_hash and extracted_text:
+            content_hash = compute_content_hash(extracted_text)
+
+        # Default transcription status
+        status = audio_transcription_status
+        if status is None:
+            status = "COMPLETED" if audio_transcript is not None else "PENDING"
 
         input_record = InputModel(
             investigation_id=investigation_id,
@@ -89,21 +100,74 @@ class InvestigationRepository:
             original_text=original_text,
             url=url,
             image_storage_reference=image_storage_ref,
+            extracted_text=extracted_text,
             content_hash=content_hash,
             metadata_json=metadata_dict or {},
-            # Audio fields (strict Phase 2 rules: transcript is NULL, status is PENDING)
+            # Audio fields (Phase 2 & Phase 3 real STT)
             audio_storage_reference=audio_storage_ref,
             audio_filename=audio_filename,
             audio_mime_type=audio_mime_type,
             audio_duration=audio_duration,
-            audio_transcript=None,
-            audio_transcription_confidence=None,
-            audio_transcription_status="PENDING",
+            audio_transcript=audio_transcript,
+            audio_transcription_confidence=audio_transcription_confidence,
+            audio_transcription_status=status,
         )
         db.add(input_record)
         db.commit()
         db.refresh(input_record)
         return input_record
+
+    @staticmethod
+    def persist_normalized_input(
+        db: Session,
+        normalized: Any,
+        title: Optional[str] = None,
+        verification_depth: str = "standard",
+        evidence_preference: str = "balanced",
+        user_id: Optional[str] = None,
+    ) -> tuple:
+        """
+        Atomically persists a NormalizedInput into the database:
+        Creates/updates investigation and attaches input record.
+        """
+        inv_id = normalized.investigation_id
+        inv = db.get(InvestigationModel, inv_id)
+        if not inv:
+            inv = InvestigationModel(
+                id=inv_id,
+                user_id=user_id,
+                title=title or (normalized.text[:50] + "..." if normalized.text else f"{normalized.input_type} investigation"),
+                input_mode=normalized.input_mode.value if hasattr(normalized.input_mode, "value") else str(normalized.input_mode),
+                input_type=normalized.input_type.value if hasattr(normalized.input_type, "value") else str(normalized.input_type),
+                status="received",
+                language=normalized.language if normalized.language != "UNKNOWN" else "en",
+                verification_depth=verification_depth,
+                evidence_preference=evidence_preference,
+            )
+            db.add(inv)
+            db.commit()
+            db.refresh(inv)
+
+        input_type_str = normalized.input_type.value if hasattr(normalized.input_type, "value") else str(normalized.input_type)
+        input_record = InvestigationRepository.create_input(
+            db=db,
+            investigation_id=inv.id,
+            input_type=input_type_str,
+            original_text=normalized.text if input_type_str == "TEXT" else None,
+            url=normalized.url,
+            image_storage_ref=normalized.image_reference,
+            audio_storage_ref=normalized.audio_reference,
+            audio_filename=normalized.metadata.get("audio_filename"),
+            audio_mime_type=normalized.metadata.get("audio_mime_type"),
+            audio_duration=normalized.metadata.get("audio_duration"),
+            content_hash=normalized.content_hash,
+            metadata_dict=normalized.metadata,
+            extracted_text=normalized.text if input_type_str in ("IMAGE", "URL") else None,
+            audio_transcript=normalized.audio_transcript,
+            audio_transcription_confidence=normalized.audio_transcription_confidence,
+            audio_transcription_status="COMPLETED" if normalized.audio_transcript else ("FAILED" if normalized.metadata.get("transcription_failed") else "PENDING"),
+        )
+        return inv, input_record
 
     @staticmethod
     def get_inputs_for_investigation(db: Session, investigation_id: str) -> List[InputModel]:

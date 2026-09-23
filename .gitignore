@@ -96,6 +96,11 @@ tmp/
 # Vercel & Deployment
 .vercel/
 
+# Local SQLite / Dev Database
+*.db
+*.sqlite
+*.sqlite3
+
 # Antigravity Brain / Scratch (Local assistant artifacts)
 .system_generated/
 scratch/

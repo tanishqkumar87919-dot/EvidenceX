@@ -1,79 +1,118 @@
 import uuid
 from typing import Optional
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from sqlalchemy.orm import Session
 
-from ...core.errors import ServiceNotReadyException
+from ...database.repository import InvestigationRepository
+from ...database.session import get_db
 from ...schemas.common import (
     EvidencePreference,
     ExecutionMode,
-    InputModality,
-    ServiceNotReadyResponse,
     VerificationDepth,
 )
+from ...schemas.ingest import IngestResponse
 from ...schemas.verify import TextVerifyRequest, UrlVerifyRequest
 from ...services.input_processing.audio import audio_service
 from ...services.input_processing.image import image_service
 from ...services.input_processing.text import text_service
 from ...services.input_processing.url import url_service
 
-router = APIRouter(prefix="/verify", tags=["Verification Contracts"])
+router = APIRouter(prefix="/verify", tags=["Verification Intake & Ingestion"])
+
+
+def get_request_id(request: Request) -> str:
+    """Helper to extract correlation request ID."""
+    return getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:12]}"
 
 
 @router.post(
     "/text",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Verify Text Claim (Contract)",
+    response_model=IngestResponse,
+    status_code=200,
+    summary="Ingest Text Claim",
 )
 async def verify_text(
-    payload: TextVerifyRequest, request: Request
-) -> ServiceNotReadyResponse:
+    payload: TextVerifyRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> IngestResponse:
     """
-    Intake endpoint for text claim verification.
-    Phase 1: Validates payload bounds. Preserves request_id, investigation_id, input_type=TEXT, input_mode.
-    Does NOT fabricate claims or verdicts.
+    Intake and normalization endpoint for arbitrary user-provided text claims,
+    paragraphs, article excerpts, and multi-sentence content.
+    Phase 3: Real text ingestion, NFC normalization, language detection, and DB persistence.
     """
-    text_service.validate_text(payload.text)
-    investigation_id = payload.investigation_id or f"inv_{uuid.uuid4().hex[:12]}"
-    mode_str = payload.mode.value if hasattr(payload.mode, "value") else str(payload.mode)
-    raise ServiceNotReadyException(
-        message="Text verification service is not implemented yet in Phase 1.",
-        investigation_id=investigation_id,
+    request_id = get_request_id(request)
+    normalized = text_service.process(payload)
+
+    depth_str = payload.depth.value if hasattr(payload.depth, "value") else str(payload.depth)
+    pref_str = payload.evidence_preference.value if hasattr(payload.evidence_preference, "value") else str(payload.evidence_preference)
+
+    inv, _ = InvestigationRepository.persist_normalized_input(
+        db=db,
+        normalized=normalized,
+        verification_depth=depth_str,
+        evidence_preference=pref_str,
+    )
+
+    return IngestResponse(
+        investigation_id=inv.id,
         input_type="TEXT",
-        input_mode=mode_str,
+        input_mode=inv.input_mode,
+        status="received",
+        request_id=request_id,
+        language=normalized.language,
+        extracted_text=normalized.text,
+        metadata=normalized.metadata,
+        created_at=inv.created_at,
     )
 
 
 @router.post(
     "/url",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Verify URL Claim (Contract)",
+    response_model=IngestResponse,
+    status_code=200,
+    summary="Ingest URL Article/Claim",
 )
 async def verify_url(
-    payload: UrlVerifyRequest, request: Request
-) -> ServiceNotReadyResponse:
+    payload: UrlVerifyRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> IngestResponse:
     """
-    Intake endpoint for URL claim verification.
-    Phase 1: Validates URL format. Preserves request_id, investigation_id, input_type=URL, input_mode.
-    Does NOT scrape or fabricate evidence.
+    Intake endpoint for public web URLs with SSRF protection, safe redirect validation,
+    HTML extraction, metadata parsing, and DB persistence.
     """
-    url_service.validate_url(str(payload.url))
-    investigation_id = payload.investigation_id or f"inv_{uuid.uuid4().hex[:12]}"
-    mode_str = payload.mode.value if hasattr(payload.mode, "value") else str(payload.mode)
-    raise ServiceNotReadyException(
-        message="URL verification service is not implemented yet in Phase 1.",
-        investigation_id=investigation_id,
+    request_id = get_request_id(request)
+    normalized = await url_service.process(payload)
+
+    depth_str = payload.depth.value if hasattr(payload.depth, "value") else str(payload.depth)
+    pref_str = payload.evidence_preference.value if hasattr(payload.evidence_preference, "value") else str(payload.evidence_preference)
+
+    inv, _ = InvestigationRepository.persist_normalized_input(
+        db=db,
+        normalized=normalized,
+        verification_depth=depth_str,
+        evidence_preference=pref_str,
+    )
+
+    return IngestResponse(
+        investigation_id=inv.id,
         input_type="URL",
-        input_mode=mode_str,
+        input_mode=inv.input_mode,
+        status="received",
+        request_id=request_id,
+        language=normalized.language,
+        extracted_text=normalized.text,
+        metadata=normalized.metadata,
+        created_at=inv.created_at,
     )
 
 
 @router.post(
     "/image",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Verify Image Claim (Contract)",
+    response_model=IngestResponse,
+    status_code=200,
+    summary="Ingest Image / Screenshot with OCR",
 )
 async def verify_image(
     request: Request,
@@ -84,32 +123,50 @@ async def verify_image(
     evidence_preference: EvidencePreference = Form(
         default=EvidencePreference.BALANCED
     ),
-) -> ServiceNotReadyResponse:
+    db: Session = Depends(get_db),
+) -> IngestResponse:
     """
     Intake endpoint for image/screenshot claim verification.
-    Phase 1: Validates image size, MIME type, and extension. Preserves request_id, investigation_id, input_type=IMAGE, input_mode.
-    Does NOT run OCR or fake text.
+    Phase 3: Real OCR text extraction (Tesseract), bounding boxes, confidence calculation,
+    and DB persistence.
     """
-    image_service.validate_image(file)
-    eff_inv_id = (
-        investigation_id.strip()
-        if investigation_id and investigation_id.strip()
-        else f"inv_{uuid.uuid4().hex[:12]}"
+    request_id = get_request_id(request)
+    depth_str = depth.value if hasattr(depth, "value") else str(depth)
+    pref_str = evidence_preference.value if hasattr(evidence_preference, "value") else str(evidence_preference)
+
+    normalized = image_service.process(
+        file=file,
+        investigation_id=investigation_id,
+        depth=depth_str,
+        mode=mode,
+        evidence_preference=pref_str,
     )
-    mode_str = mode.value if hasattr(mode, "value") else str(mode)
-    raise ServiceNotReadyException(
-        message="Image OCR and visual claim verification service is not implemented yet in Phase 1.",
-        investigation_id=eff_inv_id,
+
+    inv, _ = InvestigationRepository.persist_normalized_input(
+        db=db,
+        normalized=normalized,
+        verification_depth=depth_str,
+        evidence_preference=pref_str,
+    )
+
+    return IngestResponse(
+        investigation_id=inv.id,
         input_type="IMAGE",
-        input_mode=mode_str,
+        input_mode=inv.input_mode,
+        status="received",
+        request_id=request_id,
+        language=normalized.language,
+        extracted_text=normalized.text,
+        metadata=normalized.metadata,
+        created_at=inv.created_at,
     )
 
 
 @router.post(
     "/audio",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Verify Audio Claim (Multipart Form Contract)",
+    response_model=IngestResponse,
+    status_code=200,
+    summary="Ingest Audio Recording with Speech-to-Text",
 )
 async def verify_audio(
     request: Request,
@@ -133,41 +190,41 @@ async def verify_audio(
         default=EvidencePreference.BALANCED,
         description="Preferred evidence source weighting (balanced, official)",
     ),
-) -> ServiceNotReadyResponse:
+    db: Session = Depends(get_db),
+) -> IngestResponse:
     """
     Intake endpoint for audio recording verification via multipart/form-data file upload.
-    
-    Phase 1 Requirements:
-      - Multipart upload contract (UploadFile / Form)
-      - MIME validation
-      - Extension validation
-      - File size validation
-      - Empty file validation (rejects 0 bytes with HTTP 400)
-      - Unsupported format validation (rejects unsupported formats with HTTP 415)
-      - Strictly does NOT perform Whisper or Speech-to-Text processing
-      - Strictly does NOT generate a transcript
-      - Preserves:
-          * request_id
-          * investigation_id (preserves client ID or assigns unique identifier)
-          * input_type = AUDIO
-          * input_mode = LIVE by default (or requested mode)
-      - Returns transparent SERVICE_NOT_READY structured response upon successful validation
+    Phase 3: Real Speech-to-Text transcription (faster-whisper), language detection,
+    and DB persistence using Phase 2 audio fields.
     """
-    # 1. Enforce strict upload validations
-    audio_service.validate_audio(file)
+    request_id = get_request_id(request)
+    depth_str = depth.value if hasattr(depth, "value") else str(depth)
+    pref_str = evidence_preference.value if hasattr(evidence_preference, "value") else str(evidence_preference)
 
-    # 2. Preserve or generate investigation ID
-    effective_investigation_id = (
-        investigation_id.strip()
-        if investigation_id and investigation_id.strip()
-        else f"inv_{uuid.uuid4().hex[:12]}"
+    normalized = audio_service.process(
+        file=file,
+        investigation_id=investigation_id,
+        depth=depth_str,
+        mode=mode,
+        evidence_preference=pref_str,
     )
-    effective_mode = mode.value if hasattr(mode, "value") else str(mode)
 
-    # 3. Transparent SERVICE_NOT_READY response preserving all required metadata
-    raise ServiceNotReadyException(
-        message="Audio Speech-to-Text pipeline (Whisper) is not implemented yet in Phase 1.",
-        investigation_id=effective_investigation_id,
+    inv, input_rec = InvestigationRepository.persist_normalized_input(
+        db=db,
+        normalized=normalized,
+        verification_depth=depth_str,
+        evidence_preference=pref_str,
+    )
+
+    return IngestResponse(
+        investigation_id=inv.id,
         input_type="AUDIO",
-        input_mode=effective_mode,
+        input_mode=inv.input_mode,
+        status="received",
+        request_id=request_id,
+        language=normalized.language,
+        extracted_text=normalized.text,
+        audio_transcript=normalized.audio_transcript,
+        metadata=normalized.metadata,
+        created_at=inv.created_at,
     )

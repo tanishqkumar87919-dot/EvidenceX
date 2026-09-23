@@ -105,6 +105,23 @@ class NotFoundException(EvidenceXException):
         )
 
 
+class TranscriptionFailedException(EvidenceXException):
+    def __init__(
+        self,
+        message: str = "Audio transcription could not be completed.",
+        code: str = "TRANSCRIPTION_FAILED",
+        investigation_id: Optional[str] = None,
+        details: Optional[Any] = None,
+    ):
+        self.investigation_id = investigation_id
+        super().__init__(
+            message=message,
+            code=code,
+            status_code=422,
+            details=details,
+        )
+
+
 def _get_request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown-request-id")
 
@@ -113,8 +130,14 @@ async def evidencex_exception_handler(
     request: Request, exc: EvidenceXException
 ) -> JSONResponse:
     request_id = _get_request_id(request)
+    status_str = "error"
+    if exc.code == "SERVICE_NOT_READY":
+        status_str = "service_not_ready"
+    elif exc.code == "TRANSCRIPTION_FAILED":
+        status_str = "transcription_failed"
+
     content: dict = {
-        "status": "service_not_ready" if exc.code == "SERVICE_NOT_READY" else "error",
+        "status": status_str,
         "message": exc.message,
         "request_id": request_id,
         "error": {

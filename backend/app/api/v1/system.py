@@ -31,10 +31,11 @@ async def get_system_status(request: Request) -> Dict[str, Any]:
         "subsystems": {
             "api_gateway": "operational",
             "database_schema": "phase_2_ready",
+            "input_ingestion": "phase_3_ready",
             "supabase_integration": "configured" if has_supabase else "unconfigured",
             "postgres_integration": "configured" if has_db else "unconfigured",
-            "speech_to_text": "phase_1_contract_only",
-            "ocr_vision": "phase_1_contract_only",
+            "speech_to_text": "phase_3_ready",
+            "ocr_vision": "phase_3_ready",
             "claim_extractor": "phase_1_contract_only",
             "evidence_retrieval": "phase_1_contract_only",
             "nli_verifier": "phase_1_contract_only",

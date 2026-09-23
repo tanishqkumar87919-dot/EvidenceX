@@ -17,6 +17,7 @@ from .investigation import (
 )
 from .settings import SettingsResponse, UserSettings
 from .timeline import TimelineEvent, TimelineResponse
+from .ingest import IngestResponse, NormalizedInput
 from .verify import (
     TextVerifyRequest,
     UrlVerifyRequest,

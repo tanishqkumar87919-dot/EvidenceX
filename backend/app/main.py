@@ -9,6 +9,17 @@ from .core.config import settings
 from .core.errors import register_error_handlers
 from .core.logging import logger
 
+from contextlib import asynccontextmanager
+from .database.session import init_db
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+# Initialize DB tables at startup
+init_db()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="Multimodal AI Claim Verification & Evidence Intelligence Backend",
@@ -16,6 +27,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Register custom exception handlers (standardizes errors across all endpoints)
