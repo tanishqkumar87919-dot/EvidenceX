@@ -14,10 +14,41 @@ from sqlalchemy import (
     String,
     Text,
     JSON,
+    TypeDecorator,
 )
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID/UUID type.
+    Uses PostgreSQL native UUID type, otherwise uses String(36).
+    Gracefully coerces non-standard test IDs to deterministic UUIDs on PostgreSQL.
+    """
+    impl = String(36)
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PG_UUID(as_uuid=False))
+        return dialect.type_descriptor(String(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == "postgresql":
+            val_str = str(value).strip()
+            try:
+                return str(uuid.UUID(val_str))
+            except (ValueError, AttributeError):
+                return str(uuid.uuid5(uuid.NAMESPACE_DNS, val_str))
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return None if value is None else str(value)
+
 
 
 def generate_uuid() -> str:
@@ -31,7 +62,7 @@ def now_utc() -> datetime:
 class UserModel(Base):
     __tablename__ = "users"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
     email = Column(String(255), unique=True, nullable=False, index=True)
     full_name = Column(String(255), nullable=True)
     role = Column(String(50), nullable=False, default="user")
@@ -45,8 +76,8 @@ class UserModel(Base):
 class InvestigationModel(Base):
     __tablename__ = "investigations"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     title = Column(String(255), nullable=True)
     input_mode = Column(String(20), nullable=False, default="LIVE", index=True)  # LIVE or DEMO
     input_type = Column(String(20), nullable=False, index=True)  # TEXT, IMAGE, URL, AUDIO
@@ -76,8 +107,8 @@ class InvestigationModel(Base):
 class InputModel(Base):
     __tablename__ = "inputs"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
     input_type = Column(String(20), nullable=False)  # TEXT, IMAGE, URL, AUDIO
     original_text = Column(Text, nullable=True)
     image_storage_reference = Column(String(500), nullable=True)
@@ -105,8 +136,8 @@ class InputModel(Base):
 class ClaimModel(Base):
     __tablename__ = "claims"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
     claim_text = Column(Text, nullable=False)
     claim_type = Column(String(50), nullable=True)
     language = Column(String(10), nullable=False, default="en")
@@ -125,8 +156,8 @@ class ClaimModel(Base):
 class ClaimTaskModel(Base):
     __tablename__ = "claim_tasks"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    claim_id = Column(String(36), ForeignKey("claims.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=False, index=True)
     task_description = Column(Text, nullable=False)
     search_query = Column(Text, nullable=True)
     task_status = Column(String(50), nullable=False, default="pending", index=True)
@@ -140,7 +171,7 @@ class ClaimTaskModel(Base):
 class SourceModel(Base):
     __tablename__ = "sources"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
     url = Column(String(2048), unique=True, nullable=False, index=True)
     canonical_url = Column(String(2048), nullable=True)
     title = Column(String(500), nullable=True)
@@ -158,9 +189,9 @@ class SourceModel(Base):
 class EvidenceModel(Base):
     __tablename__ = "evidence"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    claim_id = Column(String(36), ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
-    source_id = Column(String(36), ForeignKey("sources.id", ondelete="RESTRICT"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
+    source_id = Column(GUID, ForeignKey("sources.id", ondelete="RESTRICT"), nullable=False, index=True)
     exact_relevant_excerpt = Column(Text, nullable=False)
     relationship_type = Column("relationship", String(50), nullable=False, index=True)  # SUPPORTING, CONTRADICTING, INCONCLUSIVE
     relevance = Column(Numeric(5, 4), nullable=True)
@@ -176,8 +207,8 @@ class EvidenceModel(Base):
 class ClaimEvidenceModel(Base):
     __tablename__ = "claim_evidence"
 
-    claim_id = Column(String(36), ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True)
-    evidence_id = Column(String(36), ForeignKey("evidence.id", ondelete="CASCADE"), primary_key=True, index=True)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True)
+    evidence_id = Column(GUID, ForeignKey("evidence.id", ondelete="CASCADE"), primary_key=True, index=True)
     relationship_type = Column("relationship", String(50), nullable=False, default="SUPPORTING")
     relevance_score = Column(Numeric(5, 4), nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
@@ -189,9 +220,9 @@ class ClaimEvidenceModel(Base):
 class VerificationResultModel(Base):
     __tablename__ = "verification_results"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
-    claim_id = Column(String(36), ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
     verdict = Column(String(50), nullable=False)  # SUPPORTED, REFUTED, INSUFFICIENT_EVIDENCE
     model_confidence = Column(Numeric(5, 4), nullable=True)
     evidence_sufficiency = Column(String(50), nullable=True)
@@ -207,9 +238,9 @@ class VerificationResultModel(Base):
 class TimelineEventModel(Base):
     __tablename__ = "timeline_events"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
-    claim_id = Column(String(36), ForeignKey("claims.id", ondelete="CASCADE"), nullable=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=True)
     event_type = Column(String(100), nullable=False)
     event_date = Column(DateTime(timezone=True), nullable=False, index=True)
     source_reference = Column(String(500), nullable=True)
@@ -222,8 +253,8 @@ class TimelineEventModel(Base):
 class AgentEventModel(Base):
     __tablename__ = "agent_events"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
     event_type = Column(String(100), nullable=False)
     stage = Column(String(50), nullable=True)
     message = Column(Text, nullable=True)
@@ -236,8 +267,8 @@ class AgentEventModel(Base):
 class CopilotMessageModel(Base):
     __tablename__ = "copilot_messages"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
     role = Column(String(50), nullable=False)  # user, assistant, system
     message = Column(Text, nullable=False)
     citations = Column(JSON, default=list, nullable=False)
@@ -249,8 +280,8 @@ class CopilotMessageModel(Base):
 class UserSettingModel(Base):
     __tablename__ = "user_settings"
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     language = Column(String(10), nullable=False, default="en")
     theme = Column(String(20), nullable=False, default="light")
     verification_depth = Column(String(20), nullable=False, default="standard")

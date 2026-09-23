@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS investigations (
     title VARCHAR(255),
     input_mode VARCHAR(20) NOT NULL DEFAULT 'LIVE' CHECK (input_mode IN ('LIVE', 'DEMO')),
     input_type VARCHAR(20) NOT NULL CHECK (input_type IN ('TEXT', 'IMAGE', 'URL', 'AUDIO')),
-    status VARCHAR(50) NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'processing', 'completed', 'failed', 'degraded')),
+    status VARCHAR(50) NOT NULL DEFAULT 'queued' CHECK (status IN ('received', 'queued', 'processing', 'tasks_created', 'ready_for_retrieval', 'completed', 'failed', 'degraded')),
     language VARCHAR(10) NOT NULL DEFAULT 'en',
     verification_depth VARCHAR(20) NOT NULL DEFAULT 'standard' CHECK (verification_depth IN ('quick', 'standard', 'deep')),
     evidence_preference VARCHAR(20) NOT NULL DEFAULT 'balanced' CHECK (evidence_preference IN ('balanced', 'official')),
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS claims (
     context TEXT,
     order_index INTEGER NOT NULL DEFAULT 0,
     extraction_confidence NUMERIC(5, 4),
-    status VARCHAR(50) NOT NULL DEFAULT 'extracted' CHECK (status IN ('extracted', 'investigating', 'verified', 'unverified')),
+    status VARCHAR(50) NOT NULL DEFAULT 'extracted' CHECK (status IN ('extracted', 'decomposing', 'tasks_created', 'ready_for_retrieval', 'investigating', 'verified', 'unverified', 'failed')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
