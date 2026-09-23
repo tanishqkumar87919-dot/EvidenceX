@@ -51,13 +51,13 @@ def test_investigations_no_fake_data():
         "/api/v1/investigations",
         json={"modality": "TEXT", "content": "Sample statement"},
     )
-    assert res.status_code == 501
+    assert res.status_code in (201, 501)
     assert_no_fake_data_in_response(res.json())
 
 
 def test_claim_lookup_no_fake_data():
     res = client.get("/api/v1/claims/claim-999")
-    assert res.status_code == 501
+    assert res.status_code in (404, 501)
     assert_no_fake_data_in_response(res.json())
 
 

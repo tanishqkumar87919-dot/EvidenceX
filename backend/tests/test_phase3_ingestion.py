@@ -419,14 +419,12 @@ def test_all_four_modalities_db_persistence():
 
 
 def test_zero_fake_claims_or_evidence_persisted():
-    """Confirms Phase 3 strict constraint: NO claims, evidence, or verdicts fabricated."""
+    """Confirms strict constraint: real claims may be extracted, but ZERO fake evidence or verdicts fabricated."""
     db = SessionLocal()
     try:
-        claims = db.scalars(select(ClaimModel)).all()
         evidence = db.scalars(select(EvidenceModel)).all()
         verdicts = db.scalars(select(VerificationResultModel)).all()
 
-        assert len(claims) == 0, f"Found {len(claims)} unexpectedly created claims!"
         assert len(evidence) == 0, f"Found {len(evidence)} unexpectedly created evidence!"
         assert len(verdicts) == 0, f"Found {len(verdicts)} unexpectedly created verification results!"
     finally:

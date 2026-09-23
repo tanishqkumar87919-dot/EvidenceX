@@ -1,5 +1,6 @@
-import pytest
 from fastapi.testclient import TestClient
+from backend.app.database.models import ClaimModel, InvestigationModel
+from backend.app.database.session import SessionLocal
 from backend.app.main import app
 
 client = TestClient(app)
@@ -7,6 +8,16 @@ client = TestClient(app)
 
 def test_api_v1_routes_exist():
     """Verify that all required v1 endpoints are registered and routed."""
+    db = SessionLocal()
+    try:
+        if not db.get(InvestigationModel, "test-inv-123"):
+            db.add(InvestigationModel(id="test-inv-123", input_type="TEXT", input_mode="LIVE", status="received"))
+            db.commit()
+        if not db.get(ClaimModel, "test-claim-456"):
+            db.add(ClaimModel(id="test-claim-456", investigation_id="test-inv-123", claim_text="Test routing claim"))
+            db.commit()
+    finally:
+        db.close()
     routes = [
         ("GET", "/api/v1/health"),
         ("GET", "/api/v1/system/status"),

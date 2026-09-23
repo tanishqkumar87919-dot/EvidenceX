@@ -1,4 +1,4 @@
-# EvidenceX Backend — Phase 3: Real Multimodal Input Ingestion
+# EvidenceX Backend — Phase 4: Agentic Claim Extraction & Decomposition
 
 Welcome to the **EvidenceX Backend Engine**.
 
@@ -6,149 +6,133 @@ EvidenceX is an AI-powered multimodal claim verification and evidence intelligen
 
 > [!IMPORTANT]
 > **Implementation Phase Notice**:
-> This codebase implements **PHASES 1, 2, & 3**:
+> This codebase implements **PHASES 1, 2, 3, & 4**:
 > - **Phase 1**: FastAPI foundation, strictly versioned `/api/v1` API contracts, request validation, audio modality upload ingestion guardrails, structured JSON logging with correlation request IDs, and unified error handling.
 > - **Phase 2**: Real persistent relational database structure (PostgreSQL / Supabase + SQLAlchemy 2.0 ORM), migrations, full 13-entity data model, first-class audio persistence foundation, cascade deletion safety, and complete investigation data isolation.
 > - **Phase 3**: Real multimodal input ingestion for previously unseen **TEXT**, **IMAGE**, **URL**, and **AUDIO** into a normalized investigation pipeline with database persistence, real Tesseract OCR, real faster-whisper Speech-to-Text, SSRF-protected web extraction, and language detection.
+> - **Phase 4**: Real agentic claim extraction, atomic claim identification, compound claim decomposition, 12-category taxonomy classification, verification question generation, search query task creation, configurable LLM architecture (`local`, `openai`, `gemini`), and transactional database persistence.
 >
-> **Phase 3 Scope Notice**:
-> Phase 3 implements **REAL INPUT INGESTION**.
-> Phase 3 does **NOT** implement:
-> - Agentic claim extraction or decomposition (deferred to Phase 4)
-> - Web search or evidence retrieval (deferred to Phase 4)
-> - NLI or ML verification models (deferred to Phase 4)
-> - Final synthesis verdict generation (deferred to Phase 4)
-> - Conversational Copilot or Analytics (deferred to Phase 5)
+> **Phase 4 Scope Notice**:
+> Phase 4 implements **AGENTIC CLAIM EXTRACTION, DECOMPOSITION & TASK GENERATION**.
+> Phase 4 does **NOT** implement:
+> - Web search (Tavily / Serper) or source crawling (deferred to Phase 5)
+> - Evidence retrieval, ranking, and source credibility scoring (deferred to Phase 5)
+> - NLI or ML verification models (deferred to Phase 5)
+> - Final synthesis verdict generation (deferred to Phase 5)
+> - Timeline evolution analysis (deferred to Phase 6)
+> - Conversational Copilot or Analytics (deferred to Phase 7 & 8)
 
 ---
 
-## 1. Core Multimodal Ingestion Pipeline (Phase 3)
+## 1. Core Agentic Claim Investigation Pipeline (Phase 4)
 
-All four input modalities enter the identical normalized ingestion workflow:
+All four input modalities enter the identical normalized investigation pipeline:
 
 ```
-User Input (TEXT | IMAGE | URL | AUDIO)
-           ↓
-Input Validation & Security Guardrails
-           ↓
-Normalization (Unicode NFC | Container Inspection)
-           ↓
-Text Extraction / Transcription (OCR | Faster-Whisper | HTML Scraping)
-           ↓
-Language Detection (English, Hindi, UNKNOWN)
-           ↓
-NormalizedInput Schema
-           ↓
-Atomic Database Persistence (investigations + inputs)
-           ↓
-IngestResponse (investigation_id, input_type, status, extracted content, metadata)
+Normalized Input (TEXT | IMAGE OCR | URL Article | AUDIO Transcript)
+                           ↓
+               Claim Extraction & Filtering
+             (Separates facts from opinions,
+               questions, greetings, noise)
+                           ↓
+             Compound Claim Decomposition
+            (Decomposes into independently
+               verifiable atomic claims)
+                           ↓
+             Claim Taxonomy Classification
+            (STATISTIC, DATE, LOCATION, etc.)
+                           ↓
+            Verification Task Generation
+           (Question formulation + search
+            query planning + source prefs)
+                           ↓
+            Atomic Database Persistence
+           (claims, claim_tasks, timeline,
+               agent_events, status)
+                           ↓
+        Investigation Status: tasks_created
 ```
 
 ---
 
-## 2. Ingestion Modality Specifications
+## 2. Claim Extraction & Decomposition Features
 
-### 1. Text Ingestion (`POST /api/v1/verify/text`)
-- **Accepted Inputs**: Single factual claims, multi-sentence paragraphs, news excerpts, or social media statements.
-- **Validation**: Enforces minimum length (3 characters), maximum size (50,000 characters), and non-blank input.
-- **Normalization**: Unicode NFC normalization, excessive whitespace and line break cleaning.
-- **Multi-Claim Preservation**: Preserves raw content containing multiple factual statements without premature claim splitting.
-- **Metadata**: Calculates SHA-256 content hash, word count, and character count.
+### 1. Atomic Claim Identification & Noise Filtering
+- Separates subjective opinions ("I think", "in my opinion"), conversational greetings ("Hello"), rhetorical questions, and boilerplate calls to action from verifiable factual claims.
+- Evaluates factual markers (entities, numbers, dates, reporting verbs) to compute an extraction confidence score (0.0 to 1.0).
 
-### 2. Image Ingestion & OCR (`POST /api/v1/verify/image`)
-- **Accepted Formats**: `PNG`, `JPG`, `JPEG`, `WEBP` (up to 10 MB).
-- **Validation**: Enforces MIME type, extension, empty-file check, dimension boundaries (10px to 10,000px), and image corruption detection (`PIL.Image.verify`).
-- **Real OCR Engine**: Powered by **Tesseract 5.5.3** (with `pytesseract`) configured for English (`eng`) and Hindi (`hin`).
-- **OCR Outputs**:
-  - Full extracted text
-  - Average word-level confidence score
-  - Bounding box regions with coordinates `(left, top, width, height)` and per-box confidence
-- **Security**: Images are hashed (SHA-256); sanitized references (`images/<hash>.<ext>`) are stored without leaking server filesystem paths.
+### 2. Compound Claim Decomposition
+- Automatically breaks complex, multi-clause statements into standalone atomic assertions.
+- **Example**:
+  `"The WHO announced in Geneva on May 5th, 2023 that COVID-19 is no longer a global health emergency."`
+  Decomposes into:
+  1. *Core assertion*: "The WHO announced that COVID-19 is no longer a global health emergency."
+  2. *Temporal claim*: "The announcement occurred on May 5th, 2023."
+  3. *Location claim*: "The announcement was made in Geneva."
+- Each atomic claim is independently verifiable.
 
-### 3. URL Ingestion & Web Extraction (`POST /api/v1/verify/url`)
-- **Accepted Inputs**: Public `http://` and `https://` URLs.
-- **Strong SSRF Protection**:
-  - Rejects `localhost`, `127.0.0.1`, `::1`, and cloud metadata IPs (`169.254.169.254`, `metadata.google.internal`).
-  - Resolves target hostnames against DNS and verifies each resolved IP with `ipaddress` (blocking private, loopback, link-local, multicast, and reserved ranges).
-- **Safe Fetching & Extraction**:
-  - Strict redirect validation (re-validates every redirect target up to 3 hops).
-  - Enforces response size limit (5 MB) and 10s request timeout.
-  - Rejects non-HTML/text media types (e.g. video streams, binaries).
-  - Parses DOM with **BeautifulSoup** to extract article title, canonical URL, author, publication date, domain, and publisher name.
-  - Removes non-content elements (`<script>`, `<style>`, `<nav>`, `<header>`, `<footer>`, `<aside>`, `<noscript>`).
+### 3. Claim Taxonomy (12 Standard Categories)
+Each atomic claim is classified into:
+- `EVENT`: Discrete occurrences, incidents, announcements, meetings.
+- `STATISTIC`: Quantified data, percentages, numeric measurements.
+- `DATE`: Specific temporal assertions, historical dates.
+- `LOCATION`: Geographic places, facilities, cities, countries.
+- `PERSON`: Individual figures, public officials, executives.
+- `ORGANIZATION`: Agencies, institutions, NGOs, corporations.
+- `QUOTE`: Direct or indirect quotations, official statements.
+- `SCIENTIFIC`: Biology, physics, medicine, climate, clinical studies.
+- `ECONOMIC`: GDP, inflation, interest rates, financial markets.
+- `POLITICAL`: Elections, legislation, treaties, government policy.
+- `PRODUCT`: Device specs, pricing, releases, hardware/software.
+- `OTHER`: General factual assertions.
 
-### 4. Audio Ingestion & Real Speech-to-Text (`POST /api/v1/verify/audio`)
-- **Accepted Formats**: Multipart upload (`multipart/form-data`) supporting `WAV`, `MP3`, `M4A`, `WEBM`, `MP4`, `OGG`, `FLAC` (up to 25 MB).
-- **Container Validation**: Inspects stream integrity and container metadata via **PyAV** (`av.open`), verifying audio channels, sample rate, codec, and duration.
-- **Real Speech-to-Text**:
-  - Powered by **faster-whisper** (`ctranslate2`) running on-device CPU inference (`tiny` or `base` model).
-  - Dynamically transcribes actual spoken words without predefined or hardcoded transcripts.
-  - Computes real transcription confidence scores and spoken language detection.
-- **Audio Temporary File Security**:
-  - Audio bytes are temporarily buffered in a secured temp directory using randomized UUID filenames.
-  - `finally:` blocks guarantee immediate unlinking (`os.unlink`) upon transcription completion or failure.
-  - Client responses never expose server filesystem paths.
-- **Failure Transparency**: If audio contains no recognizable speech or transcription fails, returns structured `transcription_failed` failure without silently fabricating text or switching to demo mode.
+### 4. Verification Task & Query Generation
+For each atomic claim, the system generates:
+- **`task_description`**: A targeted, objective verification question.
+- **`search_query`**: Planned search query keywords for future evidence retrieval (Phase 5).
+- **`source_preferences`**: Recommended source categories (e.g. `OFFICIAL`, `ACADEMIC`, `REPUTABLE_NEWS`, `GOVERNMENT`, `FACT_CHECK`).
+- **`task_status`**: Set to `"pending"`.
 
 ---
 
-## 3. Database Persistence & Audio Schema
+## 3. Configurable LLM Provider Layer
 
-All ingested inputs persist into the Phase 2 database tables:
-- **`investigations`**: Records `id`, `input_type` (`TEXT`, `IMAGE`, `URL`, `AUDIO`), `input_mode` (`LIVE` default, or `DEMO`), status (`received`), and detected language.
-- **`inputs`**: Records original content, extracted text, content hash, metadata, and dedicated Phase 2 audio fields:
-  - `audio_storage_reference` (e.g. `audio/9a3f...wav`)
-  - `audio_filename`
-  - `audio_mime_type`
-  - `audio_duration`
-  - `audio_transcript` (actual generated transcript)
-  - `audio_transcription_confidence` (average confidence float)
-  - `audio_transcription_status` (`COMPLETED` or `FAILED`)
+Configurable via environment variables without hardcoded models:
+- **`LLM_PROVIDER="local"` (Default)**: Robust, deterministic NLP claim extractor and decomposer requiring zero external API keys. Highly optimized for test suites and offline environments.
+- **`LLM_PROVIDER="openai"`**: Connects to OpenAI or OpenAI-compatible endpoints (Groq, Ollama, DeepSeek) for structured JSON claim extraction.
+- **`LLM_PROVIDER="gemini"`**: Connects to Google Gemini OpenAI-compatible endpoints.
+- **Transparent Failure Handling**: If an external LLM is selected but the API key is not configured or remote API fails, the backend cleanly raises `LLMProviderUnavailableException` (HTTP 503 `LLM_PROVIDER_UNAVAILABLE`) in LIVE mode. Zero fake demo claims are ever fabricated.
 
 ---
 
-## 4. Configuration & Environment Variables
+## 4. API Endpoints (Phase 4 Updates)
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `APP_ENV` | `development` | Environment name |
-| `DEFAULT_MODE` | `LIVE` | Default execution mode (`LIVE` or `DEMO`) |
-| `DATABASE_URL` | `sqlite:///./evidencex_dev.db` | PostgreSQL / Supabase connection URL |
-| `SUPABASE_URL` | `""` | Supabase project REST URL |
-| `SUPABASE_ANON_KEY` | `""` | Public anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | `""` | Backend service-role key |
-| `MAX_AUDIO_SIZE_BYTES` | `26214400` (25 MB) | Maximum audio upload size |
-| `MAX_IMAGE_SIZE_BYTES` | `10485760` (10 MB) | Maximum image upload size |
-| `STT_PROVIDER` | `whisper` | Speech-to-Text provider (`whisper`, `google`) |
-| `WHISPER_MODEL` | `tiny` | Whisper model size (`tiny`, `base`, `small`) |
-| `OCR_ENGINE` | `tesseract` | OCR engine (`tesseract`, `paddleocr`) |
+### Active Endpoints
+- `POST /api/v1/investigations` (201 Created): Accepts new investigation, runs claim extraction & task creation on input, persists to database, returns investigation detail.
+- `GET /api/v1/investigations/{id}` (200 OK): Returns real investigation status (`tasks_created`), modality, mode, and claims count.
+- `GET /api/v1/investigations/{id}/status` (200 OK): Returns current lifecycle stage (`TASKS_CREATED`) and progress percentage (40%).
+- `GET /api/v1/investigations/{id}/claims` (200 OK): Returns list of extracted atomic claims with their generated verification tasks.
+- `GET /api/v1/claims/{claim_id}` (200 OK): Returns single claim detail with its associated tasks.
+- `POST /api/v1/verify/text`, `/image`, `/url`, `/audio` (200 OK): Ingests multimodal input, runs claim extraction, and includes `claims_count`, `tasks_count`, and `claim_extraction_status` in `metadata`.
+- `GET /api/v1/system/status` (200 OK): Subsystem `claim_extractor` reports `"phase_4_ready"`.
+
+### Future Endpoints (Strictly 501 Service Not Ready)
+- `GET /api/v1/investigations/{id}/evidence` (Phase 5)
+- `GET /api/v1/investigations/{id}/timeline` (Phase 6)
+- `POST /api/v1/investigations/{id}/copilot` (Phase 7)
+- `GET /api/v1/analytics/*` (Phase 8)
 
 ---
 
-## 5. Local Setup & Testing
+## 5. Automated Test Suite (109 Tests Passing)
 
-### Prerequisites
-- Python 3.11+
-- Tesseract OCR (`brew install tesseract tesseract-lang`)
-
-### Install Dependencies
+Run all tests:
 ```bash
-pip install -r backend/requirements.txt
+backend/.venv/bin/python -m pytest backend/tests -v
 ```
 
-### Run Test Suite (84 Automated Tests)
-```bash
-PYTHONPATH=. backend/.venv/bin/pytest backend/tests -v
-```
-Test categories:
-- **Phase 1 Tests (34)**: API contracts, routing, CORS, request IDs, error formats, settings.
-- **Phase 2 Tests (22)**: Relational schema, cascade deletes, data isolation, audio field initialization.
-- **Phase 3 Tests (28)**: Real text ingestion, image OCR (PNG/JPEG), SSRF URL blocking & article extraction, real audio Whisper Speech-to-Text transcription, and DB persistence.
-
----
-
-## 6. Known Limitations (Phase 3 Boundary)
-
-- **Claim Extraction**: Ingested inputs preserve the full raw or extracted text without breaking them down into atomic claims (scheduled for Phase 4).
-- **Web Verification**: Verification verdicts and external source evidence retrieval are strictly not active in Phase 3.
-- **Audio Quality**: Whisper model performance is dependent on audio clarity and background noise. Silent or unintelligible audio returns a transparent `transcription_failed` response.
+Distribution:
+- **Phase 1 (34 tests)**: API contracts, routing, CORS, request IDs, error formats, settings.
+- **Phase 2 (22 tests)**: Database schema, models, migrations, cascade deletes, data isolation.
+- **Phase 3 (28 tests)**: Text ingestion, image OCR (Tesseract), URL SSRF blocking, audio Speech-to-Text (faster-whisper).
+- **Phase 4 (25 tests)**: Compound claim decomposition, noise filtering, task generation, search query planning, taxonomy classification, database persistence, API endpoints, and provider error handling.

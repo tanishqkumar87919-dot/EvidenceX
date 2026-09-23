@@ -77,6 +77,12 @@ class Settings(BaseSettings):
     STT_API_KEY: str = ""
     OCR_ENGINE: str = "tesseract"
 
+    # LLM & Agentic Claim Extraction (Phase 4)
+    LLM_PROVIDER: str = "local"  # options: local, openai, gemini
+    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_API_KEY: str = ""
+    LLM_BASE_URL: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=True,

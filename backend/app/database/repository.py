@@ -226,6 +226,58 @@ class InvestigationRepository:
         return task
 
     @staticmethod
+    def get_claim(db: Session, claim_id: str) -> Optional[ClaimModel]:
+        return db.get(ClaimModel, claim_id)
+
+    @staticmethod
+    def get_claim_tasks_for_claim(db: Session, claim_id: str) -> List[ClaimTaskModel]:
+        stmt = (
+            select(ClaimTaskModel)
+            .where(ClaimTaskModel.claim_id == claim_id)
+            .order_by(ClaimTaskModel.created_at.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_all_tasks_for_investigation(db: Session, investigation_id: str) -> List[ClaimTaskModel]:
+        stmt = (
+            select(ClaimTaskModel)
+            .join(ClaimModel, ClaimTaskModel.claim_id == ClaimModel.id)
+            .where(ClaimModel.investigation_id == investigation_id)
+            .order_by(ClaimTaskModel.created_at.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def update_investigation_status(
+        db: Session,
+        investigation_id: str,
+        status: str,
+        error_message: Optional[str] = None,
+    ) -> Optional[InvestigationModel]:
+        inv = db.get(InvestigationModel, investigation_id)
+        if inv:
+            inv.status = status
+            if error_message is not None:
+                inv.error_message = error_message
+            db.commit()
+            db.refresh(inv)
+        return inv
+
+    @staticmethod
+    def update_claim_status(
+        db: Session,
+        claim_id: str,
+        status: str,
+    ) -> Optional[ClaimModel]:
+        claim = db.get(ClaimModel, claim_id)
+        if claim:
+            claim.status = status
+            db.commit()
+            db.refresh(claim)
+        return claim
+
+    @staticmethod
     def get_or_create_source(
         db: Session,
         url: str,

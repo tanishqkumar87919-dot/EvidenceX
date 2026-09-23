@@ -36,7 +36,7 @@ async def get_system_status(request: Request) -> Dict[str, Any]:
             "postgres_integration": "configured" if has_db else "unconfigured",
             "speech_to_text": "phase_3_ready",
             "ocr_vision": "phase_3_ready",
-            "claim_extractor": "phase_1_contract_only",
+            "claim_extractor": "phase_4_ready",
             "evidence_retrieval": "phase_1_contract_only",
             "nli_verifier": "phase_1_contract_only",
         },

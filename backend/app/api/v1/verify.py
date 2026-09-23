@@ -12,6 +12,7 @@ from ...schemas.common import (
 )
 from ...schemas.ingest import IngestResponse
 from ...schemas.verify import TextVerifyRequest, UrlVerifyRequest
+from ...services.claim_extraction import claim_extraction_service
 from ...services.input_processing.audio import audio_service
 from ...services.input_processing.image import image_service
 from ...services.input_processing.text import text_service
@@ -39,7 +40,8 @@ async def verify_text(
     """
     Intake and normalization endpoint for arbitrary user-provided text claims,
     paragraphs, article excerpts, and multi-sentence content.
-    Phase 3: Real text ingestion, NFC normalization, language detection, and DB persistence.
+    Phase 4: Real text ingestion, NFC normalization, language detection, DB persistence,
+    and agentic claim extraction & task generation.
     """
     request_id = get_request_id(request)
     normalized = text_service.process(payload)
@@ -54,6 +56,20 @@ async def verify_text(
         evidence_preference=pref_str,
     )
 
+    # Phase 4: Agentic claim extraction & task generation
+    extraction_result = await claim_extraction_service.extract_and_persist(
+        db=db,
+        investigation_id=inv.id,
+        normalized=normalized,
+    )
+
+    safe_metadata = {
+        **normalized.metadata,
+        "claims_count": extraction_result.get("claims_count", 0),
+        "tasks_count": extraction_result.get("tasks_count", 0),
+        "claim_extraction_status": extraction_result.get("status", "tasks_created"),
+    }
+
     return IngestResponse(
         investigation_id=inv.id,
         input_type="TEXT",
@@ -62,7 +78,7 @@ async def verify_text(
         request_id=request_id,
         language=normalized.language,
         extracted_text=normalized.text,
-        metadata=normalized.metadata,
+        metadata=safe_metadata,
         created_at=inv.created_at,
     )
 
@@ -80,7 +96,7 @@ async def verify_url(
 ) -> IngestResponse:
     """
     Intake endpoint for public web URLs with SSRF protection, safe redirect validation,
-    HTML extraction, metadata parsing, and DB persistence.
+    HTML extraction, metadata parsing, DB persistence, and agentic claim extraction.
     """
     request_id = get_request_id(request)
     normalized = await url_service.process(payload)
@@ -95,6 +111,20 @@ async def verify_url(
         evidence_preference=pref_str,
     )
 
+    # Phase 4: Agentic claim extraction & task generation
+    extraction_result = await claim_extraction_service.extract_and_persist(
+        db=db,
+        investigation_id=inv.id,
+        normalized=normalized,
+    )
+
+    safe_metadata = {
+        **normalized.metadata,
+        "claims_count": extraction_result.get("claims_count", 0),
+        "tasks_count": extraction_result.get("tasks_count", 0),
+        "claim_extraction_status": extraction_result.get("status", "tasks_created"),
+    }
+
     return IngestResponse(
         investigation_id=inv.id,
         input_type="URL",
@@ -103,7 +133,7 @@ async def verify_url(
         request_id=request_id,
         language=normalized.language,
         extracted_text=normalized.text,
-        metadata=normalized.metadata,
+        metadata=safe_metadata,
         created_at=inv.created_at,
     )
 
@@ -127,8 +157,8 @@ async def verify_image(
 ) -> IngestResponse:
     """
     Intake endpoint for image/screenshot claim verification.
-    Phase 3: Real OCR text extraction (Tesseract), bounding boxes, confidence calculation,
-    and DB persistence.
+    Phase 4: Real OCR text extraction (Tesseract), bounding boxes, confidence calculation,
+    DB persistence, and agentic claim extraction.
     """
     request_id = get_request_id(request)
     depth_str = depth.value if hasattr(depth, "value") else str(depth)
@@ -149,6 +179,20 @@ async def verify_image(
         evidence_preference=pref_str,
     )
 
+    # Phase 4: Agentic claim extraction & task generation
+    extraction_result = await claim_extraction_service.extract_and_persist(
+        db=db,
+        investigation_id=inv.id,
+        normalized=normalized,
+    )
+
+    safe_metadata = {
+        **normalized.metadata,
+        "claims_count": extraction_result.get("claims_count", 0),
+        "tasks_count": extraction_result.get("tasks_count", 0),
+        "claim_extraction_status": extraction_result.get("status", "tasks_created"),
+    }
+
     return IngestResponse(
         investigation_id=inv.id,
         input_type="IMAGE",
@@ -157,7 +201,7 @@ async def verify_image(
         request_id=request_id,
         language=normalized.language,
         extracted_text=normalized.text,
-        metadata=normalized.metadata,
+        metadata=safe_metadata,
         created_at=inv.created_at,
     )
 
@@ -194,8 +238,8 @@ async def verify_audio(
 ) -> IngestResponse:
     """
     Intake endpoint for audio recording verification via multipart/form-data file upload.
-    Phase 3: Real Speech-to-Text transcription (faster-whisper), language detection,
-    and DB persistence using Phase 2 audio fields.
+    Phase 4: Real Speech-to-Text transcription (faster-whisper), language detection,
+    DB persistence, and agentic claim extraction on the transcribed audio speech.
     """
     request_id = get_request_id(request)
     depth_str = depth.value if hasattr(depth, "value") else str(depth)
@@ -216,6 +260,20 @@ async def verify_audio(
         evidence_preference=pref_str,
     )
 
+    # Phase 4: Agentic claim extraction & task generation
+    extraction_result = await claim_extraction_service.extract_and_persist(
+        db=db,
+        investigation_id=inv.id,
+        normalized=normalized,
+    )
+
+    safe_metadata = {
+        **normalized.metadata,
+        "claims_count": extraction_result.get("claims_count", 0),
+        "tasks_count": extraction_result.get("tasks_count", 0),
+        "claim_extraction_status": extraction_result.get("status", "tasks_created"),
+    }
+
     return IngestResponse(
         investigation_id=inv.id,
         input_type="AUDIO",
@@ -225,6 +283,6 @@ async def verify_audio(
         language=normalized.language,
         extracted_text=normalized.text,
         audio_transcript=normalized.audio_transcript,
-        metadata=normalized.metadata,
+        metadata=safe_metadata,
         created_at=inv.created_at,
     )

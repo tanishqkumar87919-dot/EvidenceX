@@ -122,6 +122,40 @@ class TranscriptionFailedException(EvidenceXException):
         )
 
 
+class LLMProviderUnavailableException(EvidenceXException):
+    def __init__(
+        self,
+        message: str = "The configured LLM provider service is currently unavailable or unconfigured.",
+        code: str = "LLM_PROVIDER_UNAVAILABLE",
+        investigation_id: Optional[str] = None,
+        details: Optional[Any] = None,
+    ):
+        self.investigation_id = investigation_id
+        super().__init__(
+            message=message,
+            code=code,
+            status_code=503,
+            details=details,
+        )
+
+
+class ClaimExtractionException(EvidenceXException):
+    def __init__(
+        self,
+        message: str = "Claim extraction and decomposition failed for the provided input.",
+        code: str = "CLAIM_EXTRACTION_FAILED",
+        investigation_id: Optional[str] = None,
+        details: Optional[Any] = None,
+    ):
+        self.investigation_id = investigation_id
+        super().__init__(
+            message=message,
+            code=code,
+            status_code=422,
+            details=details,
+        )
+
+
 def _get_request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown-request-id")
 
@@ -135,6 +169,10 @@ async def evidencex_exception_handler(
         status_str = "service_not_ready"
     elif exc.code == "TRANSCRIPTION_FAILED":
         status_str = "transcription_failed"
+    elif exc.code == "LLM_PROVIDER_UNAVAILABLE":
+        status_str = "llm_unavailable"
+    elif exc.code == "CLAIM_EXTRACTION_FAILED":
+        status_str = "claim_extraction_failed"
 
     content: dict = {
         "status": status_str,
