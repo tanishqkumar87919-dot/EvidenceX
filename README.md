@@ -2,13 +2,13 @@
 
 > **Multimodal AI-Powered Claim Verification & Evidence Intelligence Platform**
 
-EvidenceX analyzes text, screenshots/images, and online content to decompose claims into verifiable atomic facts, retrieve and analyze real-world evidence, compare supporting and contradicting sources, and generate explainable, evidence-backed verdicts.
+EvidenceX analyzes text, screenshots/images, URLs, and audio recordings/speech to decompose claims into verifiable atomic facts, retrieve and analyze real-world evidence, compare supporting and contradicting sources, and generate explainable, evidence-backed verdicts.
 
 ---
 
 ## Project Status
 
-- **Phase:** Frontend Complete & Audited (10/10 Pages Ready for Backend Integration)
+- **Phase:** Frontend Complete & Audited (10/10 Pages with Multimodal Text, Image, URL & Audio Input)
 - **Repository:** `https://github.com/tanishqkumar87919-dot/EvidenceX.git`
 - **Database:** Supabase (PostgreSQL with RLS & Migrations)
 - **Backend:** Python 3.11+ / FastAPI
@@ -23,7 +23,7 @@ The complete analytical frontend suite is located in [`frontend/`](frontend/) wi
 | Page | File | Purpose |
 | --- | --- | --- |
 | **01. Home / Landing** | [`frontend/evidencex.html`](frontend/evidencex.html) | Public platform overview, methodology principles, sample report preview |
-| **02. Verification Center** | [`frontend/verification-center.html`](frontend/verification-center.html) | Multimodal intake workspace (Text, Screenshots/Images, URLs) with depth options |
+| **02. Verification Center** | [`frontend/verification-center.html`](frontend/verification-center.html) | Multimodal intake workspace (Text, Screenshots/Images, URLs, Audio) with depth options |
 | **03. Investigation Pipeline** | [`frontend/investigation.html`](frontend/investigation.html) | 7-stage live decomposition & verification progress tracker with agent logs |
 | **04. Verification Results** | [`frontend/results.html`](frontend/results.html) | Synthesis dashboard: verdict, confidence, stance breakdown, evidence conflict graph |
 | **05. Claim Investigation** | [`frontend/claim-investigation.html`](frontend/claim-investigation.html) | Single-claim deep-dive: source assessment factors, temporal context, AI reasoning trace |

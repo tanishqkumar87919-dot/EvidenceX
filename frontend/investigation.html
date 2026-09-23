@@ -630,6 +630,7 @@ body{
         <button class="demo-btn" id="demoText" data-i18n="demo.text">Text Input</button>
         <button class="demo-btn" id="demoImage" data-i18n="demo.image">Image Input</button>
         <button class="demo-btn" id="demoUrl" data-i18n="demo.url">URL Input</button>
+        <button class="demo-btn" id="demoAudio" data-i18n="demo.audio">Audio Input</button>
         <button class="demo-btn" id="demoError" data-i18n="demo.error">Simulate Error</button>
         <button class="demo-btn" id="demoReset" data-i18n="demo.reset">↺ Reset</button>
       </div>
@@ -823,9 +824,10 @@ const strings = {
     'nav.account':'Account','nav.settings':'Settings','role.analyst':'Research Analyst',
     'page.title':'EvidenceX Investigation',
     'page.sub':'Analyzing the submitted content and gathering available evidence.',
-    'preview.text':'Text Submission','preview.image':'Image Submission','preview.url':'URL Submission',
+    'preview.text':'Text Submission','preview.image':'Image Submission','preview.url':'URL Submission','preview.audio':'Audio Submission',
     'preview.meta.text':'Submitted moments ago','preview.meta.image':'Image uploaded · awaiting analysis',
     'preview.meta.url':'URL queued for content extraction',
+    'preview.meta.audio':'Speech audio uploaded · 3 candidate claims detected',
     'op.label':'Investigation Progress',
     'op.status.running':'Claim extraction in progress',
     'op.status.complete':'Investigation complete',
@@ -840,7 +842,7 @@ const strings = {
     'set.evpref':'Evidence','set.evpref.val':'Balanced','set.lang':'Report Lang',
     'set.lateral':'Lateral reading','set.lateral.val':'On',
     'inv.id.title':'Investigation','inv.id':'ID','inv.started':'Started',
-    'inv.mode':'Input Mode','inv.mode.text':'Text','inv.mode.image':'Image','inv.mode.url':'URL',
+    'inv.mode':'Input Mode','inv.mode.text':'Text','inv.mode.image':'Image','inv.mode.url':'URL','inv.mode.audio':'Audio',
     'complete.title':'Investigation Complete',
     'complete.sub':'EvidenceX has analyzed all claims, gathered evidence from credible sources, and produced a traceable verdict.',
     'cm.claims':'Claims','cm.sources':'Sources','cm.duration':'Duration',
@@ -848,7 +850,7 @@ const strings = {
     'err.title':'Investigation interrupted',
     'err.desc':'The evidence retrieval agent encountered a timeout while querying external sources. Your submitted claim and settings have been preserved.',
     'demo.label':'🧪 Demo — simulate investigation states:',
-    'demo.text':'Text Input','demo.image':'Image Input','demo.url':'URL Input',
+    'demo.text':'Text Input','demo.image':'Image Input','demo.url':'URL Input','demo.audio':'Audio Input',
     'demo.error':'Simulate Error','demo.reset':'↺ Reset',
     'step.1.name':'Input Analysis','step.1.desc':'Parsing submitted content and detecting language, structure, and input type.',
     'step.2.name':'Claim Extraction','step.2.desc':'Identifying discrete verifiable assertions within the input.',
@@ -866,9 +868,10 @@ const strings = {
     'nav.account':'खाता','nav.settings':'सेटिंग्स','role.analyst':'शोध विश्लेषक',
     'page.title':'EvidenceX जांच',
     'page.sub':'प्रस्तुत सामग्री का विश्लेषण किया जा रहा है और उपलब्ध साक्ष्य एकत्र किए जा रहे हैं।',
-    'preview.text':'पाठ सबमिशन','preview.image':'चित्र सबमिशन','preview.url':'URL सबमिशन',
+    'preview.text':'पाठ सबमिशन','preview.image':'चित्र सबमिशन','preview.url':'URL सबमिशन','preview.audio':'ऑडियो सबमिशन',
     'preview.meta.text':'अभी-अभी सबमिट किया गया','preview.meta.image':'छवि अपलोड हुई · विश्लेषण प्रतीक्षित',
     'preview.meta.url':'URL सामग्री निष्कर्षण के लिए कतार में है',
+    'preview.meta.audio':'ऑडियो भाषण अपलोड हुआ · 3 संभावित दावे मिले',
     'op.label':'जांच प्रगति',
     'op.status.running':'दावा निष्कर्षण जारी है',
     'op.status.complete':'जांच पूर्ण हुई',
@@ -883,7 +886,7 @@ const strings = {
     'set.evpref':'साक्ष्य','set.evpref.val':'संतुलित','set.lang':'रिपोर्ट भाषा',
     'set.lateral':'लेटरल रीडिंग','set.lateral.val':'चालू',
     'inv.id.title':'जांच','inv.id':'ID','inv.started':'शुरू हुआ',
-    'inv.mode':'इनपुट प्रकार','inv.mode.text':'पाठ','inv.mode.image':'छवि','inv.mode.url':'URL',
+    'inv.mode':'इनपुट प्रकार','inv.mode.text':'पाठ','inv.mode.image':'छवि','inv.mode.url':'URL','inv.mode.audio':'ऑडियो',
     'complete.title':'जांच पूर्ण हुई',
     'complete.sub':'EvidenceX ने सभी दावों का विश्लेषण किया, विश्वसनीय स्रोतों से साक्ष्य एकत्र किए, और एक पूर्ण व्याख्यात्मक निर्णय तैयार किया।',
     'cm.claims':'दावे','cm.sources':'स्रोत','cm.duration':'अवधि',
@@ -891,7 +894,7 @@ const strings = {
     'err.title':'जांच बाधित हुई',
     'err.desc':'साक्ष्य पुनर्प्राप्ति एजेंट को बाहरी स्रोत क्वेरी करते समय टाइमआउट मिला। आपका दावा और सेटिंग्स सुरक्षित हैं।',
     'demo.label':'🧪 डेमो — जांच अवस्था अनुकरण:',
-    'demo.text':'पाठ इनपुट','demo.image':'छवि इनपुट','demo.url':'URL इनपुट',
+    'demo.text':'पाठ इनपुट','demo.image':'छवि इनपुट','demo.url':'URL इनपुट','demo.audio':'ऑडियो इनपुट',
     'demo.error':'त्रुटि अनुकरण','demo.reset':'↺ रीसेट',
     'step.1.name':'इनपुट विश्लेषण','step.1.desc':'सबमिट की गई सामग्री को पार्स कर भाषा, संरचना और इनपुट प्रकार की पहचान।',
     'step.2.name':'दावा निष्कर्षण','step.2.desc':'इनपुट में स्वतंत्र रूप से सत्यापन योग्य दावों की पहचान।',
@@ -1265,21 +1268,29 @@ function runSimulation(withError=false, errorStep=4) {
 }
 
 /* ── Demo Controls ───────────────────────────────────── */
+let currentMode = 'text';
+
 function setupInput(mode) {
+  currentMode = mode;
   const icon = document.getElementById('previewIcon');
   const label = document.getElementById('previewLabel');
-  const content = document.getElementById('previewContent');
   const meta = document.getElementById('previewMeta');
   const modeLabel = document.getElementById('inputModeLabel');
+  const curContent = document.getElementById('previewContent');
+
+  // remove thumb if any
+  const oldThumb = document.getElementById('previewThumb');
+  if(oldThumb) oldThumb.remove();
 
   if(mode==='text') {
+    icon.style.display='';
     icon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--accent)" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>`;
-    // remove thumb
-    const old = document.getElementById('previewThumb');
-    if(old) old.remove();
     label.textContent = t('preview.text');
-    content.textContent = '"Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies."';
-    content.className = 'input-preview-content';
+    const newContent = document.createElement('div');
+    newContent.id = 'previewContent';
+    newContent.className = 'input-preview-content';
+    newContent.textContent = '"Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies published in major medical journals."';
+    curContent.replaceWith(newContent);
     meta.textContent = t('preview.meta.text');
     modeLabel.textContent = t('inv.mode.text');
   } else if(mode==='image') {
@@ -1287,7 +1298,6 @@ function setupInput(mode) {
     if(!document.getElementById('previewThumb')) {
       const thumb = document.createElement('div');
       thumb.id='previewThumb';thumb.className='input-preview-thumb';
-      // Draw a fake screenshot canvas
       const canvas = document.createElement('canvas');canvas.width=96;canvas.height=72;
       const ctx=canvas.getContext('2d');
       const dark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -1302,34 +1312,54 @@ function setupInput(mode) {
       thumb.appendChild(canvas);
       document.getElementById('inputPreview').insertBefore(thumb, document.getElementById('previewIcon').nextSibling);
     }
-    document.getElementById('previewIcon').style.display='none';
     label.textContent = t('preview.image');
-    content.className='input-preview-content';
-    content.textContent='screenshot-june12.png — social media post containing 2 claims';
+    const newContent = document.createElement('div');
+    newContent.id = 'previewContent';
+    newContent.className = 'input-preview-content';
+    newContent.textContent = 'screenshot-june12.png — social media post containing 2 claims';
+    curContent.replaceWith(newContent);
     meta.textContent = t('preview.meta.image');
     modeLabel.textContent = t('inv.mode.image');
   } else if(mode==='url') {
     icon.style.display='';
     icon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--accent)" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
-    const old = document.getElementById('previewThumb');
-    if(old) old.remove();
     label.textContent = t('preview.url');
     const urlDiv = document.createElement('div');
-    urlDiv.className='input-preview-url';urlDiv.textContent='https://www.who.int/news-room/fact-sheets/detail/depression';
-    content.replaceWith(urlDiv);
-    content.id='previewContent';
+    urlDiv.id='previewContent';
+    urlDiv.className='input-preview-url';
+    urlDiv.textContent='https://www.who.int/news-room/fact-sheets/detail/depression';
+    curContent.replaceWith(urlDiv);
     meta.textContent = t('preview.meta.url');
     modeLabel.textContent = t('inv.mode.url');
+  } else if(mode==='audio') {
+    icon.style.display='';
+    icon.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--accent)" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+    label.textContent = t('preview.audio');
+    const audioWrap = document.createElement('div');
+    audioWrap.id = 'previewContent';
+    audioWrap.className = 'input-preview-content';
+    audioWrap.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div><strong>statement_briefing_2026.mp3</strong> (2.4 MB · 0:48 duration) — <em>Press briefing recording on economic indicators</em></div>
+        <audio controls style="height:32px;width:100%;max-width:380px;border-radius:16px;" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio>
+      </div>`;
+    curContent.replaceWith(audioWrap);
+    meta.textContent = t('preview.meta.audio');
+    modeLabel.textContent = t('inv.mode.audio');
   }
 }
 
-function resetAll() {
+function resetAll(mode='text') {
   if(simTimer) simTimer.forEach(c=>clearTimeout(c)); simTimer=[];
   investigationDone=false; investigationError=false;
   elapsedSeconds=3;
   stepStatuses=['complete','running','pending','pending','pending','pending','pending'];
   stats={claims:0,sources:0,supporting:0,contradicting:0,inconclusive:0};
-  events=[{ agent:'Input Agent', msg:'Content parsed successfully. Input type: Text. Language: English. Length: 187 characters.', icon:'info', time:'14:20:22' }];
+  const initMsg = mode==='audio'
+    ? 'Audio file loaded: statement_briefing_2026.mp3 (0:48). Transcribed using Whisper ASR with confidence 98.4%.'
+    : 'Content parsed successfully. Input type: Text. Language: English. Length: 187 characters.';
+  const initAgent = mode==='audio' ? 'Speech-to-Text Agent' : 'Input Agent';
+  events=[{ agent:initAgent, msg:initMsg, icon:'ok', time:'14:20:22' }];
   document.getElementById('completeCard').classList.remove('visible');
   document.getElementById('errorBanner').classList.remove('visible');
   document.getElementById('statusDot').className='op-status-dot dot-run';
@@ -1340,14 +1370,15 @@ function resetAll() {
   renderPipeline(); renderActivity(); updateStats();
 }
 
-document.getElementById('demoText').onclick=()=>{ resetAll(); setupInput('text'); runSimulation(); };
-document.getElementById('demoImage').onclick=()=>{ resetAll(); setupInput('image'); runSimulation(); };
-document.getElementById('demoUrl').onclick=()=>{ resetAll(); setupInput('url'); runSimulation(); };
-document.getElementById('demoError').onclick=()=>{ resetAll(); setupInput('text'); runSimulation(true); };
-document.getElementById('demoReset').onclick=()=>{ resetAll(); setupInput('text'); };
+document.getElementById('demoText').onclick=()=>{ resetAll('text'); setupInput('text'); runSimulation(); };
+document.getElementById('demoImage').onclick=()=>{ resetAll('image'); setupInput('image'); runSimulation(); };
+document.getElementById('demoUrl').onclick=()=>{ resetAll('url'); setupInput('url'); runSimulation(); };
+document.getElementById('demoAudio').onclick=()=>{ resetAll('audio'); setupInput('audio'); runSimulation(); };
+document.getElementById('demoError').onclick=()=>{ resetAll(currentMode); setupInput(currentMode); runSimulation(true); };
+document.getElementById('demoReset').onclick=()=>{ resetAll(currentMode); setupInput(currentMode); };
 document.getElementById('retryBtn').onclick=()=>{
   document.getElementById('errorBanner').classList.remove('visible');
-  resetAll(); setupInput('text'); runSimulation();
+  resetAll(currentMode); setupInput(currentMode); runSimulation();
 };
 
 /* ── Mobile Sidebar ──────────────────────────────────── */
@@ -1363,6 +1394,20 @@ sbOverlay.onclick=()=>{
 
 /* ── Init ────────────────────────────────────────────── */
 (function init(){
+  const params = new URLSearchParams(window.location.search);
+  const typeParam = params.get('type') || params.get('mode');
+  if (typeParam === 'audio') {
+    resetAll('audio');
+    setupInput('audio');
+  } else if (typeParam === 'image') {
+    resetAll('image');
+    setupInput('image');
+  } else if (typeParam === 'url') {
+    resetAll('url');
+    setupInput('url');
+  } else {
+    resetAll('text');
+  }
   renderPipeline();
   renderActivity();
   updateStats();

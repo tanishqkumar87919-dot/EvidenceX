@@ -366,7 +366,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="meta-sep"></div>
       <div class="meta-item">
         <span class="meta-lbl" data-i18n="meta.input">Input</span>
-        <span class="meta-val" data-i18n="meta.input.text">Text</span>
+        <span class="meta-val" id="metaInputVal" data-i18n="meta.input.text">Text</span>
       </div>
       <div class="meta-sep"></div>
       <div class="meta-item">
@@ -380,6 +380,65 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div style="margin-left:auto;">
         <span class="status-chip" data-i18n="meta.status">Investigation Complete</span>
+      </div>
+    </div>
+
+    <!-- ── Audio Transcript (Shown when input modality is Audio) ────────────────── -->
+    <div id="audioTranscriptSection" style="display:none;margin-bottom:24px;">
+      <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span data-i18n="sec.transcript">Audio Recording & Transcript</span>
+        <span class="demo-tag" style="font-size:10.5px;padding:2px 8px;border-radius:12px;background:var(--accent-sub);color:var(--accent);border:1px solid rgba(28,78,158,.15);" data-i18n="transcript.badge">Whisper ASR Preview</span>
+      </div>
+      <div class="panel" style="padding:18px 22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--text);" id="audioFileName">statement_briefing_2026.mp3</div>
+              <div style="font-size:12px;color:var(--text3);" data-i18n="transcript.meta">Duration: 0:48 · Sample Rate: 16 kHz · Language: English (auto-detected)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-sm" id="toggleTranscriptStateBtn" type="button" style="font-size:11.5px;">
+              <svg viewBox="0 0 24 24" width="12" height="12"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span id="toggleTranscriptStateLabel" data-i18n="transcript.toggle">Toggle Fallback State</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Audio Player Bar -->
+        <div style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 14px;">
+          <audio controls style="width:100%;height:36px;outline:none;" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio>
+        </div>
+
+        <!-- Active Transcribed Content -->
+        <div id="transcriptContentBlock">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:14px;padding:8px 12px;border-radius:var(--r-sm);background:var(--surface2);border-left:3px solid var(--accent);">
+              <span style="font-family:monospace;font-size:11.5px;color:var(--accent);font-weight:600;flex-shrink:0;margin-top:2px;">[00:02 – 00:14]</span>
+              <p style="margin:0;font-size:13.5px;color:var(--text);line-height:1.5;">"In our preliminary review of macroeconomic trends, consumer spending contracted by approximately two point four percent across regional retail sectors."</p>
+            </div>
+            <div style="display:flex;gap:14px;padding:8px 12px;border-radius:var(--r-sm);background:var(--surface2);border-left:3px solid var(--ok);">
+              <span style="font-family:monospace;font-size:11.5px;color:var(--ok);font-weight:600;flex-shrink:0;margin-top:2px;">[00:15 – 00:29]</span>
+              <p style="margin:0;font-size:13.5px;color:var(--text);line-height:1.5;">"However, core headline inflation has fallen within the target three to five percent tolerance corridor for the second consecutive quarter."</p>
+            </div>
+            <div style="display:flex;gap:14px;padding:8px 12px;border-radius:var(--r-sm);background:var(--surface2);border-left:3px solid var(--neutral);">
+              <span style="font-family:monospace;font-size:11.5px;color:var(--text3);font-weight:600;flex-shrink:0;margin-top:2px;">[00:30 – 00:46]</span>
+              <p style="margin:0;font-size:13.5px;color:var(--text);line-height:1.5;">"Consequently, committee members unanimously agreed to maintain current policy lending benchmarks through the remainder of the fiscal year."</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fallback "Awaiting transcription" State (Togglable) -->
+        <div id="transcriptFallbackBlock" style="display:none;padding:24px 16px;text-align:center;background:var(--surface2);border-radius:var(--r-sm);border:1px dashed var(--border-s);">
+          <div style="width:36px;height:36px;margin:0 auto 10px;border-radius:50%;background:var(--warn-bg);display:flex;align-items:center;justify-content:center;color:var(--warn);">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          </div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);" data-i18n="transcript.awaiting.title">Audio Transcription Pending</div>
+          <div style="font-size:12px;color:var(--text3);max-width:420px;margin:4px auto 0;" data-i18n="transcript.awaiting.desc">Speech-to-Text pipeline is processing audio segments. Claims below are based on preliminary acoustic metadata.</div>
+        </div>
       </div>
     </div>
 
@@ -611,12 +670,17 @@ const S = {
     'nav.copilot':'AI Copilot','nav.account':'Account','nav.settings':'Settings',
     'role.analyst':'Research Analyst',
     'page.title':'Verification Results','page.sub':'Investigation INV-2026-0847 · Completed',
-    'meta.id':'ID','meta.date':'Date','meta.input':'Input','meta.input.text':'Text',
+    'meta.id':'ID','meta.date':'Date','meta.input':'Input','meta.input.text':'Text','meta.input.audio':'Audio',
     'meta.depth':'Depth','meta.depth.val':'Standard','meta.time':'Processing',
     'meta.status':'Investigation Complete',
     'sec.assessment':'Overall Assessment','sec.claims':'Claim Summary',
     'sec.evidence':'Evidence Overview','sec.graph':'Evidence Conflict Graph',
-    'sec.explain':'AI Explanation',
+    'sec.explain':'AI Explanation','sec.transcript':'Audio Recording & Transcript',
+    'transcript.badge':'Whisper ASR Preview',
+    'transcript.meta':'Duration: 0:48 · Sample Rate: 16 kHz · Language: English (auto-detected)',
+    'transcript.toggle':'Toggle Fallback State',
+    'transcript.awaiting.title':'Audio Transcription Pending',
+    'transcript.awaiting.desc':'Speech-to-Text pipeline is processing audio segments. Claims below are based on preliminary acoustic metadata.',
     'assess.verdict.label':'Overall Verdict',
     'assess.verdict':'Mostly Supported','assess.verdict.scope':'The core claim is substantiated by credible sources. One sub-claim lacks sufficient evidence to verify.',
     'assess.verdict.tag':'Evidence-backed',
@@ -651,12 +715,17 @@ const S = {
     'nav.copilot':'AI सहायक','nav.account':'खाता','nav.settings':'सेटिंग्स',
     'role.analyst':'शोध विश्लेषक',
     'page.title':'सत्यापन परिणाम','page.sub':'जांच INV-2026-0847 · पूर्ण',
-    'meta.id':'ID','meta.date':'दिनांक','meta.input':'इनपुट','meta.input.text':'पाठ',
+    'meta.id':'ID','meta.date':'दिनांक','meta.input':'इनपुट','meta.input.text':'पाठ','meta.input.audio':'ऑडियो',
     'meta.depth':'गहराई','meta.depth.val':'मानक','meta.time':'प्रसंस्करण',
     'meta.status':'जांच पूर्ण',
     'sec.assessment':'समग्र मूल्यांकन','sec.claims':'दावा सारांश',
     'sec.evidence':'साक्ष्य अवलोकन','sec.graph':'साक्ष्य संघर्ष ग्राफ',
-    'sec.explain':'AI व्याख्या',
+    'sec.explain':'AI व्याख्या','sec.transcript':'ऑडियो रिकॉर्डिंग एवं प्रतिलेखन',
+    'transcript.badge':'व्हिस्पर ASR पूर्वावलोकन',
+    'transcript.meta':'अवधि: 0:48 · नमूना दर: 16 kHz · भाषा: अंग्रेज़ी (स्वतः पहचानी गई)',
+    'transcript.toggle':'फ़ॉलबैक स्थिति बदलें',
+    'transcript.awaiting.title':'ऑडियो प्रतिलेखन प्रतीक्षित',
+    'transcript.awaiting.desc':'वाक-से-पाठ पाइपलाइन ऑडियो खंडों को प्रोसेस कर रही है। नीचे दिए गए दावे प्राथमिक ध्वनिक मेटाडेटा पर आधारित हैं।',
     'assess.verdict.label':'समग्र निर्णय',
     'assess.verdict':'अधिकांशतः समर्थित','assess.verdict.scope':'मूल दावे को विश्वसनीय स्रोतों से पुष्टि मिलती है। एक उप-दावे के लिए पर्याप्त साक्ष्य उपलब्ध नहीं है।',
     'assess.verdict.tag':'साक्ष्य-आधारित',
@@ -988,7 +1057,37 @@ sbOv.onclick=()=>{
   sbOv.classList.remove('visible');
 };
 
+/* ── Audio Transcript Logic ──────────────────────── */
+let transcriptFallbackActive = false;
+const toggleBtn = document.getElementById('toggleTranscriptStateBtn');
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', () => {
+    transcriptFallbackActive = !transcriptFallbackActive;
+    const contentBlock = document.getElementById('transcriptContentBlock');
+    const fallbackBlock = document.getElementById('transcriptFallbackBlock');
+    if (contentBlock && fallbackBlock) {
+      contentBlock.style.display = transcriptFallbackActive ? 'none' : 'block';
+      fallbackBlock.style.display = transcriptFallbackActive ? 'block' : 'none';
+    }
+  });
+}
+
+function checkAudioMode() {
+  const params = new URLSearchParams(window.location.search);
+  const typeParam = params.get('type') || params.get('mode');
+  if (typeParam === 'audio') {
+    const sec = document.getElementById('audioTranscriptSection');
+    if (sec) sec.style.display = 'block';
+    const inputVal = document.getElementById('metaInputVal');
+    if (inputVal) {
+      inputVal.setAttribute('data-i18n', 'meta.input.audio');
+      inputVal.textContent = t('meta.input.audio');
+    }
+  }
+}
+
 /* ── Init ─────────────────────────────────────────── */
+checkAudioMode();
 renderClaims();
 renderExplanation();
 renderGraph();

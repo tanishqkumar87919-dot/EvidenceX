@@ -642,9 +642,15 @@
 
     .multimodal-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 18px;
       margin-top: 44px;
+    }
+
+    @media (max-width: 1080px) {
+      .multimodal-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .input-card {
@@ -1381,6 +1387,16 @@
         <div class="input-card-title">URL Submission</div>
         <div class="input-card-desc">Submit a link to a web article, news story, or post. EvidenceX fetches, parses, and fact-checks the content automatically.</div>
         <div class="input-card-tag">articles · news · web pages</div>
+      </div>
+
+      <!-- Audio -->
+      <div class="input-card reveal">
+        <div class="input-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <div class="input-card-title">Audio &amp; Speech</div>
+        <div class="input-card-desc">Upload audio recordings or record statements directly. Speech-to-text transcribes spoken content and isolates factual claims.</div>
+        <div class="input-card-tag">podcasts · press briefings · recordings</div>
       </div>
 
     </div>

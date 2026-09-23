@@ -449,6 +449,133 @@ body {
 }
 .img-preview-remove:hover{background:var(--warn-bg);}
 
+/* ── Audio Upload & Recording ────────────────────────── */
+.audio-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media(max-width: 680px) {
+  .audio-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.audio-input-card {
+  border: 1.5px dashed var(--border-s);
+  border-radius: var(--r-lg);
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--surface2);
+  transition: all var(--t);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+.audio-input-card:hover, .audio-input-card.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-sub);
+}
+.audio-input-card input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.audio-rec-indicator {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 14px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #dc2626;
+}
+[data-theme="dark"] .audio-rec-indicator {
+  background: rgba(220, 38, 38, 0.16);
+  color: #f87171;
+}
+.audio-rec-indicator.active {
+  display: inline-flex;
+}
+.rec-pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+[data-theme="dark"] .rec-pulse-dot { background: #f87171; }
+@keyframes pulse-dot {
+  0% { transform: scale(0.85); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.6; }
+}
+
+/* Audio Preview Container */
+.audio-preview {
+  display: none;
+  background: var(--surface2);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.audio-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.audio-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.audio-preview-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-md);
+  background: var(--accent-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+.audio-preview-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.audio-preview-sub {
+  font-size: 11.5px;
+  color: var(--text3);
+}
+.audio-player-wrap {
+  width: 100%;
+  margin-top: 10px;
+}
+.audio-player-wrap audio {
+  width: 100%;
+  height: 40px;
+  outline: none;
+  border-radius: 20px;
+}
+.audio-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ── URL Input ───────────────────────────────────────── */
 .url-row{display:flex;gap:10px;align-items:stretch;}
 
@@ -910,6 +1037,10 @@ body {
             <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             <span data-i18n="tab.url">URL</span>
           </button>
+          <button class="tab" role="tab" data-tab="audio" aria-selected="false">
+            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <span data-i18n="tab.audio">Audio</span>
+          </button>
         </div>
 
         <!-- TEXT Panel -->
@@ -1025,6 +1156,106 @@ body {
           </div>
           <div class="url-note" data-i18n="url.note">EvidenceX will fetch and parse the page content, extract all verifiable claims, and run the full verification pipeline.</div>
         </div>
+
+        <!-- AUDIO Panel -->
+        <div class="tab-panel" id="panel-audio">
+          <div class="audio-card-grid" id="audioSelectionGrid">
+            <!-- Option 1: Upload Audio -->
+            <div class="audio-input-card drop-zone" id="audioDropZone">
+              <input type="file" id="audioFileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.webm" aria-label="Upload audio"/>
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              </div>
+              <div class="drop-title" data-i18n="audio.upload.title">Upload Audio File</div>
+              <div class="drop-sub" data-i18n="audio.upload.sub">MP3, WAV, M4A, OGG, AAC, or WEBM (Max 25 MB).</div>
+              <div class="drop-btns">
+                <button class="btn btn-primary btn-sm" id="chooseAudioBtn" type="button">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span data-i18n="audio.choose">Choose Audio</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" id="useSampleAudioBtn" type="button" data-i18n="audio.sample">Use Sample Audio</button>
+              </div>
+            </div>
+
+            <!-- Option 2: Record Audio -->
+            <div class="audio-input-card" id="audioRecordCard">
+              <div class="drop-icon" id="micIconBox">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </div>
+              <div class="drop-title" data-i18n="audio.record.title">Record Audio</div>
+              <div class="drop-sub" data-i18n="audio.record.sub">Record a statement or soundbite directly from your microphone.</div>
+              <div class="drop-btns" id="recBtnContainer">
+                <button class="btn btn-primary btn-sm" id="startRecordBtn" type="button">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>
+                  <span data-i18n="audio.record.btn">Record Audio</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" id="stopRecordBtn" type="button" style="display:none; color:#dc2626; border-color:rgba(220,38,38,0.3);">
+                  <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                  <span data-i18n="audio.stop.btn">Stop Recording</span>
+                </button>
+              </div>
+              <div class="audio-rec-indicator" id="recIndicator">
+                <span class="rec-pulse-dot"></span>
+                <span data-i18n="audio.rec.active">Recording...</span>
+                <span id="recTimer" style="font-variant-numeric:tabular-nums; margin-left:4px;">00:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audio Preview Section -->
+          <div class="audio-preview" id="audioPreview">
+            <div class="audio-preview-header">
+              <div class="audio-preview-meta">
+                <div class="audio-preview-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+                <div>
+                  <div class="audio-preview-name" id="audioPreviewName">audio_sample.mp3</div>
+                  <div class="audio-preview-sub" id="audioPreviewSub">2.4 MB · Ready for verification</div>
+                </div>
+              </div>
+              <div class="audio-preview-actions">
+                <button class="btn btn-ghost btn-sm" id="replaceAudioBtn" type="button" data-i18n="audio.replace">Replace</button>
+                <button class="img-preview-remove" id="removeAudioBtn" type="button" data-i18n="btn.remove">Remove</button>
+              </div>
+            </div>
+            <div class="audio-player-wrap">
+              <audio id="audioPlayer" controls style="width:100%;"></audio>
+            </div>
+          </div>
+
+          <!-- Alerts -->
+          <div class="alert alert-warn" id="alert-no-audio" hidden>
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span data-i18n="alert.no-audio">Please upload or record an audio file before starting verification.</span>
+          </div>
+          <div class="alert alert-warn" id="alert-mic-denied" hidden>
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span data-i18n="alert.mic-denied">Microphone access was denied or is unavailable in this browser.</span>
+          </div>
+          <div class="alert alert-warn" id="alert-audio-format" hidden>
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span data-i18n="alert.audio-format">Unsupported audio format. Please upload MP3, WAV, M4A, OGG, AAC, or WEBM.</span>
+          </div>
+
+          <!-- Bottom Context & Action Row -->
+          <div class="input-row" style="margin-top:14px;">
+            <div class="context-group">
+              <label class="field-label" for="audioContextInput" data-i18n="audio.context.label">Speaker / Speech Context (optional)</label>
+              <input
+                class="context-input"
+                id="audioContextInput"
+                type="text"
+                data-i18n-placeholder="audio.context.placeholder"
+                placeholder="e.g. Press conference, interview, podcast episode, voicemail"
+              />
+            </div>
+            <button class="btn btn-primary" id="startVerifyAudio">
+              <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+              <span data-i18n="btn.verifyAudio">Verify Audio</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Processing Overlay Panel -->
@@ -1034,6 +1265,10 @@ body {
           <div class="processing-title" data-i18n="proc.title">Investigating your claim…</div>
           <div class="processing-sub" data-i18n="proc.sub">This may take 15–30 seconds depending on verification depth.</div>
           <div class="processing-steps">
+            <div class="proc-step" id="pstep-0" style="display:none;">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              <span data-i18n="proc.step0">Transcribing speech to text…</span>
+            </div>
             <div class="proc-step" id="pstep-1">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
               <span data-i18n="proc.step1">Extracting claims…</span>
@@ -1064,7 +1299,7 @@ body {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span class="wnext-header-text" data-i18n="wnext.title">What happens next</span>
         </div>
-        <div class="wnext-steps">
+        <div class="wnext-steps" id="wnextSteps">
           <div class="wnext-step">
             <div class="wnext-num">01</div>
             <div>
@@ -1149,6 +1384,20 @@ body {
               <span class="example-conf">94%</span>
               <div class="mini-bar"><div class="mini-fill fill-warn" style="width:94%"></div></div>
               <span class="example-src-count">12 sources</span>
+              <button class="use-example-btn" data-i18n="btn.use">Use →</button>
+            </div>
+          </div>
+
+          <div class="example-card" data-example="press_briefing_statement_audio.mp3" data-target-tab="audio">
+            <div class="example-card-top">
+              <span class="example-mode-tag">Audio</span>
+              <span class="example-verdict-badge ev-supported">Supported</span>
+            </div>
+            <div class="example-claim">Press briefing recording: "Central bank announces phased reserve ratio reductions starting Q3."</div>
+            <div class="example-footer">
+              <span class="example-conf">91%</span>
+              <div class="mini-bar"><div class="mini-fill fill-ok" style="width:91%"></div></div>
+              <span class="example-src-count">14 sources</span>
               <button class="use-example-btn" data-i18n="btn.use">Use →</button>
             </div>
           </div>
@@ -1265,7 +1514,7 @@ const i18n = {
     'role.analyst':'Research Analyst',
     'page.title':'Verification Center',
     'page.sub':'Submit a claim, screenshot, or URL and let EvidenceX investigate the available evidence.',
-    'tab.text':'Text','tab.image':'Image','tab.url':'URL',
+    'tab.text':'Text','tab.image':'Image','tab.url':'URL','tab.audio':'Audio',
     'text.label':'Claim or Content',
     'text.placeholder':'Paste a claim, statement, article excerpt, or social media post…',
     'text.context':'Context (optional)',
@@ -1275,6 +1524,19 @@ const i18n = {
     'url.label':'Article or Webpage URL',
     'url.placeholder':'https://example.com/article',
     'url.note':'EvidenceX will fetch and parse the page content, extract all verifiable claims, and run the full verification pipeline.',
+    'audio.upload.title':'Upload Audio File',
+    'audio.upload.sub':'MP3, WAV, M4A, OGG, AAC, or WEBM (Max 25 MB).',
+    'audio.choose':'Choose Audio',
+    'audio.sample':'Use Sample Audio',
+    'audio.record.title':'Record Audio',
+    'audio.record.sub':'Record a statement or soundbite directly from your microphone.',
+    'audio.record.btn':'Record Audio',
+    'audio.stop.btn':'Stop Recording',
+    'audio.rec.active':'Recording...',
+    'audio.replace':'Replace',
+    'audio.context.label':'Speaker / Speech Context (optional)',
+    'audio.context.placeholder':'e.g. Press conference, interview, podcast episode, voicemail',
+    'btn.verifyAudio':'Verify Audio',
     'btn.start':'Start Verification','btn.analyze':'Analyze URL',
     'btn.choose':'Choose Image','btn.sample':'Use Sample',
     'btn.remove':'Remove','btn.use':'Use →',
@@ -1282,13 +1544,18 @@ const i18n = {
     'alert.api':'Something went wrong on our end. Please try again in a moment.',
     'alert.success':'Claim submitted — redirecting to investigation…',
     'alert.no-img':'Please upload an image before starting verification.',
+    'alert.no-audio':'Please upload or record an audio file before starting verification.',
+    'alert.mic-denied':'Microphone access was denied or is unavailable in this browser.',
+    'alert.audio-format':'Unsupported audio format. Please upload MP3, WAV, M4A, OGG, AAC, or WEBM.',
     'alert.url':'Please enter a valid URL starting with https://',
     'proc.title':'Investigating your claim…',
     'proc.sub':'This may take 15–30 seconds depending on verification depth.',
+    'proc.step0':'Transcribing speech to text…',
     'proc.step1':'Extracting claims…','proc.step2':'Decomposing sub-claims…',
     'proc.step3':'Retrieving evidence sources…','proc.step4':'Running verification…',
     'proc.step5':'Generating explainable report…',
     'wnext.title':'What happens next',
+    'wnext.s0':'Speech-to-Text','wnext.s0d':'Transcribes audio into text',
     'wnext.s1':'Claim Extraction','wnext.s1d':'Isolates verifiable assertions',
     'wnext.s2':'Decomposition','wnext.s2d':'Breaks claims into sub-facts',
     'wnext.s3':'Evidence Retrieval','wnext.s3d':'Searches credible sources',
@@ -1319,8 +1586,8 @@ const i18n = {
     'nav.account':'खाता','nav.settings':'सेटिंग्स',
     'role.analyst':'शोध विश्लेषक',
     'page.title':'सत्यापन केंद्र',
-    'page.sub':'कोई दावा, स्क्रीनशॉट या URL सबमिट करें और EvidenceX को उपलब्ध साक्ष्य की जांच करने दें।',
-    'tab.text':'पाठ','tab.image':'चित्र','tab.url':'URL',
+    'page.sub':'कोई दावा, स्क्रीनशॉट, URL या ऑडियो सबमिट करें और EvidenceX को उपलब्ध साक्ष्य की जांच करने दें।',
+    'tab.text':'पाठ','tab.image':'चित्र','tab.url':'URL','tab.audio':'ऑडियो',
     'text.label':'दावा या सामग्री',
     'text.placeholder':'कोई दावा, कथन, लेख का अंश या सोशल मीडिया पोस्ट यहाँ पेस्ट करें…',
     'text.context':'संदर्भ (वैकल्पिक)',
@@ -1330,6 +1597,19 @@ const i18n = {
     'url.label':'लेख या वेबपेज URL',
     'url.placeholder':'https://example.com/article',
     'url.note':'EvidenceX पृष्ठ की सामग्री प्राप्त कर सत्यापन योग्य सभी दावों की जांच करेगा।',
+    'audio.upload.title':'ऑडियो फ़ाइल अपलोड करें',
+    'audio.upload.sub':'MP3, WAV, M4A, OGG, AAC, या WEBM (अधिकतम 25 MB)।',
+    'audio.choose':'ऑडियो चुनें',
+    'audio.sample':'नमूना ऑडियो उपयोग करें',
+    'audio.record.title':'ऑडियो रिकॉर्ड करें',
+    'audio.record.sub':'सीधे अपने माइक्रोफ़ोन से बयान या ऑडियो क्लिप रिकॉर्ड करें।',
+    'audio.record.btn':'ऑडियो रिकॉर्ड करें',
+    'audio.stop.btn':'रिकॉर्डिंग रोकें',
+    'audio.rec.active':'रिकॉर्डिंग चालू...',
+    'audio.replace':'बदलें',
+    'audio.context.label':'वक्ता / भाषण संदर्भ (वैकल्पिक)',
+    'audio.context.placeholder':'जैसे प्रेस वार्ता, साक्षात्कार, पॉडकास्ट, वॉइसमेल',
+    'btn.verifyAudio':'ऑडियो सत्यापित करें',
     'btn.start':'सत्यापन शुरू करें','btn.analyze':'URL विश्लेषण करें',
     'btn.choose':'छवि चुनें','btn.sample':'नमूना उपयोग करें',
     'btn.remove':'हटाएं','btn.use':'उपयोग करें →',
@@ -1337,13 +1617,18 @@ const i18n = {
     'alert.api':'हमारी तरफ से कुछ गड़बड़ हो गई। कृपया थोड़ी देर बाद पुनः प्रयास करें।',
     'alert.success':'दावा सबमिट हुआ — जांच पृष्ठ पर जा रहे हैं…',
     'alert.no-img':'सत्यापन शुरू करने से पहले कोई छवि अपलोड करें।',
+    'alert.no-audio':'सत्यापन शुरू करने से पहले कृपया एक ऑडियो फ़ाइल अपलोड या रिकॉर्ड करें।',
+    'alert.mic-denied':'माइक्रोफ़ोन अनुमति अस्वीकृत या इस ब्राउज़र में अनुपलब्ध है।',
+    'alert.audio-format':'असमर्थित ऑडियो प्रारूप। कृपया MP3, WAV, M4A, OGG, AAC, या WEBM अपलोड करें।',
     'alert.url':'कृपया https:// से शुरू होने वाला वैध URL दर्ज करें।',
     'proc.title':'आपके दावे की जांच हो रही है…',
     'proc.sub':'सत्यापन गहराई के अनुसार इसमें 15–30 सेकंड लग सकते हैं।',
+    'proc.step0':'वाक-से-पाठ (Speech-to-Text) प्रतिलेखन…',
     'proc.step1':'दावे निकाले जा रहे हैं…','proc.step2':'उप-दावों में विभाजित किया जा रहा है…',
     'proc.step3':'साक्ष्य स्रोत खोजे जा रहे हैं…','proc.step4':'सत्यापन चल रहा है…',
     'proc.step5':'व्याख्यात्मक रिपोर्ट बनाई जा रही है…',
     'wnext.title':'आगे क्या होगा',
+    'wnext.s0':'वाक-से-पाठ','wnext.s0d':'ऑडियो भाषण का पाठ में प्रतिलेखन',
     'wnext.s1':'दावा निष्कर्षण','wnext.s1d':'सत्यापन योग्य कथन अलग किए जाते हैं',
     'wnext.s2':'विघटन','wnext.s2d':'दावों को उप-तथ्यों में तोड़ा जाता है',
     'wnext.s3':'साक्ष्य पुनर्प्राप्ति','wnext.s3d':'विश्वसनीय स्रोतों में खोज',
@@ -1419,13 +1704,106 @@ document.getElementById('themeToggle').onclick=()=>{
 })();
 document.getElementById('langSelect').onchange=function(){applyLang(this.value);};
 
+// ── Active Tab & Pipeline State ────────────────────────
+let currentTab = 'text';
+
+function renderWNext(tab) {
+  const container = document.getElementById('wnextSteps');
+  if (!container) return;
+  if (tab === 'audio') {
+    container.innerHTML = `
+      <div class="wnext-step">
+        <div class="wnext-num">01</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s0">${t('wnext.s0')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s0d">${t('wnext.s0d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">02</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s1">${t('wnext.s1')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s1d">${t('wnext.s1d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">03</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s2">${t('wnext.s2')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s2d">${t('wnext.s2d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">04</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s3">${t('wnext.s3')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s3d">${t('wnext.s3d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">05</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s4">${t('wnext.s4')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s4d">${t('wnext.s4d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">06</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s5">${t('wnext.s5')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s5d">${t('wnext.s5d')}</div>
+        </div>
+      </div>`;
+  } else {
+    container.innerHTML = `
+      <div class="wnext-step">
+        <div class="wnext-num">01</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s1">${t('wnext.s1')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s1d">${t('wnext.s1d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">02</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s2">${t('wnext.s2')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s2d">${t('wnext.s2d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">03</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s3">${t('wnext.s3')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s3d">${t('wnext.s3d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">04</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s4">${t('wnext.s4')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s4d">${t('wnext.s4d')}</div>
+        </div>
+      </div>
+      <div class="wnext-step">
+        <div class="wnext-num">05</div>
+        <div>
+          <div class="wnext-step-title" data-i18n="wnext.s5">${t('wnext.s5')}</div>
+          <div class="wnext-step-sub" data-i18n="wnext.s5d">${t('wnext.s5d')}</div>
+        </div>
+      </div>`;
+  }
+}
+
 // ── Tabs ───────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    currentTab = tab.dataset.tab;
+    const panel = document.getElementById('panel-'+currentTab);
+    if(panel) panel.classList.add('active');
+    renderWNext(currentTab);
     hideAllAlerts();
   });
 });
@@ -1435,8 +1813,10 @@ function activateTab(tabName){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   const t=document.querySelector(`.tab[data-tab="${tabName}"]`);
   if(t)t.classList.add('active');
+  currentTab = tabName;
   const p=document.getElementById('panel-'+tabName);
   if(p)p.classList.add('active');
+  renderWNext(tabName);
   hideAllAlerts();
 }
 
@@ -1460,21 +1840,29 @@ function showAlert(id){
 }
 
 // ── Processing Simulation ──────────────────────────────
-function runProcessingSimulation(cb){
+function runProcessingSimulation(cb, isAudio=false){
   const panel=document.getElementById('processingPanel');
   panel.style.display='block';
-  const steps=['pstep-1','pstep-2','pstep-3','pstep-4','pstep-5'];
+  const p0 = document.getElementById('pstep-0');
+  if(p0) p0.style.display = isAudio ? 'flex' : 'none';
+  const steps = isAudio
+    ? ['pstep-0','pstep-1','pstep-2','pstep-3','pstep-4','pstep-5']
+    : ['pstep-1','pstep-2','pstep-3','pstep-4','pstep-5'];
   steps.forEach(s=>{
     const el=document.getElementById(s);
-    el.classList.remove('done','active');
+    if(el) el.classList.remove('done','active');
   });
   let i=0;
   function next(){
-    if(i>0)document.getElementById(steps[i-1]).classList.replace('active','done');
+    if(i>0){
+      const prev = document.getElementById(steps[i-1]);
+      if(prev) prev.classList.replace('active','done');
+    }
     if(i<steps.length){
-      document.getElementById(steps[i]).classList.add('active');
+      const curr = document.getElementById(steps[i]);
+      if(curr) curr.classList.add('active');
       i++;
-      setTimeout(next,1100);
+      setTimeout(next, isAudio ? 900 : 1100);
     } else {
       setTimeout(()=>{
         panel.style.display='none';
@@ -1596,6 +1984,234 @@ document.getElementById('startVerifyUrl').onclick=()=>{
 };
 document.getElementById('urlInput').addEventListener('input',()=>document.getElementById('urlInput').classList.remove('error'));
 
+// ── Start Verify — Audio ───────────────────────────────
+let audioUploaded = false;
+let currentAudioFile = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recTimerInterval = null;
+let recSeconds = 0;
+
+function createSampleAudioBlob() {
+  const sampleRate = 16000;
+  const duration = 2.5;
+  const numSamples = Math.floor(sampleRate * duration);
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  function writeStr(offset, str) {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // Mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    const freq = 440 + Math.sin(t * 3) * 30;
+    const sample = Math.sin(2 * Math.PI * freq * t) * Math.exp(-t * 0.7) * 0.35;
+    const intSample = Math.max(-1, Math.min(1, sample)) * 0x7fff;
+    view.setInt16(44 + i * 2, intSample, true);
+  }
+  return new Blob([view], { type: 'audio/wav' });
+}
+
+function setAudioPreview(file, blobOverride = null) {
+  if (!file) return;
+  currentAudioFile = file;
+  const player = document.getElementById('audioPlayer');
+  const blob = blobOverride || file;
+  player.src = URL.createObjectURL(blob);
+  document.getElementById('audioPreviewName').textContent = file.name;
+  const kb = Math.round(file.size / 1024);
+  const sizeStr = kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB';
+  document.getElementById('audioPreviewSub').textContent = `${sizeStr} · Ready for verification`;
+  document.getElementById('audioPreview').style.display = 'block';
+  document.getElementById('audioSelectionGrid').style.display = 'none';
+  audioUploaded = true;
+  hideAllAlerts();
+}
+
+function removeAudio() {
+  const player = document.getElementById('audioPlayer');
+  if (player) {
+    player.pause();
+    player.src = '';
+  }
+  document.getElementById('audioPreview').style.display = 'none';
+  document.getElementById('audioSelectionGrid').style.display = 'grid';
+  document.getElementById('audioFileInput').value = '';
+  currentAudioFile = null;
+  audioUploaded = false;
+  hideAllAlerts();
+}
+
+const audioFileInput = document.getElementById('audioFileInput');
+const audioDropZone = document.getElementById('audioDropZone');
+const chooseAudioBtn = document.getElementById('chooseAudioBtn');
+const useSampleAudioBtn = document.getElementById('useSampleAudioBtn');
+const replaceAudioBtn = document.getElementById('replaceAudioBtn');
+const removeAudioBtn = document.getElementById('removeAudioBtn');
+const startRecordBtn = document.getElementById('startRecordBtn');
+const stopRecordBtn = document.getElementById('stopRecordBtn');
+const startVerifyAudio = document.getElementById('startVerifyAudio');
+
+function handleAudioFile(file) {
+  if (!file) return;
+  const validExts = ['.mp3', '.wav', '.m4a', '.ogg', '.aac', '.webm'];
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  const isAudioType = file.type.startsWith('audio/') || validExts.includes(ext);
+  if (!isAudioType) {
+    showAlert('alert-audio-format');
+    return;
+  }
+  if (file.size > 25 * 1024 * 1024) {
+    showAlert('alert-audio-format');
+    return;
+  }
+  setAudioPreview(file);
+}
+
+if (audioFileInput) {
+  audioFileInput.addEventListener('change', e => {
+    if (e.target.files && e.target.files[0]) handleAudioFile(e.target.files[0]);
+  });
+}
+if (chooseAudioBtn) {
+  chooseAudioBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (audioFileInput) audioFileInput.click();
+  });
+}
+if (audioDropZone) {
+  ['dragenter', 'dragover'].forEach(ev => audioDropZone.addEventListener(ev, e => {
+    e.preventDefault();
+    audioDropZone.classList.add('drag-over');
+  }));
+  ['dragleave', 'drop'].forEach(ev => audioDropZone.addEventListener(ev, e => {
+    e.preventDefault();
+    audioDropZone.classList.remove('drag-over');
+  }));
+  audioDropZone.addEventListener('drop', e => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleAudioFile(f);
+  });
+}
+if (useSampleAudioBtn) {
+  useSampleAudioBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const blob = createSampleAudioBlob();
+    const sampleFile = new File([blob], 'press_briefing_statement_audio.mp3', { type: 'audio/mp3' });
+    setAudioPreview(sampleFile, blob);
+    const ctxInput = document.getElementById('audioContextInput');
+    if (ctxInput && !ctxInput.value) {
+      ctxInput.value = 'Central bank press conference briefing';
+    }
+  });
+}
+if (replaceAudioBtn) {
+  replaceAudioBtn.addEventListener('click', () => {
+    if (audioFileInput) audioFileInput.click();
+  });
+}
+if (removeAudioBtn) {
+  removeAudioBtn.addEventListener('click', removeAudio);
+}
+
+// MediaRecorder Logic
+function updateRecTimer() {
+  const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+  const s = String(recSeconds % 60).padStart(2, '0');
+  const timerEl = document.getElementById('recTimer');
+  if (timerEl) timerEl.textContent = `${m}:${s}`;
+}
+
+function startRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showAlert('alert-mic-denied');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      hideAllAlerts();
+      audioChunks = [];
+      let mimeType = '';
+      if (typeof MediaRecorder !== 'undefined') {
+        if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+        else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+      }
+      mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        const ext = (mediaRecorder.mimeType && mediaRecorder.mimeType.includes('mp4')) ? 'm4a' : 'webm';
+        const file = new File([audioBlob], `recorded_claim_${Date.now()}.${ext}`, { type: audioBlob.type });
+        setAudioPreview(file, audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      startRecordBtn.style.display = 'none';
+      stopRecordBtn.style.display = 'inline-flex';
+      const ind = document.getElementById('recIndicator');
+      if (ind) ind.classList.add('active');
+      recSeconds = 0;
+      updateRecTimer();
+      recTimerInterval = setInterval(() => {
+        recSeconds++;
+        updateRecTimer();
+      }, 1000);
+    })
+    .catch(err => {
+      console.warn('Microphone access denied:', err);
+      showAlert('alert-mic-denied');
+    });
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  clearInterval(recTimerInterval);
+  if (startRecordBtn) startRecordBtn.style.display = 'inline-flex';
+  if (stopRecordBtn) stopRecordBtn.style.display = 'none';
+  const ind = document.getElementById('recIndicator');
+  if (ind) ind.classList.remove('active');
+}
+
+if (startRecordBtn) startRecordBtn.addEventListener('click', startRecording);
+if (stopRecordBtn) stopRecordBtn.addEventListener('click', stopRecording);
+
+if (startVerifyAudio) {
+  startVerifyAudio.addEventListener('click', () => {
+    hideAllAlerts();
+    if (!audioUploaded) {
+      showAlert('alert-no-audio');
+      return;
+    }
+    runProcessingSimulation(() => {
+      showAlert('alert-success');
+      setTimeout(() => {
+        window.location.href = 'investigation.html?type=audio';
+      }, 1000);
+    }, true);
+  });
+}
+
 // ── Pill Groups ────────────────────────────────────────
 const depthDescs={
   quick:'set.depth.desc.quick',
@@ -1657,13 +2273,24 @@ document.querySelectorAll('.example-card').forEach(card=>{
       textarea.dispatchEvent(new Event('input'));
     } else if(targetTab==='url'){
       document.getElementById('urlInput').value=example;
+    } else if(targetTab==='audio'){
+      if (useSampleAudioBtn) useSampleAudioBtn.click();
     }
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  usebtn.addEventListener('click',useExample);
+  if (usebtn) usebtn.addEventListener('click',useExample);
   card.addEventListener('click',useExample);
 });
+
+// ── URL Query Param Auto-Tab Selection ─────────────────
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const typeParam = params.get('type') || params.get('tab');
+  if (typeParam && ['text', 'image', 'url', 'audio'].includes(typeParam)) {
+    activateTab(typeParam);
+  }
+})();
 
 // ── Mobile Sidebar ─────────────────────────────────────
 const sidebar=document.getElementById('sidebar');
