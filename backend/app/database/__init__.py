@@ -1,3 +1,53 @@
-from .session import check_supabase_connectivity, check_postgres_connectivity
+from .models import (
+    Base,
+    UserModel,
+    InvestigationModel,
+    InputModel,
+    ClaimModel,
+    ClaimTaskModel,
+    SourceModel,
+    EvidenceModel,
+    ClaimEvidenceModel,
+    VerificationResultModel,
+    TimelineEventModel,
+    AgentEventModel,
+    CopilotMessageModel,
+    UserSettingModel,
+)
+from .repository import InvestigationRepository, repo, compute_content_hash
+from .session import (
+    check_postgres_connectivity,
+    check_supabase_connectivity,
+    create_db_engine,
+    engine,
+    get_db,
+    init_db,
+    SessionLocal,
+)
 
-__all__ = ["check_supabase_connectivity", "check_postgres_connectivity"]
+__all__ = [
+    "Base",
+    "engine",
+    "SessionLocal",
+    "get_db",
+    "init_db",
+    "create_db_engine",
+    "check_supabase_connectivity",
+    "check_postgres_connectivity",
+    "InvestigationRepository",
+    "repo",
+    "compute_content_hash",
+    "UserModel",
+    "InvestigationModel",
+    "InputModel",
+    "ClaimModel",
+    "ClaimTaskModel",
+    "SourceModel",
+    "EvidenceModel",
+    "ClaimEvidenceModel",
+    "VerificationResultModel",
+    "TimelineEventModel",
+    "AgentEventModel",
+    "CopilotMessageModel",
+    "UserSettingModel",
+]

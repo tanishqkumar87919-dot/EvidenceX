@@ -30,6 +30,7 @@ async def get_system_status(request: Request) -> Dict[str, Any]:
         "supported_modalities": ["TEXT", "IMAGE", "URL", "AUDIO"],
         "subsystems": {
             "api_gateway": "operational",
+            "database_schema": "phase_2_ready",
             "supabase_integration": "configured" if has_supabase else "unconfigured",
             "postgres_integration": "configured" if has_db else "unconfigured",
             "speech_to_text": "phase_1_contract_only",
