@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import List, Optional
 import httpx
@@ -64,7 +65,7 @@ For each claim:
         model: Optional[str] = None,
         base_url: Optional[str] = None,
     ):
-        self.api_key = api_key or settings.LLM_API_KEY
+        self.api_key = api_key or settings.LLM_API_KEY or getattr(settings, "GEMINI_API_KEY", "")
         self.model = model or settings.LLM_MODEL or "gpt-4o-mini"
         self.base_url = (base_url or settings.LLM_BASE_URL or "https://api.openai.com/v1").rstrip("/")
 
@@ -75,8 +76,9 @@ For each claim:
         language: str = "en",
     ) -> List[ExtractedClaimCandidate]:
         if not self.api_key:
+            provider_label = "Gemini" if "generativelanguage" in self.base_url else "OpenAI"
             raise LLMProviderUnavailableException(
-                message="OpenAI / External LLM API key is not configured.",
+                message=f"{provider_label} / External LLM API key is not configured.",
                 code="LLM_PROVIDER_UNAVAILABLE",
                 investigation_id=investigation_id,
             )
@@ -100,31 +102,50 @@ For each claim:
             "Content-Type": "application/json",
         }
 
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(url, json=payload, headers=headers)
-                if response.status_code >= 500 or response.status_code in (401, 403, 429):
+        max_retries = 3
+        data = None
+
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=35.0) as client:
+                    response = await client.post(url, json=payload, headers=headers)
+                    if response.status_code == 200:
+                        data = response.json()
+                        break
+                    elif response.status_code in (429, 503):
+                        if attempt < max_retries - 1:
+                            await asyncio.sleep(2.0 * (attempt + 1))
+                            continue
+
                     raise LLMProviderUnavailableException(
                         message=f"External LLM API returned status {response.status_code}: {response.text[:200]}",
                         code="LLM_PROVIDER_UNAVAILABLE",
                         investigation_id=investigation_id,
                     )
-                response.raise_for_status()
-                data = response.json()
-        except httpx.RequestError as exc:
+            except httpx.RequestError as exc:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2.0 * (attempt + 1))
+                    continue
+                raise LLMProviderUnavailableException(
+                    message=f"Failed to communicate with external LLM provider: {str(exc)}",
+                    code="LLM_PROVIDER_UNAVAILABLE",
+                    investigation_id=investigation_id,
+                ) from exc
+            except EvidenceXException:
+                raise
+            except Exception as exc:
+                raise ClaimExtractionException(
+                    message=f"Claim extraction encountered an unexpected error: {str(exc)}",
+                    code="CLAIM_EXTRACTION_FAILED",
+                    investigation_id=investigation_id,
+                ) from exc
+
+        if not data:
             raise LLMProviderUnavailableException(
-                message=f"Failed to communicate with external LLM provider: {str(exc)}",
+                message="External LLM API was unavailable after retries.",
                 code="LLM_PROVIDER_UNAVAILABLE",
                 investigation_id=investigation_id,
-            ) from exc
-        except EvidenceXException:
-            raise
-        except Exception as exc:
-            raise ClaimExtractionException(
-                message=f"Claim extraction encountered an unexpected error: {str(exc)}",
-                code="CLAIM_EXTRACTION_FAILED",
-                investigation_id=investigation_id,
-            ) from exc
+            )
 
         try:
             content_str = data["choices"][0]["message"]["content"]

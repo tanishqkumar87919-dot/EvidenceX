@@ -15,8 +15,9 @@ def get_llm_provider(provider_name: str = None) -> BaseLLMProvider:
     elif provider == "gemini":
         # Gemini OpenAI-compatible endpoint
         base_url = settings.LLM_BASE_URL or "https://generativelanguage.googleapis.com/v1beta/openai"
-        model = settings.LLM_MODEL or "gemini-1.5-flash"
-        return OpenAILLMProvider(model=model, base_url=base_url)
+        model = settings.LLM_MODEL if settings.LLM_MODEL not in ("gpt-4o-mini", "") else "gemini-3.6-flash"
+        api_key = settings.LLM_API_KEY or getattr(settings, "GEMINI_API_KEY", "")
+        return OpenAILLMProvider(api_key=api_key, model=model, base_url=base_url)
     elif provider == "local":
         return LocalNLPClaimExtractor()
     else:

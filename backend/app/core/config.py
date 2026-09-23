@@ -82,9 +82,10 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gpt-4o-mini"
     LLM_API_KEY: str = ""
     LLM_BASE_URL: str = ""
+    GEMINI_API_KEY: str = ""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env"),
         case_sensitive=True,
         extra="ignore",
     )
