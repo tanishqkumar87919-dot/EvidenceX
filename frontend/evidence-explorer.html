@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Evidence Explorer — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Core Tokens ───────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+
+  /* Light Theme */
+  --bg:#f5f4f1;
+  --bg2:#eceae4;
+  --surface:#ffffff;
+  --surface2:#f8f7f4;
+  --surface3:#f1efe9;
+  --surface-hover:#f4f2ec;
+  --border:rgba(0,0,0,0.07);
+  --border-s:rgba(0,0,0,0.13);
+  --border-m:rgba(0,0,0,0.22);
+  --text:#111110;
+  --text2:#4e4d49;
+  --text3:#87857e;
+  --accent:#1c4e9e;
+  --accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);
+  --accent-sub:rgba(28,78,158,0.05);
+
+  --ok:#1a7a4a;
+  --ok-bg:rgba(26,122,74,0.10);
+  --ok-border:rgba(26,122,74,0.22);
+
+  --err:#b94040;
+  --err-bg:rgba(185,64,64,0.09);
+  --err-border:rgba(185,64,64,0.20);
+
+  --warn:#8a6d2f;
+  --warn-bg:rgba(138,109,47,0.09);
+  --warn-border:rgba(138,109,47,0.20);
+
+  --neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.85);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.09),0 4px 12px rgba(0,0,0,0.04);
+  --shadow-drawer:-8px 0 32px rgba(0,0,0,0.09);
+
+  --sidebar-w:228px;
+  --topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+
+[data-theme="dark"]{
+  --bg:#0d0d0c;
+  --bg2:#131312;
+  --surface:#1a1a18;
+  --surface2:#1f1f1d;
+  --surface3:#252522;
+  --surface-hover:#2a2a26;
+  --border:rgba(255,255,255,0.07);
+  --border-s:rgba(255,255,255,0.13);
+  --border-m:rgba(255,255,255,0.22);
+  --text:#eeedea;
+  --text2:#a1a09a;
+  --text3:#64635e;
+  --accent:#4d86d8;
+  --accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);
+  --accent-sub:rgba(77,134,216,0.06);
+
+  --ok:#4cad78;
+  --ok-bg:rgba(76,173,120,0.12);
+  --ok-border:rgba(76,173,120,0.24);
+
+  --err:#d96a6a;
+  --err-bg:rgba(217,106,106,0.12);
+  --err-border:rgba(217,106,106,0.24);
+
+  --warn:#c9a84c;
+  --warn-bg:rgba(201,168,76,0.12);
+  --warn-border:rgba(201,168,76,0.24);
+
+  --neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.88);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.50);
+  --shadow-drawer:-8px 0 36px rgba(0,0,0,0.60);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);
+  min-height:100vh;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:50;
+  overflow-y:auto;
+  scrollbar-width:none;
+  transition:transform .25s ease,background .25s;
+}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{
+  display:flex;align-items:center;gap:8px;
+  padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);
+  font-size:15px;font-weight:700;letter-spacing:-0.04em;
+  color:var(--text);text-decoration:none;
+}
+.sb-mark{
+  width:26px;height:26px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);padding:0 8px;margin:10px 0 4px;
+}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{
+  display:flex;align-items:center;gap:9px;
+  font-size:13.5px;font-weight:450;color:var(--text2);
+  padding:7px 10px;border-radius:var(--r-sm);
+  text-decoration:none;transition:all var(--t);
+}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;
+}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--accent-lt);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;
+}
+
+/* ── Main Layout ──────────────────────────────────── */
+.main{
+  margin-left:var(--sidebar-w);
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+  min-height:100vh;
+}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{
+  height:var(--topbar-h);
+  background:var(--glass);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;align-items:center;padding:0 28px;gap:14px;
+  position:sticky;top:0;z-index:40;
+  transition:background .25s;
+}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+.ctrl{
+  height:32px;display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:0 10px;cursor:pointer;transition:all var(--t);
+}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+
+.lang-sel{
+  font-family:var(--font);font-size:12.5px;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);
+}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+
+.mobile-menu{
+  display:none;width:34px;height:34px;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  background:transparent;cursor:pointer;align-items:center;justify-content:center;color:var(--text2);
+}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page Content ─────────────────────────────────── */
+.page{
+  flex:1;padding:26px 28px;
+  display:flex;flex-direction:column;gap:18px;
+  max-width:1280px;width:100%;
+}
+
+/* ── Demo Testing Strip ───────────────────────────── */
+.demo-strip{
+  background:var(--surface);
+  border:1px solid var(--border-s);
+  border-radius:var(--r-md);
+  padding:8px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  font-size:12px;
+}
+.demo-strip-label{font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;}
+.demo-strip-label svg{width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:2;}
+.demo-btn-group{display:flex;align-items:center;gap:6px;}
+.demo-btn{
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-sm);padding:4px 9px;font-size:11.5px;
+  font-weight:500;color:var(--text2);cursor:pointer;transition:all var(--t);
+}
+.demo-btn:hover{background:var(--surface3);color:var(--text);}
+.demo-btn.active{background:var(--accent-lt);color:var(--accent);border-color:var(--accent);}
+
+/* ── Research Metrics Bar ─────────────────────────── */
+.metrics-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+}
+.metric-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:14px 16px;
+  display:flex;flex-direction:column;gap:3px;
+  box-shadow:var(--shadow-sm);
+}
+.metric-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);}
+.metric-val{font-size:22px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-0.03em;}
+.metric-sub{font-size:11.5px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;}
+.dot-indicator{width:7px;height:7px;border-radius:50%;}
+.dot-ok{background:var(--ok);}
+.dot-err{background:var(--err);}
+.dot-warn{background:var(--warn);}
+
+/* ── Explorer Search & Filter Bar ─────────────────── */
+.search-filter-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:16px 20px;
+  display:flex;flex-direction:column;gap:14px;
+  box-shadow:var(--shadow-sm);
+}
+.search-row{
+  display:flex;align-items:center;gap:12px;
+}
+.search-box{
+  flex:1;position:relative;display:flex;align-items:center;
+}
+.search-box svg.search-icon{
+  position:absolute;left:13px;width:15px;height:15px;
+  stroke:var(--text3);fill:none;stroke-width:2;pointer-events:none;
+}
+.search-input{
+  width:100%;height:38px;
+  padding:0 36px 0 38px;
+  font-family:var(--font);font-size:13.5px;color:var(--text);
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);outline:none;
+  transition:border-color var(--t),box-shadow var(--t),background var(--t);
+}
+.search-input:focus{
+  border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 3px var(--accent-sub);
+}
+.search-clear{
+  position:absolute;right:11px;width:18px;height:18px;
+  border-radius:50%;background:var(--surface3);border:none;
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);
+}
+.search-clear svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;}
+.search-clear:hover{background:var(--border-s);}
+
+.sort-select{
+  height:38px;padding:0 12px;
+  font-family:var(--font);font-size:12.5px;color:var(--text2);
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);outline:none;cursor:pointer;
+  transition:border-color var(--t);
+}
+.sort-select:hover{border-color:var(--border-m);}
+
+/* Filter Controls Row */
+.filter-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);
+  padding-top:12px;
+}
+.filter-pills-group{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.filter-label-prefix{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);margin-right:4px;
+}
+.pill{
+  font-size:12px;font-weight:500;color:var(--text2);
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:20px;padding:4px 11px;cursor:pointer;
+  transition:all var(--t);user-select:none;display:inline-flex;align-items:center;gap:5px;
+}
+.pill:hover{background:var(--surface3);color:var(--text);}
+.pill.active{
+  background:var(--accent-lt);color:var(--accent);
+  border-color:rgba(28,78,158,.3);font-weight:600;
+}
+.pill-count{
+  font-size:10.5px;opacity:.8;padding:0 3px;border-radius:8px;
+  background:rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .pill-count{background:rgba(255,255,255,0.1);}
+
+.filter-dropdowns{
+  display:flex;align-items:center;gap:8px;
+}
+.filter-select{
+  height:30px;padding:0 10px;font-family:var(--font);font-size:12px;
+  color:var(--text2);background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-sm);outline:none;cursor:pointer;
+}
+.filter-select:hover{border-color:var(--border-m);}
+
+/* ── Evidence List Table / Workbench ──────────────── */
+.workbench-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;
+}
+.wb-header{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wb-title-group{
+  display:flex;align-items:center;gap:10px;
+}
+.wb-title{font-size:13px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);}
+.wb-count-badge{
+  font-size:11px;font-weight:600;color:var(--accent);
+  background:var(--accent-lt);padding:2px 8px;border-radius:10px;
+}
+
+/* Evidence Table Container */
+.evidence-table-wrap{
+  overflow-x:auto;width:100%;
+}
+.evidence-table{
+  width:100%;border-collapse:collapse;text-align:left;
+  font-size:13px;min-width:880px;
+}
+.evidence-table th{
+  background:var(--surface2);
+  padding:11px 16px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);border-bottom:1px solid var(--border);
+  white-space:nowrap;user-select:none;
+}
+.evidence-table td{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);vertical-align:middle;
+  transition:background var(--t);
+}
+.evidence-row{
+  cursor:pointer;
+}
+.evidence-row:hover td{
+  background:var(--surface-hover);
+}
+.evidence-row.selected td{
+  background:var(--accent-sub);
+  border-bottom-color:rgba(28,78,158,.15);
+}
+
+/* Cell Elements */
+.cell-source{
+  display:flex;flex-direction:column;gap:3px;max-width:320px;
+}
+.source-title-text{
+  font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.source-pub-meta{
+  font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:6px;
+}
+.pub-dot{width:3px;height:3px;border-radius:50%;background:var(--border-m);}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;border-radius:12px;padding:3px 9px;
+  white-space:nowrap;
+}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.badge-neutral{background:var(--neutral-bg);color:var(--text2);border:1px solid var(--border-s);}
+
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.claim-tag{
+  font-size:11px;font-weight:550;color:var(--text2);
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-sm);padding:4px 8px;max-width:200px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:inline-block;
+}
+
+/* Relevance Meter */
+.rel-meter-cell{
+  display:flex;align-items:center;gap:8px;
+}
+.rel-bar{
+  width:50px;height:5px;background:var(--surface3);
+  border-radius:4px;overflow:hidden;flex-shrink:0;
+}
+.rel-fill{
+  height:100%;border-radius:4px;background:var(--accent);
+}
+.rel-val{
+  font-size:11.5px;font-weight:600;color:var(--text2);font-variant-numeric:tabular-nums;
+}
+
+/* Source Assessment Pill */
+.assessment-pill{
+  font-size:11px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 8px;border-radius:var(--r-sm);
+  background:var(--surface2);border:1px solid var(--border-s);
+  color:var(--text2);
+}
+
+/* Row Action Buttons */
+.row-actions{
+  display:flex;align-items:center;gap:6px;justify-content:flex-end;
+}
+.btn-icon{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  background:transparent;border:1px solid var(--border-s);
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--text2);cursor:pointer;transition:all var(--t);
+}
+.btn-icon:hover{background:var(--surface2);color:var(--text);border-color:var(--border-m);}
+.btn-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.btn-inspect{
+  font-size:11.5px;font-weight:500;color:var(--accent);
+  background:var(--accent-lt);border:1px solid rgba(28,78,158,.15);
+  border-radius:var(--r-sm);padding:4px 9px;cursor:pointer;
+  transition:all var(--t);display:inline-flex;align-items:center;gap:4px;
+}
+.btn-inspect:hover{background:var(--accent);color:#fff;}
+.btn-inspect svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ── Empty State ──────────────────────────────────── */
+.empty-state{
+  padding:64px 24px;text-align:center;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;
+}
+.empty-icon{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border-s);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text3);margin-bottom:4px;
+}
+.empty-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.75;}
+.empty-title{font-size:16px;font-weight:650;color:var(--text);}
+.empty-desc{font-size:13px;color:var(--text3);max-width:380px;line-height:1.55;}
+.empty-action-btn{
+  margin-top:6px;font-family:var(--font);font-size:12.5px;font-weight:550;
+  padding:7px 14px;border-radius:var(--r-sm);
+  background:var(--surface2);border:1px solid var(--border-s);
+  color:var(--accent);cursor:pointer;transition:all var(--t);
+}
+.empty-action-btn:hover{background:var(--accent-lt);border-color:var(--accent);}
+
+/* ── Error State ──────────────────────────────────── */
+.error-state{
+  padding:54px 24px;text-align:center;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;
+}
+.error-icon{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--err-bg);border:1px solid var(--err-border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--err);margin-bottom:4px;
+}
+.error-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;}
+.error-title{font-size:16px;font-weight:650;color:var(--err);}
+.error-desc{font-size:13px;color:var(--text2);max-width:400px;line-height:1.55;}
+.error-retry-btn{
+  margin-top:6px;font-family:var(--font);font-size:13px;font-weight:600;
+  padding:8px 18px;border-radius:var(--r-sm);
+  background:var(--err);border:none;color:#fff;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t);
+}
+.error-retry-btn:hover{opacity:.9;transform:translateY(-1px);}
+.error-retry-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;}
+
+/* ── Slide-over Detail Drawer ─────────────────────── */
+.drawer-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  z-index:90;opacity:0;visibility:hidden;
+  transition:opacity .25s ease,visibility .25s;
+}
+.drawer-overlay.open{
+  opacity:1;visibility:visible;
+}
+
+.detail-drawer{
+  position:fixed;top:0;right:0;bottom:0;
+  width:520px;max-width:100vw;
+  background:var(--surface);
+  border-left:1px solid var(--border-s);
+  box-shadow:var(--shadow-drawer);
+  z-index:100;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(0.16, 1, 0.3, 1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.detail-drawer.open{
+  transform:translateX(0);
+}
+
+.drawer-header{
+  padding:16px 22px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;background:var(--glass);
+  backdrop-filter:blur(10px);
+}
+.drawer-id-badge{
+  font-family:var(--font-mono);font-size:11.5px;font-weight:600;
+  color:var(--text3);background:var(--surface2);border:1px solid var(--border);
+  padding:2px 8px;border-radius:var(--r-sm);
+}
+.drawer-close{
+  width:30px;height:30px;border-radius:var(--r-sm);
+  background:transparent;border:1px solid var(--border-s);
+  color:var(--text2);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all var(--t);
+}
+.drawer-close:hover{background:var(--surface2);color:var(--text);}
+.drawer-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.drawer-body{
+  flex:1;overflow-y:auto;padding:24px;
+  display:flex;flex-direction:column;gap:20px;
+  scrollbar-width:thin;
+}
+.drawer-body::-webkit-scrollbar{width:5px;}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:4px;}
+
+.drawer-sec{
+  display:flex;flex-direction:column;gap:8px;
+}
+.drawer-sec-lbl{
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text3);display:flex;align-items:center;gap:6px;
+}
+.drawer-sec-lbl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.drawer-title{
+  font-size:17px;font-weight:700;color:var(--text);line-height:1.35;letter-spacing:-0.02em;
+}
+
+.drawer-meta-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;
+}
+.dmg-item{display:flex;flex-direction:column;gap:2px;}
+.dmg-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);}
+.dmg-val{font-size:12.5px;font-weight:500;color:var(--text2);}
+
+/* Excerpt Box */
+.excerpt-box{
+  background:var(--surface2);border-left:3px solid var(--accent);
+  border-radius:0 var(--r-md) var(--r-md) 0;
+  padding:14px 16px;font-size:13px;color:var(--text);line-height:1.65;
+  font-style:italic;position:relative;
+}
+.excerpt-highlight{
+  background:rgba(28,78,158,0.12);color:var(--accent);font-weight:550;
+  padding:1px 4px;border-radius:3px;font-style:normal;
+}
+[data-theme="dark"] .excerpt-highlight{background:rgba(77,134,216,0.18);}
+
+/* Connected Claim Box */
+.connected-claim-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.ccc-head{display:flex;align-items:center;justify-content:space-between;}
+.ccc-title{font-size:13px;font-weight:600;color:var(--text);}
+.ccc-text{font-size:12.5px;color:var(--text2);line-height:1.5;}
+
+/* Rationale & Relationship */
+.reasoning-text{
+  font-size:13px;color:var(--text2);line-height:1.65;
+}
+
+/* Citation Box */
+.citation-box{
+  background:var(--surface3);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:12px 14px;
+  position:relative;
+}
+.citation-content{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--text2);
+  line-height:1.55;user-select:all;word-break:break-word;
+}
+.citation-copy-btn{
+  position:absolute;top:10px;right:10px;
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:var(--r-sm);padding:4px 8px;font-size:11px;
+  font-weight:500;color:var(--text2);cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;
+  transition:all var(--t);
+}
+.citation-copy-btn:hover{background:var(--surface2);color:var(--text);}
+.citation-copy-btn.copied{background:var(--ok-bg);color:var(--ok);border-color:var(--ok);}
+
+.drawer-footer{
+  padding:14px 22px;border-top:1px solid var(--border);
+  background:var(--surface);
+  display:flex;align-items:center;gap:10px;justify-content:space-between;
+}
+.btn-primary{
+  background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r-md);padding:9px 16px;font-size:13px;font-weight:550;
+  font-family:var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t);text-decoration:none;
+}
+.btn-primary:hover{background:var(--accent-h);transform:translateY(-1px);}
+.btn-primary svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;}
+
+.btn-secondary{
+  background:transparent;color:var(--text2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:9px 14px;font-size:13px;font-weight:500;
+  font-family:var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t);
+}
+.btn-secondary:hover{background:var(--surface2);color:var(--text);}
+
+/* ── Mobile Sidebar Overlay ───────────────────────── */
+.sb-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  z-index:49;
+}
+.sb-overlay.visible{display:block;}
+
+/* ── Responsive Rules ─────────────────────────────── */
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-menu{display:flex;}
+  .page{padding:16px;}
+  .topbar{padding:0 16px;}
+  .filter-row{flex-direction:column;align-items:flex-start;}
+  .filter-dropdowns{width:100%;justify-content:flex-start;}
+  .detail-drawer{width:100vw;}
+}
+@media(max-width:540px){
+  .tb-sub{display:none;}
+  .metrics-grid{grid-template-columns:1fr 1fr;}
+  .search-row{flex-direction:column;align-items:stretch;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Mobile Sidebar Overlay ────────────────────────── -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── Persistent Left Sidebar ───────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+    </div>
+    EvidenceX
+  </a>
+
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidencex.html">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="nav.home">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="verification-center.html">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+          <span data-i18n="nav.verify">Verify</span>
+        </a>
+      </li>
+      <li>
+        <a href="results.html">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          <span data-i18n="nav.results">Results</span>
+          <span class="sb-badge">1</span>
+        </a>
+      </li>
+      <li>
+        <a href="investigation.html">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span data-i18n="nav.investigations">Investigations</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li>
+        <!-- HIGHLIGHTED EVIDENCE EXPLORER -->
+        <a href="evidence-explorer.html" class="active">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="nav.evidence">Evidence</span>
+          <span class="sb-badge" style="background:var(--ok);">18</span>
+        </a>
+      </li>
+      <li>
+        <a href="evidence-timeline.html">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span data-i18n="nav.timeline">Timeline</span>
+        </a>
+      </li>
+      <li>
+        <a href="analytics.html">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
+        </a>
+      </li>
+      <li>
+        <a href="copilot.html">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span data-i18n="nav.copilot">AI Copilot</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="settings.html">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span data-i18n="nav.settings">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main Workspace ─────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sticky Topbar -->
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">Evidence Explorer</div>
+      <div class="tb-sub" data-i18n="page.sub">Review the sources EvidenceX used to evaluate the claims.</div>
+    </div>
+    <div class="tb-right">
+      <div class="drawer-id-badge" style="display:none;" id="topbarInvId">INV-2026-0847</div>
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Page Body -->
+  <main class="page">
+
+    <!-- Demo Controls Strip -->
+    <div class="demo-strip">
+      <div class="demo-strip-label">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <span data-i18n="demo.label">Investigation Context:</span>
+        <span style="font-family:var(--font-mono);font-weight:600;color:var(--text);">INV-2026-0847</span>
+      </div>
+      <div class="demo-btn-group">
+        <span style="color:var(--text3);font-size:11.5px;margin-right:2px;" data-i18n="demo.viewas">Simulate view:</span>
+        <button class="demo-btn active" id="demoBtnNormal" data-i18n="demo.normal">Normal (18 Sources)</button>
+        <button class="demo-btn" id="demoBtnEmpty" data-i18n="demo.empty">Empty State</button>
+        <button class="demo-btn" id="demoBtnError" data-i18n="demo.error">Error State</button>
+      </div>
+    </div>
+
+    <!-- Research Metrics Overview Bar -->
+    <section class="metrics-grid" id="metricsBar">
+      <div class="metric-card">
+        <span class="metric-lbl" data-i18n="metric.total">Total Sources</span>
+        <span class="metric-val" id="metricTotal">18</span>
+        <span class="metric-sub" data-i18n="metric.indexed">Indexed &amp; evaluated</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-lbl" data-i18n="metric.supporting">Supporting</span>
+        <span class="metric-val" style="color:var(--ok);" id="metricSup">11</span>
+        <span class="metric-sub"><span class="dot-indicator dot-ok"></span> 61% of evidence pool</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-lbl" data-i18n="metric.contradicting">Contradicting</span>
+        <span class="metric-val" style="color:var(--err);" id="metricCon">4</span>
+        <span class="metric-sub"><span class="dot-indicator dot-err"></span> 22% opposing bounds</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-lbl" data-i18n="metric.inconclusive">Inconclusive</span>
+        <span class="metric-val" style="color:var(--warn);" id="metricInc">3</span>
+        <span class="metric-sub"><span class="dot-indicator dot-warn"></span> 17% limited context</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-lbl" data-i18n="metric.authority">Avg Authority</span>
+        <span class="metric-val">88%</span>
+        <span class="metric-sub" data-i18n="metric.peer">8 Peer-reviewed papers</span>
+      </div>
+    </section>
+
+    <!-- Search & Filters Container -->
+    <section class="search-filter-card">
+      <!-- Search Input Row -->
+      <div class="search-row">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="text"
+            class="search-input"
+            id="searchInput"
+            placeholder="Search evidence by keyword, title, publisher, or claim..."
+            data-i18n-ph="search.placeholder"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="search-clear" id="searchClear" aria-label="Clear search">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <select class="sort-select" id="sortSelect" aria-label="Sort by">
+          <option value="relevance" data-i18n="sort.relevance">Sort: Relevance (Highest)</option>
+          <option value="date-desc" data-i18n="sort.date">Sort: Date (Newest)</option>
+          <option value="authority" data-i18n="sort.authority">Sort: Authority (Highest)</option>
+          <option value="stance" data-i18n="sort.stance">Sort: Stance (Support → Contra)</option>
+        </select>
+      </div>
+
+      <!-- Filter Controls Row -->
+      <div class="filter-row">
+        <!-- Stance Filter Pills -->
+        <div class="filter-pills-group" id="stanceFilterGroup">
+          <span class="filter-label-prefix" data-i18n="filter.stance">Stance:</span>
+          <div class="pill active" data-stance="all">
+            <span data-i18n="filter.all">All</span>
+            <span class="pill-count" id="countAll">18</span>
+          </div>
+          <div class="pill" data-stance="supporting">
+            <span class="dot-indicator dot-ok"></span>
+            <span data-i18n="filter.supporting">Supporting</span>
+            <span class="pill-count" id="countSup">11</span>
+          </div>
+          <div class="pill" data-stance="contradicting">
+            <span class="dot-indicator dot-err"></span>
+            <span data-i18n="filter.contradicting">Contradicting</span>
+            <span class="pill-count" id="countCon">4</span>
+          </div>
+          <div class="pill" data-stance="inconclusive">
+            <span class="dot-indicator dot-warn"></span>
+            <span data-i18n="filter.inconclusive">Inconclusive</span>
+            <span class="pill-count" id="countInc">3</span>
+          </div>
+        </div>
+
+        <!-- Type & Date Dropdowns -->
+        <div class="filter-dropdowns">
+          <!-- Source Type -->
+          <select class="filter-select" id="typeFilter" aria-label="Source Type">
+            <option value="all" data-i18n="type.all">All Types (Official, News, Research...)</option>
+            <option value="research" data-i18n="type.research">Research / Peer-reviewed</option>
+            <option value="official" data-i18n="type.official">Official / Institutional</option>
+            <option value="news" data-i18n="type.news">News / Journalism</option>
+            <option value="factcheck" data-i18n="type.factcheck">Fact-check Organization</option>
+            <option value="other" data-i18n="type.other">Other Sources</option>
+          </select>
+
+          <!-- Date Filter -->
+          <select class="filter-select" id="dateFilter" aria-label="Date Range">
+            <option value="all" data-i18n="date.all">All Dates</option>
+            <option value="recent" data-i18n="date.recent">Recent (Last 3 years)</option>
+            <option value="lastweek" data-i18n="date.lastweek">Last week</option>
+            <option value="custom" data-i18n="date.custom">Custom Range...</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Evidence List Table / Workbench -->
+    <section class="workbench-card">
+      <div class="wb-header">
+        <div class="wb-title-group">
+          <span class="wb-title" data-i18n="wb.title">Evidence Index</span>
+          <span class="wb-count-badge" id="resultsCount">18 of 18 sources</span>
+        </div>
+        <span style="font-size:12px;color:var(--text3);" data-i18n="wb.hint">Click any row to open full evidence brief</span>
+      </div>
+
+      <!-- Main Table -->
+      <div class="evidence-table-wrap" id="tableContainer">
+        <table class="evidence-table" aria-label="Evidence Index">
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th style="width:34%;" data-i18n="th.source">Source &amp; Publisher</th>
+              <th style="width:13%;" data-i18n="th.date">Date</th>
+              <th style="width:20%;" data-i18n="th.claim">Connected Claim</th>
+              <th style="width:13%;" data-i18n="th.stance">Stance</th>
+              <th style="width:10%;" data-i18n="th.relevance">Relevance</th>
+              <th style="width:10%;text-align:right;" data-i18n="th.actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="evidenceTbody">
+            <!-- Injected by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State View -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <div class="empty-title" data-i18n="empty.title">No evidence has been collected yet.</div>
+        <div class="empty-desc" data-i18n="empty.desc">No matching sources found for your current filter query. Try modifying your search keywords or clearing active filters.</div>
+        <button class="empty-action-btn" id="clearFiltersBtn" data-i18n="empty.clear">Reset All Filters</button>
+      </div>
+
+      <!-- Error State View -->
+      <div class="error-state" id="errorState">
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="error-title" data-i18n="err.title">Evidence retrieval failed.</div>
+        <div class="error-desc" data-i18n="err.desc">EvidenceX was unable to load the source index from the investigation repository. External database connection timed out.</div>
+        <button class="error-retry-btn" id="errorRetryBtn">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span data-i18n="err.retry">Retry Retrieval</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Slide-over Detail Drawer ──────────────────────── -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside class="detail-drawer" id="detailDrawer" aria-label="Evidence Detail Drawer" role="dialog" aria-modal="true">
+  <!-- Drawer Header -->
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="drawer-id-badge" id="drawerSourceId">SRC-01</span>
+      <span class="badge" id="drawerStanceBadge">Supporting</span>
+    </div>
+    <button class="drawer-close" id="drawerCloseBtn" aria-label="Close drawer">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Drawer Body -->
+  <div class="drawer-body" id="drawerBody">
+    <!-- Source Title & Publisher -->
+    <div class="drawer-sec">
+      <h2 class="drawer-title" id="drawerTitle">Physical Activity and Cardiovascular Disease Prevention Guidelines</h2>
+      <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="drawerPublisherLine">American Heart Association · Mar 2023 · Peer-reviewed</div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="drawer-meta-grid">
+      <div class="dmg-item">
+        <span class="dmg-lbl" data-i18n="dmg.type">Source Type</span>
+        <span class="dmg-val" id="drawerType">Research / Peer-reviewed</span>
+      </div>
+      <div class="dmg-item">
+        <span class="dmg-lbl" data-i18n="dmg.date">Publication Date</span>
+        <span class="dmg-val" id="drawerDate">March 14, 2023</span>
+      </div>
+      <div class="dmg-item">
+        <span class="dmg-lbl" data-i18n="dmg.authority">Authority Rating</span>
+        <span class="dmg-val" id="drawerAuthority">94% (Tier 1 High Authority)</span>
+      </div>
+      <div class="dmg-item">
+        <span class="dmg-lbl" data-i18n="dmg.relevance">Relevance Score</span>
+        <span class="dmg-val" id="drawerRelevance">96% Direct Evidence</span>
+      </div>
+    </div>
+
+    <!-- Relevant Excerpt -->
+    <div class="drawer-sec">
+      <span class="drawer-sec-lbl">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span data-i18n="dr.excerpt">Relevant Excerpt</span>
+      </span>
+      <div class="excerpt-box" id="drawerExcerpt">
+        "Epidemiological data demonstrates that sustained adherence to <span class="excerpt-highlight">150 minutes per week of moderate-intensity aerobic physical activity</span> reduces composite cardiovascular disease incidence and premature coronary events by <span class="excerpt-highlight">up to 35%</span> compared to strictly sedentary lifestyle controls across multi-year cohort observations."
+      </div>
+      <div style="font-size:11px;color:var(--text3);text-align:right;" id="drawerPageRef">Section 4.1, Paragraph 3, p. 118</div>
+    </div>
+
+    <!-- Connected Claim -->
+    <div class="drawer-sec">
+      <span class="drawer-sec-lbl">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span data-i18n="dr.connected">Connected Claim</span>
+      </span>
+      <div class="connected-claim-card">
+        <div class="ccc-head">
+          <span class="ccc-title" id="drawerClaimId">Claim 01 (C01)</span>
+          <span class="badge badge-ok" id="drawerClaimStatus">Mostly Supported</span>
+        </div>
+        <p class="ccc-text" id="drawerClaimText">"Regular exercise reduces the risk of cardiovascular disease by up to 35%."</p>
+      </div>
+    </div>
+
+    <!-- Why EvidenceX Retrieved It -->
+    <div class="drawer-sec">
+      <span class="drawer-sec-lbl">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span data-i18n="dr.why">Why EvidenceX Retrieved It</span>
+      </span>
+      <p class="reasoning-text" id="drawerWhy">
+        Discovered by Search Agent during academic index pass #1 via PubMed MeSH descriptor <code>cardiovascular diseases/prevention and control</code> combined with quantitative query filter <code>35 percent reduction</code>. Selected due to high methodological rigor and 48,000 participant sample.
+      </p>
+    </div>
+
+    <!-- Evidence Relationship -->
+    <div class="drawer-sec">
+      <span class="drawer-sec-lbl">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span data-i18n="dr.relationship">Evidence Relationship</span>
+      </span>
+      <p class="reasoning-text" id="drawerRelationship">
+        This document provides direct affirmative evidence verifying that 35% reduction is an established scientific benchmark, though it highlights that this upper limit is contingent upon consistent weekly volume (150+ minutes) rather than minimal activity.
+      </p>
+    </div>
+
+    <!-- Formal Citation -->
+    <div class="drawer-sec">
+      <span class="drawer-sec-lbl">
+        <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        <span data-i18n="dr.citation">Citation (APA 7th)</span>
+      </span>
+      <div class="citation-box">
+        <div class="citation-content" id="drawerCitation">
+          American Heart Association. (2023). Physical Activity and Cardiovascular Disease Prevention Guidelines. Circulation, 147(11), 112–129. https://doi.org/10.1161/CIR.0000000000001123
+        </div>
+        <button class="citation-copy-btn" id="copyCitationBtn" aria-label="Copy citation">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copyBtnText" data-i18n="dr.copy">Copy</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Footer Actions -->
+  <div class="drawer-footer">
+    <a href="#" class="btn-primary" id="drawerOpenExtBtn" target="_blank" rel="noopener noreferrer">
+      <span data-i18n="dr.openlink">Open Original Source</span>
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+    <a href="claim-investigation.html" class="btn-secondary" id="drawerClaimInvestigateBtn" data-i18n="dr.investigateclaim">
+      Investigate Claim
+    </a>
+  </div>
+</aside>
+
+<!-- ── JavaScript Engine ─────────────────────────────── -->
+<script>
+/* ── Multilingual Localization Dictionary ────────── */
+const i18n = {
+  en: {
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations',
+    'nav.tools':'Tools','nav.evidence':'Evidence','nav.timeline':'Timeline',
+    'nav.analytics':'Analytics','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'page.title':'Evidence Explorer',
+    'page.sub':'Review the sources EvidenceX used to evaluate the claims.',
+    'demo.label':'Investigation Context:',
+    'demo.viewas':'Simulate view:',
+    'demo.normal':'Normal (18 Sources)',
+    'demo.empty':'Empty State',
+    'demo.error':'Error State',
+    'metric.total':'Total Sources','metric.indexed':'Indexed & evaluated',
+    'metric.supporting':'Supporting','metric.contradicting':'Contradicting',
+    'metric.inconclusive':'Inconclusive','metric.authority':'Avg Authority',
+    'metric.peer':'8 Peer-reviewed papers',
+    'search.placeholder':'Search evidence by keyword, title, publisher, or claim...',
+    'sort.relevance':'Sort: Relevance (Highest)',
+    'sort.date':'Sort: Date (Newest)',
+    'sort.authority':'Sort: Authority (Highest)',
+    'sort.stance':'Sort: Stance (Support → Contra)',
+    'filter.stance':'Stance:',
+    'filter.all':'All','filter.supporting':'Supporting',
+    'filter.contradicting':'Contradicting','filter.inconclusive':'Inconclusive',
+    'type.all':'All Types (Official, News, Research...)',
+    'type.research':'Research / Peer-reviewed',
+    'type.official':'Official / Institutional',
+    'type.news':'News / Journalism',
+    'type.factcheck':'Fact-check Organization',
+    'type.other':'Other Sources',
+    'date.all':'All Dates','date.recent':'Recent (Last 3 years)',
+    'date.lastweek':'Last week','date.custom':'Custom Range...',
+    'wb.title':'Evidence Index','wb.hint':'Click any row to open full evidence brief',
+    'th.source':'Source & Publisher','th.date':'Date',
+    'th.claim':'Connected Claim','th.stance':'Stance',
+    'th.relevance':'Relevance','th.actions':'Actions',
+    'empty.title':'No evidence has been collected yet.',
+    'empty.desc':'No matching sources found for your current filter query. Try modifying your search keywords or clearing active filters.',
+    'empty.clear':'Reset All Filters',
+    'err.title':'Evidence retrieval failed.',
+    'err.desc':'EvidenceX was unable to load the source index from the investigation repository. External database connection timed out.',
+    'err.retry':'Retry Retrieval',
+    'dr.excerpt':'Relevant Excerpt','dr.connected':'Connected Claim',
+    'dr.why':'Why EvidenceX Retrieved It',
+    'dr.relationship':'Evidence Relationship',
+    'dr.citation':'Citation (APA 7th)','dr.copy':'Copy','dr.copied':'Copied!',
+    'dr.openlink':'Open Original Source','dr.investigateclaim':'Investigate Claim',
+    'dmg.type':'Source Type','dmg.date':'Publication Date',
+    'dmg.authority':'Authority Rating','dmg.relevance':'Relevance Score',
+    'btn.inspect':'Inspect','btn.open':'Open'
+  },
+  hi: {
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच',
+    'nav.tools':'टूल्स','nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा',
+    'nav.analytics':'विश्लेषण','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'page.title':'साक्ष्य अन्वेषक (Evidence Explorer)',
+    'page.sub':'उन स्रोतों की समीक्षा करें जिनका उपयोग EvidenceX ने दावों के मूल्यांकन के लिए किया।',
+    'demo.label':'जांच संदर्भ:',
+    'demo.viewas':'दृश्य अनुकरण:',
+    'demo.normal':'सामान्य (18 स्रोत)',
+    'demo.empty':'खाली स्थिति',
+    'demo.error':'त्रुटि स्थिति',
+    'metric.total':'कुल स्रोत','metric.indexed':'अनुक्रमित एवं मूल्यांकित',
+    'metric.supporting':'समर्थक','metric.contradicting':'विरोधी',
+    'metric.inconclusive':'अनिर्णायक','metric.authority':'औसत प्राधिकरण',
+    'metric.peer':'8 समीक्षित शोध पत्र',
+    'search.placeholder':'कीवर्ड, शीर्षक, प्रकाशक या दावे द्वारा खोजें...',
+    'sort.relevance':'क्रमबद्ध: प्रासंगिकता (उच्चतम)',
+    'sort.date':'क्रमबद्ध: तिथि (नवीनतम)',
+    'sort.authority':'क्रमबद्ध: प्राधिकरण (उच्चतम)',
+    'sort.stance':'क्रमबद्ध: रुख (समर्थक → विरोधी)',
+    'filter.stance':'रुख:',
+    'filter.all':'सभी','filter.supporting':'समर्थक',
+    'filter.contradicting':'विरोधी','filter.inconclusive':'अनिर्णायक',
+    'type.all':'सभी प्रकार (आधिकारिक, समाचार, शोध...)',
+    'type.research':'शोध / समीक्षित',
+    'type.official':'आधिकारिक / संस्थागत',
+    'type.news':'समाचार / पत्रकारिता',
+    'type.factcheck':'तथ्य-जांच संगठन',
+    'type.other':'अन्य स्रोत',
+    'date.all':'सभी तिथियाँ','date.recent':'हालिया (पिछले 3 वर्ष)',
+    'date.lastweek':'पिछला सप्ताह','date.custom':'कस्टम रेंज...',
+    'wb.title':'साक्ष्य अनुक्रमणिका','wb.hint':'पूर्ण विवरण देखने के लिए किसी भी पंक्ति पर क्लिक करें',
+    'th.source':'स्रोत एवं प्रकाशक','th.date':'तिथि',
+    'th.claim':'जुड़ा दावा','th.stance':'रुख',
+    'th.relevance':'प्रासंगिकता','th.actions':'कार्रवाई',
+    'empty.title':'अभी तक कोई साक्ष्य एकत्र नहीं किया गया है।',
+    'empty.desc':'आपके वर्तमान फ़िल्टर के लिए कोई मेल खाता स्रोत नहीं मिला। कृपया अपने खोज शब्द बदलें या फ़िल्टर साफ़ करें।',
+    'empty.clear':'सभी फ़िल्टर रीसेट करें',
+    'err.title':'साक्ष्य पुनर्प्राप्ति विफल रही।',
+    'err.desc':'EvidenceX जांच रिपॉजिटरी से स्रोत अनुक्रमणिका लोड करने में असमर्थ रहा। बाहरी डेटाबेस कनेक्शन टाइमआउट।',
+    'err.retry':'पुनः प्रयास करें',
+    'dr.excerpt':'प्रासंगिक अंश','dr.connected':'जुड़ा दावा',
+    'dr.why':'EvidenceX ने इसे क्यों प्राप्त किया',
+    'dr.relationship':'साक्ष्य संबंध',
+    'dr.citation':'प्रशस्ति पत्र (APA 7th)','dr.copy':'कॉपी करें','dr.copied':'कॉपी हो गया!',
+    'dr.openlink':'मूल स्रोत खोलें','dr.investigateclaim':'दावे की जांच करें',
+    'dmg.type':'स्रोत प्रकार','dmg.date':'प्रकाशन तिथि',
+    'dmg.authority':'प्राधिकरण रेटिंग','dmg.relevance':'प्रासंगिकता स्कोर',
+    'btn.inspect':'निरीक्षण','btn.open':'खोलें'
+  }
+};
+
+let currentLang = 'en';
+function t(key){ return (i18n[currentLang]||i18n.en)[key] || key; }
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if(t(k)) el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.dataset.i18nPh;
+    if(t(k)) el.placeholder = t(k);
+  });
+
+  localStorage.setItem('ex-lang', lang);
+  renderEvidenceTable();
+  if(selectedSource) renderDrawerContent(selectedSource);
+}
+
+/* ── Theme Handling ───────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  const dark = th === 'dark';
+  document.getElementById('icon-sun').style.display = dark ? 'block' : 'none';
+  document.getElementById('icon-moon').style.display = dark ? 'none' : 'block';
+  localStorage.setItem('ex-theme', th);
+}
+(function(){
+  const s = localStorage.getItem('ex-theme');
+  const sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(s || (sys ? 'dark' : 'light'));
+})();
+document.getElementById('themeToggle').onclick = () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+
+(function(){
+  const l = localStorage.getItem('ex-lang') || 'en';
+  document.getElementById('langSelect').value = l;
+  applyLang(l);
+})();
+document.getElementById('langSelect').onchange = function(){ applyLang(this.value); };
+
+/* ── Evidence Dataset (18 Realistic Sources) ──────── */
+const EVIDENCE_DATA = [
+  {
+    id: 'SRC-01',
+    title: 'Physical Activity and Cardiovascular Disease Prevention Guidelines',
+    title_hi: 'शारीरिक गतिविधि और हृदय रोग रोकथाम दिशानिर्देश',
+    publisher: 'American Heart Association',
+    publisher_hi: 'अमेरिकन हार्ट एसोसिएशन',
+    date: '2023-03-14',
+    date_display: 'Mar 14, 2023',
+    type: 'research',
+    type_label: 'Research / Peer-reviewed',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 96,
+    authority: 94,
+    authorityTag: '94% Authority · Peer-reviewed',
+    excerpt: 'Epidemiological data demonstrates that sustained adherence to 150 minutes per week of moderate-intensity aerobic physical activity reduces composite cardiovascular disease incidence and premature coronary events by up to 35% compared to strictly sedentary lifestyle controls across multi-year cohort observations.',
+    excerpt_hi: 'महामारी विज्ञान के आंकड़े दर्शाते हैं कि प्रति सप्ताह 150 मिनट मध्यम-तीव्रता वाले एरोबिक व्यायाम से गतिहीन जीवन शैली की तुलना में हृदय रोग की घटनाओं में 35% तक की कमी आती है।',
+    pageRef: 'Circulation, Vol 147, p. 118',
+    why: 'Discovered during initial academic retrieval pass via PubMed descriptor "cardiovascular diseases/prevention and control" combined with "35 percent reduction". High sample size of 48,000 subjects.',
+    why_hi: 'प्रारंभिक शैक्षणिक खोज के दौरान PubMed से प्राप्त। 48,000 विषयों का उच्च नमूना आकार।',
+    relationship: 'Direct primary verification confirming that 35% reduction is an established scientific benchmark, specifying a 150 min/week threshold.',
+    relationship_hi: 'प्रत्यक्ष प्राथमिक सत्यापन जो पुष्टि करता है कि 35% की कमी एक स्थापित वैज्ञानिक मानक है।',
+    citation: 'American Heart Association. (2023). Physical Activity and Cardiovascular Disease Prevention Guidelines. Circulation, 147(11), 112–129. https://doi.org/10.1161/CIR.0000000000001123',
+    url: 'https://www.ahajournals.org/doi/10.1161/CIR.0000000000001123'
+  },
+  {
+    id: 'SRC-02',
+    title: 'Exercise Interventions in Cardiovascular Disease: Systematic Review of 28 Trials',
+    title_hi: 'हृदय रोग में व्यायाम हस्तक्षेप: 28 परीक्षणों की व्यवस्थित समीक्षा',
+    publisher: 'Cochrane Library',
+    publisher_hi: 'कोक्रेन लाइब्रेरी',
+    date: '2021-11-20',
+    date_display: 'Nov 20, 2021',
+    type: 'research',
+    type_label: 'Research / Meta-analysis',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 95,
+    authority: 96,
+    authorityTag: '96% Authority · Systematic Review',
+    excerpt: 'Meta-analysis across 28 randomized controlled trials demonstrates consistent 30% to 35% relative risk reduction for coronary heart disease among participants engaging in structured aerobic programs exceeding 12 months in duration.',
+    excerpt_hi: '28 यादृच्छिक परीक्षणों के मेटा-विश्लेषण से संरचित एरोबिक कार्यक्रमों में भाग लेने वालों में 30% से 35% सापेक्ष जोखिम में कमी पाई गई।',
+    pageRef: 'Cochrane Database of Systematic Reviews, Issue 11, Art. No.: CD001800',
+    why: 'Retrieved to establish gold-standard randomized clinical trial consensus independently of single-cohort observational studies.',
+    why_hi: 'एकल-समूह अध्ययनों से स्वतंत्र रूप से स्वर्ण-मानक यादृच्छिक नैदानिक परीक्षण सहमति स्थापित करने के लिए पुनर्प्राप्त।',
+    relationship: 'Substantiates both the causal direction of benefit and the stated upper-bound range across diverse multi-country clinical trials.',
+    relationship_hi: 'विभिन्न देशों के नैदानिक परीक्षणों में लाभ की दिशा और बताए गए 35% ऊपरी दायरे दोनों की पुष्टि करता है।',
+    citation: 'Taylor, R. S., et al. (2021). Exercise-based rehabilitation for coronary heart disease: Cochrane systematic review and meta-analysis. Cochrane Database of Systematic Reviews, (11). https://doi.org/10.1002/14651858.CD001800.pub4',
+    url: 'https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD001800.pub4/full'
+  },
+  {
+    id: 'SRC-03',
+    title: 'WHO Global Guidelines on Physical Activity and Sedentary Behaviour',
+    title_hi: 'शारीरिक गतिविधि और गतिहीन व्यवहार पर डब्ल्यूएचओ वैश्विक दिशानिर्देश',
+    publisher: 'World Health Organization',
+    publisher_hi: 'विश्व स्वास्थ्य संगठन',
+    date: '2022-01-18',
+    date_display: 'Jan 18, 2022',
+    type: 'official',
+    type_label: 'Official / Institutional',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 91,
+    authority: 98,
+    authorityTag: '98% Authority · Global Official Body',
+    excerpt: 'Strong evidence confirms that 150–300 minutes of moderate-intensity aerobic physical activity per week brings substantial health benefits, including statistically significant reductions in cardiovascular mortality, incident hypertension, and type-2 diabetes.',
+    excerpt_hi: 'मजबूत साक्ष्य पुष्टि करते हैं कि प्रति सप्ताह 150-300 मिनट मध्यम-तीव्रता वाली एरोबिक गतिविधि हृदय मृत्यु दर में सांख्यिकीय रूप से महत्वपूर्ण कमी लाती है।',
+    pageRef: 'WHO Guidelines Approved by the Guidelines Review Committee, p. 44',
+    why: 'Retrieved as the authoritative international normative standard governing public health guidelines for non-communicable diseases.',
+    why_hi: 'गैर-संचारी रोगों के लिए सार्वजनिक स्वास्थ्य दिशानिर्देशों को नियंत्रित करने वाले आधिकारिक अंतरराष्ट्रीय मानक के रूप में पुनर्प्राप्त।',
+    relationship: 'Affirms that regular exercise is causally tied to CVD reduction on an international scale, though cites a broader range of 25–35%.',
+    relationship_hi: 'पुष्टि करता है कि नियमित व्यायाम अंतरराष्ट्रीय स्तर पर सीवीडी कमी से जुड़ा है, हालांकि 25-35% का व्यापक दायरा प्रस्तुत करता है।',
+    citation: 'World Health Organization. (2022). WHO guidelines on physical activity and sedentary behaviour. World Health Organization. https://apps.who.int/iris/handle/10665/325147',
+    url: 'https://www.who.int/publications/i/item/9789240015128'
+  },
+  {
+    id: 'SRC-04',
+    title: 'Reassessment of Exercise-CVD Risk Quantification Using Satellite Activity Datasets',
+    title_hi: 'उपग्रह गतिविधि डेटासेट का उपयोग करके व्यायाम-सीवीडी जोखिम का पुनर्मूल्यांकन',
+    publisher: 'University of Alabama, Huntsville',
+    publisher_hi: 'अलबामा विश्वविद्यालय, हंट्सविले',
+    date: '2018-08-12',
+    date_display: 'Aug 12, 2018',
+    type: 'research',
+    type_label: 'Research / Methodological',
+    claimId: 'C02',
+    claimName: 'C02: 35% figure applies to general public',
+    claimText: 'The 35% reduction figure applies uniformly across average populations without strict regimens.',
+    stance: 'contradicting',
+    relevance: 84,
+    authority: 72,
+    authorityTag: '72% Authority · Contested Methodology',
+    excerpt: 'When passive accelerometer datasets replace self-reported recall questionnaires, general population cardiovascular risk attenuation hovers between 18% and 27%. Stating a blanket "35%" overstates observed effect sizes for median real-world activity adherence.',
+    excerpt_hi: 'जब निष्क्रिय एक्सेलेरोमीटर डेटासेट का उपयोग किया जाता है, तो सामान्य जनसंख्या जोखिम में कमी 18% और 27% के बीच रहती है। 35% का दावा औसत जनसंख्या के लिए अतिशयोक्तिपूर्ण है।',
+    pageRef: 'Journal of Applied Biometrics, Vol 32(4), pp. 201–214',
+    why: 'Flagged during adversarial lateral reading check to locate potential confounding factors and methodology challenges to the 35% statistic.',
+    why_hi: '35% आंकड़े के संभावित पद्धतिगत चुनौतियों का पता लगाने के लिए प्रतिकूल लेटरल रीडिंग जांच के दौरान पहचाना गया।',
+    relationship: 'Directly contradicts the claim that 35% applies universally to the general public, indicating that real-world compliance results in a lower 18-27% bound.',
+    relationship_hi: 'सीधे तौर पर इस दावे का विरोध करता है कि 35% सार्वभौमिक रूप से लागू होता है।',
+    citation: 'Christy, J. R., & Spencer, R. W. (2018). Biometric tracking biases in physical activity reporting. Journal of Applied Biometrics, 32(4), 201–214.',
+    url: 'https://doi.org/10.1016/j.jab.2018.05.004'
+  },
+  {
+    id: 'SRC-05',
+    title: 'Precision Limits of Exercise-Cardiovascular Benefit Claims: An Editorial Critique',
+    title_hi: 'व्यायाम-हृदय लाभ दावों की सटीकता सीमाएं: एक संपादकीय आलोचना',
+    publisher: 'British Medical Journal',
+    publisher_hi: 'ब्रिटिश मेडिकल जर्नल (BMJ)',
+    date: '2022-02-14',
+    date_display: 'Feb 14, 2022',
+    type: 'news',
+    type_label: 'News / Expert Editorial',
+    claimId: 'C02',
+    claimName: 'C02: 35% figure applies to general public',
+    claimText: 'The 35% reduction figure applies uniformly across average populations.',
+    stance: 'contradicting',
+    relevance: 78,
+    authority: 82,
+    authorityTag: '82% Authority · High Editorial Standing',
+    excerpt: 'Public health communication often abstracts upper-bound outcomes into unconditional promises. While 35% risk reduction is mathematically documented under optimal training conditions, presenting this as a standard expectation misinforms the public.',
+    excerpt_hi: 'सार्वजनिक स्वास्थ्य संचार अक्सर सर्वोत्तम परिणामों को बिना शर्त वादों में बदल देता है। 35% केवल अनुकूलतम परिस्थितियों में प्राप्त होता है।',
+    pageRef: 'BMJ 2022; 376:o389',
+    why: 'Retrieved to analyze editorial discourse and academic scrutiny regarding precision in health journalism.',
+    why_hi: 'स्वास्थ्य पत्रकारिता में सटीकता के संबंध में संपादकीय संवाद का विश्लेषण करने के लिए पुनर्प्राप्त।',
+    relationship: 'Contradicts unconditional framing. Explains why EvidenceX qualified the overall assessment as "Mostly Supported" rather than fully verified without caveat.',
+    relationship_hi: 'बिना शर्त प्रस्तुति का विरोध करता है। व्याख्या करता है कि EvidenceX ने निर्णय को सशर्त क्यों रखा।',
+    citation: 'Gartlehner, G. (2022). Precision limits in cardiovascular prevention messaging. BMJ, 376, o389. https://doi.org/10.1136/bmj.o389',
+    url: 'https://www.bmj.com/content/376/bmj.o389'
+  },
+  {
+    id: 'SRC-06',
+    title: 'Exercise Frequency and Cardiovascular Outcomes: A 20-Year Prospective Cohort Study',
+    title_hi: 'व्यायाम आवृत्ति और हृदय परिणाम: 20 वर्षीय भावी कोहोर्ट अध्ययन',
+    publisher: 'New England Journal of Medicine',
+    publisher_hi: 'न्यू इंग्लैंड जर्नल ऑफ मेडिसिन (NEJM)',
+    date: '2020-09-08',
+    date_display: 'Sep 08, 2020',
+    type: 'research',
+    type_label: 'Research / Prospective Cohort',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 93,
+    authority: 97,
+    authorityTag: '97% Authority · Flagship Medical Journal',
+    excerpt: 'In this 20-year prospective study of 62,400 participants, subjects sustaining vigorous physical activity demonstrated a hazard ratio of 0.66 (95% CI 0.61–0.72) for fatal cardiovascular events, corresponding to a 34% reduction in long-term mortality.',
+    excerpt_hi: '62,400 प्रतिभागियों के 20 वर्षीय अध्ययन में नियमित व्यायाम करने वालों में हृदय संबंधी मृत्यु दर में 34% की कमी दर्ज की गई।',
+    pageRef: 'N Engl J Med 2020; 383:1012-1022',
+    why: 'Top-tier longitudinal study tracking objective clinical outcomes over two decades across tens of thousands of verified individuals.',
+    why_hi: 'दो दशकों में हजारों व्यक्तियों के नैदानिक परिणामों पर नज़र रखने वाला शीर्ष अध्ययन।',
+    relationship: 'Solidifies that 34–35% reduction is supported by prospective long-term clinical data, directly backing Claim 01.',
+    relationship_hi: 'पुष्टि करता है कि दीर्घकालिक नैदानिक आंकड़ों में 34-35% की कमी पूरी तरह समर्थित है।',
+    citation: 'Manson, J. E., et al. (2020). Physical activity and cardiovascular health outcomes: 20-year follow-up. New England Journal of Medicine, 383(11), 1012–1022. https://doi.org/10.1056/NEJMoa1912450',
+    url: 'https://www.nejm.org/doi/full/10.1056/NEJMoa1912450'
+  },
+  {
+    id: 'SRC-07',
+    title: 'Cardiovascular Health Across the Lifespan: Age-Stratified Intervention Meta-Analysis',
+    title_hi: 'जीवनकाल में हृदय स्वास्थ्य: आयु-स्तरीकृत हस्तक्षेप मेटा-विश्लेषण',
+    publisher: 'The Lancet Healthy Longevity',
+    publisher_hi: 'द लांसेट (The Lancet)',
+    date: '2023-05-18',
+    date_display: 'May 18, 2023',
+    type: 'research',
+    type_label: 'Research / Peer-reviewed',
+    claimId: 'C04',
+    claimName: 'C04: Uniform benefit across all ages',
+    claimText: 'The cardiovascular benefit applies uniformly across all age groups and fitness levels.',
+    stance: 'inconclusive',
+    relevance: 82,
+    authority: 95,
+    authorityTag: '95% Authority · Tier-1 Medical Journal',
+    excerpt: 'Cardiovascular benefits of aerobic exercise differ substantially between age demographics: cohorts aged 30–50 demonstrated 32% relative risk reduction, while cohorts aged 75+ showed 14% to 22% reduction, heavily confounded by preexisting comorbidities.',
+    excerpt_hi: 'व्यायाम के हृदय लाभ विभिन्न आयु समूहों में काफी भिन्न होते हैं: 30-50 वर्ष के समूहों में 32% कमी, जबकि 75+ आयु में केवल 14-22% कमी देखी गई।',
+    pageRef: 'The Lancet Healthy Longevity, 4(5), e210-e221',
+    why: 'Discovered during investigation of Claim 04 (age universality). Retrieved to test whether age invariance holds under stratified meta-analysis.',
+    why_hi: 'दावा 04 (आयु सार्वभौमिकता) की जांच के दौरान यह परखने के लिए प्राप्त किया गया।',
+    relationship: 'Treats Claim 04 as having insufficient and non-uniform evidence. Explains why EvidenceX labeled Claim 04 as "Insufficient Evidence".',
+    relationship_hi: 'दावा 04 को अपर्याप्त और गैर-समान साक्ष्य वाला मानता है।',
+    citation: 'Kohl, H. W., et al. (2023). Age-stratified cardiovascular outcomes of physical activity: A systematic review. The Lancet Healthy Longevity, 4(5), e210–e221. https://doi.org/10.1016/S2666-7568(23)00045-8',
+    url: 'https://www.thelancet.com/journals/lanhl/article/PIIS2666-7568(23)00045-8/fulltext'
+  },
+  {
+    id: 'SRC-08',
+    title: 'CDC Fact Sheet: Physical Activity Prevents Chronic Diseases and Reduces Premature Mortality',
+    title_hi: 'सीडीसी तथ्य पत्रक: शारीरिक गतिविधि पुरानी बीमारियों को रोकती है',
+    publisher: 'Centers for Disease Control and Prevention',
+    publisher_hi: 'सीडीसी (CDC)',
+    date: '2023-08-30',
+    date_display: 'Aug 30, 2023',
+    type: 'official',
+    type_label: 'Official / Government',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 90,
+    authority: 96,
+    authorityTag: '96% Authority · US Federal Agency',
+    excerpt: 'Being physically active on a regular basis is one of the most effective interventions to manage heart disease risk factors. People who achieve at least 150 minutes of moderate activity weekly have an estimated 33% lower risk of cardiovascular mortality.',
+    excerpt_hi: 'नियमित शारीरिक गतिविधि हृदय रोग जोखिम को प्रबंधित करने के सबसे प्रभावी तरीकों में से एक है। प्रति सप्ताह 150 मिनट व्यायाम करने वालों में 33% कम जोखिम पाया जाता है।',
+    pageRef: 'CDC Division of Nutrition, Physical Activity, and Obesity, Fact Sheet #419',
+    why: 'Government agency validation retrieved to verify domestic institutional alignment with WHO global metrics.',
+    why_hi: 'डब्ल्यूएचओ वैश्विक मानकों के साथ सरकारी एजेंसी के संरेखण को सत्यापित करने के लिए प्राप्त।',
+    relationship: 'Corroborates the 33–35% reduction interval from an official national health agency perspective.',
+    relationship_hi: 'राष्ट्रीय स्वास्थ्य एजेंसी के दृष्टिकोण से 33-35% कमी के अंतराल की पुष्टि करता है।',
+    citation: 'CDC. (2023). Physical activity for a healthy heart. Centers for Disease Control and Prevention. https://www.cdc.gov/physicalactivity/basics/pa-health/index.htm',
+    url: 'https://www.cdc.gov/physicalactivity/basics/pa-health/index.htm'
+  },
+  {
+    id: 'SRC-09',
+    title: 'Fact Check: Does Exercise Cut Heart Attack Risk by Exactly One-Third?',
+    title_hi: 'तथ्य जांच: क्या व्यायाम वास्तव में दिल के दौरे के जोखिम को ठीक एक-तिहाई कम करता है?',
+    publisher: 'Snopes Health Fact-Check',
+    publisher_hi: 'स्नोप्स (Snopes)',
+    date: '2023-04-10',
+    date_display: 'Apr 10, 2023',
+    type: 'factcheck',
+    type_label: 'Fact-check / Independent',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 86,
+    authority: 85,
+    authorityTag: '85% Authority · Certified Fact-Checker',
+    excerpt: 'Rating: MOSTLY TRUE. Medical literature firmly validates that aerobic exercise reduces cardiovascular events by 30% to 35% in active groups, though context regarding exercise duration (minimum 150 min/wk) is essential.',
+    excerpt_hi: 'रेटिंग: अधिकांशतः सत्य। चिकित्सा साहित्य पुष्टि करता है कि सक्रिय समूहों में 30% से 35% तक कमी आती है, हालांकि अवधि का संदर्भ आवश्यक है।',
+    pageRef: 'Snopes Medical Desk Claim Review #84920',
+    why: 'Retrieved to cross-reference established journalistic fact-checking consensus on viral formulations of this exact claim.',
+    why_hi: 'इस दावे के वायरल रूपों पर पत्रकारिता तथ्य-जांच सहमति का क्रॉस-संदर्भ करने के लिए पुनर्प्राप्त।',
+    relationship: 'Third-party fact-checker reached identical verdict ("Mostly True" with duration qualification) matching EvidenceX synthesis.',
+    relationship_hi: 'स्वतंत्र तथ्य-जांचकर्ता ने EvidenceX से मिलता-जुलता निर्णय ("सशर्त सत्य") दिया।',
+    citation: 'Evon, D. (2023). Does regular exercise reduce heart disease risk by 35%? Snopes Claim Review. https://www.snopes.com/fact-check/exercise-heart-risk-35/',
+    url: 'https://www.snopes.com'
+  },
+  {
+    id: 'SRC-10',
+    title: 'Reuters Health Brief: Physical Fitness and Global Cardiovascular Burden',
+    title_hi: 'रॉयटर्स हेल्थ ब्रीफ: शारीरिक फिटनेस और वैश्विक हृदय रोग भार',
+    publisher: 'Reuters Health',
+    publisher_hi: 'रॉयटर्स हेल्थ (Reuters)',
+    date: '2024-01-22',
+    date_display: 'Jan 22, 2024',
+    type: 'news',
+    type_label: 'News / Wire Service',
+    claimId: 'C03',
+    claimName: 'C03: Literature basis in major journals',
+    claimText: 'This is confirmed by multiple peer-reviewed studies published in major medical journals.',
+    stance: 'supporting',
+    relevance: 88,
+    authority: 90,
+    authorityTag: '90% Authority · Wire Journalism',
+    excerpt: 'Surveys of cardiologist associations across Europe and the Americas indicate near-total agreement (94%) on the efficacy of prescribed exercise regimens in reducing hospital admissions for heart failure by approximately one-third.',
+    excerpt_hi: 'यूरोप और अमेरिका में हृदय रोग विशेषज्ञों के संघों के सर्वेक्षणों में लगभग पूर्ण सहमति (94%) पाई गई कि व्यायाम अस्पताल में भर्ती होने को लगभग एक-तिहाई कम करता है।',
+    pageRef: 'Reuters Health Dispatch, Jan 22, 2024',
+    why: 'Validates that mainstream medical journalism consistently references peer-reviewed consensus regarding the one-third reduction metric.',
+    why_hi: 'सत्यापित करता है कि मुख्यधारा की पत्रकारिता समीक्षित सहमति को लगातार उद्धृत करती है।',
+    relationship: 'Directly validates Claim 03 regarding publication and medical acceptance across prominent medical bodies.',
+    relationship_hi: 'दावा 03 को सीधे तौर पर मान्य करता है।',
+    citation: 'Steenhuysen, J. (2024). Exercise regimens and cardiac disease management: Global review. Reuters Health. https://www.reuters.com/business/healthcare-pharmaceuticals/exercise-heart-health-2024',
+    url: 'https://www.reuters.com'
+  },
+  {
+    id: 'SRC-11',
+    title: 'European Heart Journal: Dose-Response Relationship Between Step Counts and Incident CVD',
+    title_hi: 'यूरोपियन हार्ट जर्नल: कदमों की गिनती और सीवीडी के बीच खुराक-प्रतिक्रिया संबंध',
+    publisher: 'European Society of Cardiology',
+    publisher_hi: 'यूरोपीय कार्डियोलॉजी सोसायटी',
+    date: '2023-10-04',
+    date_display: 'Oct 04, 2023',
+    type: 'research',
+    type_label: 'Research / Peer-reviewed',
+    claimId: 'C01',
+    claimName: 'C01: CVD risk reduced by up to 35%',
+    claimText: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%.',
+    stance: 'supporting',
+    relevance: 91,
+    authority: 95,
+    authorityTag: '95% Authority · Top Cardiology Journal',
+    excerpt: 'A non-linear dose-response curve indicates that increments from 2,000 to 8,000 steps per day progressively lower CVD risk, plateauing around 32% to 36% risk reduction at 9,000 daily steps.',
+    excerpt_hi: 'दैनिक 2,000 से 8,000 कदमों की वृद्धि से सीवीडी जोखिम उत्तरोत्तर कम होता है, जो 9,000 कदमों पर 32% से 36% की कमी पर स्थिर हो जाता है।',
+    pageRef: 'Eur Heart J 2023; 44(40): 4210–4222',
+    why: 'Provides wearable device/step-count metric corroboration for aerobic exercise volume required to achieve ~35% risk reduction.',
+    why_hi: '35% जोखिम कमी प्राप्त करने के लिए आवश्यक व्यायाम मात्रा का सत्यापन।',
+    relationship: 'Offers granular behavioral evidence demonstrating the 35% threshold is achievable through daily moderate physical activity.',
+    relationship_hi: 'बारीक साक्ष्य प्रदान करता है कि 35% की सीमा व्यावहारिक शारीरिक गतिविधि से प्राप्त की जा सकती है।',
+    citation: 'Stamatakis, E., et al. (2023). Daily step count dose-response and cardiovascular events. European Heart Journal, 44(40), 4210–4222. https://doi.org/10.1093/eurheartj/ehad521',
+    url: 'https://academic.oup.com/eurheartj'
+  },
+  {
+    id: 'SRC-12',
+    title: 'Independent Review of Exercise Adherence Metrics in Sedentary Workplace Cohorts',
+    title_hi: 'गतिहीन कार्यस्थल समूहों में व्यायाम पालन का स्वतंत्र मूल्यांकन',
+    publisher: 'Occupational Medicine Quarterly',
+    publisher_hi: 'ऑक्यूपेशनल मेडिसिन त्रैमासिक',
+    date: '2021-06-15',
+    date_display: 'Jun 15, 2021',
+    type: 'other',
+    type_label: 'Other / Specialized Study',
+    claimId: 'C04',
+    claimName: 'C04: Uniform benefit across all ages',
+    claimText: 'The cardiovascular benefit applies uniformly across all fitness levels.',
+    stance: 'inconclusive',
+    relevance: 71,
+    authority: 76,
+    authorityTag: '76% Authority · Specialized Field',
+    excerpt: 'Sedentary office cohorts with high baseline metabolic stress exhibited heterogeneous adaptations: only 42% achieved measurable arterial elasticity improvements over a 6-month walking trial.',
+    excerpt_hi: 'गतिहीन कार्यालय कर्मचारियों में अलग-अलग अनुकूलन देखे गए: केवल 42% ने धमनी लचीलेपन में सुधार दर्ज किया।',
+    pageRef: 'Occup Med Q, 18(2), 88–96',
+    why: 'Sampled to inspect real-world occupational settings where fitness and compliance vary drastically from controlled trials.',
+    why_hi: 'वास्तविक कार्यस्थल सेटिंग्स की जांच के लिए चुना गया।',
+    relationship: 'Supports the finding of non-uniformity across different initial fitness profiles.',
+    relationship_hi: 'विभिन्न फिटनेस स्तरों में गैर-समानता के निष्कर्ष का समर्थन करता है।',
+    citation: 'Chen, L., & Miller, P. (2021). Workplace exercise interventions and vascular response. Occupational Medicine Quarterly, 18(2), 88–96.',
+    url: 'https://doi.org/10.1093/occmed'
+  }
+];
+
+/* ── App State ────────────────────────────────────── */
+let currentFilterStance = 'all';
+let currentFilterType = 'all';
+let currentFilterDate = 'all';
+let currentSort = 'relevance';
+let searchQuery = '';
+let currentViewMode = 'normal'; // 'normal' | 'empty' | 'error'
+let selectedSource = null;
+
+/* ── Rendering Table ──────────────────────────────── */
+function getFilteredData(){
+  if(currentViewMode === 'empty') return [];
+  if(currentViewMode === 'error') return [];
+
+  let list = EVIDENCE_DATA.filter(item => {
+    // Stance filter
+    if(currentFilterStance !== 'all' && item.stance !== currentFilterStance) return false;
+    // Type filter
+    if(currentFilterType !== 'all' && item.type !== currentFilterType) return false;
+    // Date filter
+    if(currentFilterDate === 'lastweek') {
+      // Mock: no items in last week for demo
+      return false;
+    } else if(currentFilterDate === 'recent') {
+      const yr = parseInt(item.date.slice(0,4));
+      if(yr < 2022) return false;
+    }
+
+    // Search query
+    if(searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (item.title||'').toLowerCase().includes(q) || (item.title_hi||'').toLowerCase().includes(q);
+      const matchPub = (item.publisher||'').toLowerCase().includes(q) || (item.publisher_hi||'').toLowerCase().includes(q);
+      const matchClaim = (item.claimName||'').toLowerCase().includes(q) || (item.claimText||'').toLowerCase().includes(q);
+      const matchExcerpt = (item.excerpt||'').toLowerCase().includes(q);
+      if(!matchTitle && !matchPub && !matchClaim && !matchExcerpt) return false;
+    }
+    return true;
+  });
+
+  // Sorting
+  list.sort((a,b) => {
+    if(currentSort === 'relevance') return b.relevance - a.relevance;
+    if(currentSort === 'date-desc') return new Date(b.date) - new Date(a.date);
+    if(currentSort === 'authority') return b.authority - a.authority;
+    if(currentSort === 'stance') {
+      const order = {supporting: 1, inconclusive: 2, contradicting: 3};
+      return (order[a.stance]||9) - (order[b.stance]||9);
+    }
+    return 0;
+  });
+
+  return list;
+}
+
+function renderEvidenceTable(){
+  const tbody = document.getElementById('evidenceTbody');
+  const tableContainer = document.getElementById('tableContainer');
+  const emptyState = document.getElementById('emptyState');
+  const errorState = document.getElementById('errorState');
+  const resultsCount = document.getElementById('resultsCount');
+
+  if(currentViewMode === 'error'){
+    tableContainer.style.display = 'none';
+    emptyState.style.display = 'none';
+    errorState.style.display = 'flex';
+    resultsCount.textContent = '0 sources';
+    return;
+  }
+
+  errorState.style.display = 'none';
+  const data = getFilteredData();
+
+  if(data.length === 0){
+    tableContainer.style.display = 'none';
+    emptyState.style.display = 'flex';
+    resultsCount.textContent = '0 sources';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  tableContainer.style.display = 'block';
+  resultsCount.textContent = `${data.length} of ${EVIDENCE_DATA.length} ${currentLang === 'hi' ? 'स्रोत' : 'sources'}`;
+
+  tbody.innerHTML = data.map((src, idx) => {
+    const isHi = currentLang === 'hi';
+    const title = isHi && src.title_hi ? src.title_hi : src.title;
+    const pub = isHi && src.publisher_hi ? src.publisher_hi : src.publisher;
+
+    let stanceBadge = '';
+    if(src.stance === 'supporting'){
+      stanceBadge = `<span class="badge badge-ok"><span class="badge-dot"></span>${t('filter.supporting')}</span>`;
+    } else if(src.stance === 'contradicting'){
+      stanceBadge = `<span class="badge badge-err"><span class="badge-dot"></span>${t('filter.contradicting')}</span>`;
+    } else {
+      stanceBadge = `<span class="badge badge-warn"><span class="badge-dot"></span>${t('filter.inconclusive')}</span>`;
+    }
+
+    const isSelected = selectedSource && selectedSource.id === src.id;
+
+    return `
+      <tr class="evidence-row ${isSelected ? 'selected' : ''}" data-id="${src.id}" tabindex="0" role="button" aria-label="View source ${src.id}">
+        <td style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">${src.id}</td>
+        <td>
+          <div class="cell-source">
+            <span class="source-title-text">${title}</span>
+            <div class="source-pub-meta">
+              <span style="font-weight:550;color:var(--text2);">${pub}</span>
+              <span class="pub-dot"></span>
+              <span>${src.type_label}</span>
+            </div>
+          </div>
+        </td>
+        <td style="color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;">${src.date_display}</td>
+        <td>
+          <span class="claim-tag" title="${src.claimText}">${src.claimName}</span>
+        </td>
+        <td>${stanceBadge}</td>
+        <td>
+          <div class="rel-meter-cell">
+            <div class="rel-bar"><div class="rel-fill" style="width:${src.relevance}%"></div></div>
+            <span class="rel-val">${src.relevance}%</span>
+          </div>
+        </td>
+        <td style="text-align:right;">
+          <div class="row-actions">
+            <button class="btn-inspect" data-action="inspect" data-id="${src.id}">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span>${t('btn.inspect')}</span>
+            </button>
+            <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="btn-icon" data-action="ext" title="${t('btn.open')}" onclick="event.stopPropagation();">
+              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Row click listeners
+  tbody.querySelectorAll('.evidence-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      const id = row.dataset.id;
+      const src = EVIDENCE_DATA.find(s => s.id === id);
+      if(src) openDrawer(src);
+    });
+    row.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        const id = row.dataset.id;
+        const src = EVIDENCE_DATA.find(s => s.id === id);
+        if(src) openDrawer(src);
+      }
+    });
+  });
+
+  // Update stance counts on pills
+  updateStanceCounts();
+}
+
+function updateStanceCounts(){
+  const allCount = EVIDENCE_DATA.length;
+  const supCount = EVIDENCE_DATA.filter(s => s.stance === 'supporting').length;
+  const conCount = EVIDENCE_DATA.filter(s => s.stance === 'contradicting').length;
+  const incCount = EVIDENCE_DATA.filter(s => s.stance === 'inconclusive').length;
+
+  document.getElementById('countAll').textContent = allCount;
+  document.getElementById('countSup').textContent = supCount;
+  document.getElementById('countCon').textContent = conCount;
+  document.getElementById('countInc').textContent = incCount;
+}
+
+/* ── Detail Drawer Functionality ──────────────────── */
+const drawer = document.getElementById('detailDrawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+
+function openDrawer(src){
+  selectedSource = src;
+  renderDrawerContent(src);
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Highlight selected row in table
+  document.querySelectorAll('.evidence-row').forEach(r => {
+    r.classList.toggle('selected', r.dataset.id === src.id);
+  });
+}
+
+function closeDrawer(){
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  selectedSource = null;
+  document.querySelectorAll('.evidence-row').forEach(r => r.classList.remove('selected'));
+}
+
+document.getElementById('drawerCloseBtn').onclick = closeDrawer;
+drawerOverlay.onclick = closeDrawer;
+window.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+});
+
+function renderDrawerContent(src){
+  const isHi = currentLang === 'hi';
+  document.getElementById('drawerSourceId').textContent = src.id;
+  document.getElementById('drawerTitle').textContent = isHi && src.title_hi ? src.title_hi : src.title;
+  document.getElementById('drawerPublisherLine').textContent = `${isHi && src.publisher_hi ? src.publisher_hi : src.publisher} · ${src.date_display} · ${src.type_label}`;
+
+  const badgeEl = document.getElementById('drawerStanceBadge');
+  if(src.stance === 'supporting'){
+    badgeEl.className = 'badge badge-ok';
+    badgeEl.innerHTML = `<span class="badge-dot"></span>${t('filter.supporting')}`;
+  } else if(src.stance === 'contradicting'){
+    badgeEl.className = 'badge badge-err';
+    badgeEl.innerHTML = `<span class="badge-dot"></span>${t('filter.contradicting')}`;
+  } else {
+    badgeEl.className = 'badge badge-warn';
+    badgeEl.innerHTML = `<span class="badge-dot"></span>${t('filter.inconclusive')}`;
+  }
+
+  document.getElementById('drawerType').textContent = src.type_label;
+  document.getElementById('drawerDate').textContent = src.date_display;
+  document.getElementById('drawerAuthority').textContent = `${src.authority}% (${src.authority >= 90 ? 'Tier 1 High Authority' : 'Tier 2 Peer Review'})`;
+  document.getElementById('drawerRelevance').textContent = `${src.relevance}% Direct Evidence Alignment`;
+
+  // Excerpt
+  const excText = isHi && src.excerpt_hi ? src.excerpt_hi : src.excerpt;
+  document.getElementById('drawerExcerpt').textContent = `"${excText}"`;
+  document.getElementById('drawerPageRef').textContent = src.pageRef;
+
+  // Connected Claim
+  document.getElementById('drawerClaimId').textContent = src.claimName;
+  document.getElementById('drawerClaimText').textContent = `"${src.claimText}"`;
+
+  // Why & Relationship
+  document.getElementById('drawerWhy').textContent = isHi && src.why_hi ? src.why_hi : src.why;
+  document.getElementById('drawerRelationship').textContent = isHi && src.relationship_hi ? src.relationship_hi : src.relationship;
+
+  // Citation
+  document.getElementById('drawerCitation').textContent = src.citation;
+  document.getElementById('drawerOpenExtBtn').href = src.url;
+
+  // Reset copy button
+  const copyBtn = document.getElementById('copyCitationBtn');
+  copyBtn.classList.remove('copied');
+  document.getElementById('copyBtnText').textContent = t('dr.copy');
+}
+
+// Copy citation button
+document.getElementById('copyCitationBtn').onclick = () => {
+  if(!selectedSource) return;
+  navigator.clipboard.writeText(selectedSource.citation).then(() => {
+    const copyBtn = document.getElementById('copyCitationBtn');
+    copyBtn.classList.add('copied');
+    document.getElementById('copyBtnText').textContent = t('dr.copied');
+    setTimeout(() => {
+      copyBtn.classList.remove('copied');
+      document.getElementById('copyBtnText').textContent = t('dr.copy');
+    }, 2200);
+  });
+};
+
+/* ── Filter & Search Listeners ────────────────────── */
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value;
+  searchClear.style.display = searchQuery.length > 0 ? 'inline-flex' : 'none';
+  renderEvidenceTable();
+});
+
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  searchQuery = '';
+  searchClear.style.display = 'none';
+  searchInput.focus();
+  renderEvidenceTable();
+});
+
+// Stance Pills
+document.querySelectorAll('#stanceFilterGroup .pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#stanceFilterGroup .pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentFilterStance = pill.dataset.stance;
+    renderEvidenceTable();
+  });
+});
+
+// Type filter
+document.getElementById('typeFilter').addEventListener('change', function(){
+  currentFilterType = this.value;
+  renderEvidenceTable();
+});
+
+// Date filter
+document.getElementById('dateFilter').addEventListener('change', function(){
+  currentFilterDate = this.value;
+  renderEvidenceTable();
+});
+
+// Sort select
+document.getElementById('sortSelect').addEventListener('change', function(){
+  currentSort = this.value;
+  renderEvidenceTable();
+});
+
+// Reset filters button in empty state
+document.getElementById('clearFiltersBtn').onclick = () => {
+  currentFilterStance = 'all';
+  currentFilterType = 'all';
+  currentFilterDate = 'all';
+  searchQuery = '';
+  searchInput.value = '';
+  searchClear.style.display = 'none';
+  document.querySelectorAll('#stanceFilterGroup .pill').forEach(p => p.classList.toggle('active', p.dataset.stance === 'all'));
+  document.getElementById('typeFilter').value = 'all';
+  document.getElementById('dateFilter').value = 'all';
+  currentViewMode = 'normal';
+  updateDemoButtons();
+  renderEvidenceTable();
+};
+
+// Retry button in error state
+document.getElementById('errorRetryBtn').onclick = () => {
+  currentViewMode = 'normal';
+  updateDemoButtons();
+  renderEvidenceTable();
+};
+
+/* ── Demo Mode Controls ───────────────────────────── */
+const demoBtnNormal = document.getElementById('demoBtnNormal');
+const demoBtnEmpty = document.getElementById('demoBtnEmpty');
+const demoBtnError = document.getElementById('demoBtnError');
+
+function updateDemoButtons(){
+  demoBtnNormal.classList.toggle('active', currentViewMode === 'normal');
+  demoBtnEmpty.classList.toggle('active', currentViewMode === 'empty');
+  demoBtnError.classList.toggle('active', currentViewMode === 'error');
+}
+
+demoBtnNormal.onclick = () => {
+  currentViewMode = 'normal';
+  updateDemoButtons();
+  renderEvidenceTable();
+};
+demoBtnEmpty.onclick = () => {
+  currentViewMode = 'empty';
+  updateDemoButtons();
+  renderEvidenceTable();
+};
+demoBtnError.onclick = () => {
+  currentViewMode = 'error';
+  updateDemoButtons();
+  renderEvidenceTable();
+};
+
+/* ── Mobile Sidebar Drawer ────────────────────────── */
+const sbOverlay = document.getElementById('sbOverlay');
+const sidebar = document.getElementById('sidebar');
+document.getElementById('mobileMenuBtn').onclick = () => {
+  sidebar.classList.toggle('open');
+  sbOverlay.classList.toggle('visible');
+};
+sbOverlay.onclick = () => {
+  sidebar.classList.remove('open');
+  sbOverlay.classList.remove('visible');
+};
+
+/* ── Initial Load ─────────────────────────────────── */
+renderEvidenceTable();
+</script>
+</body>
+</html>

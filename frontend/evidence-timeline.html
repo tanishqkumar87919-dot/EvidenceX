@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Evidence Timeline — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Core Tokens ───────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+
+  /* Light Theme */
+  --bg:#f5f4f1;
+  --bg2:#eceae4;
+  --surface:#ffffff;
+  --surface2:#f8f7f4;
+  --surface3:#f1efe9;
+  --surface-hover:#f4f2ec;
+  --border:rgba(0,0,0,0.07);
+  --border-s:rgba(0,0,0,0.13);
+  --border-m:rgba(0,0,0,0.22);
+  --text:#111110;
+  --text2:#4e4d49;
+  --text3:#87857e;
+  --accent:#1c4e9e;
+  --accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);
+  --accent-sub:rgba(28,78,158,0.05);
+
+  --ok:#1a7a4a;
+  --ok-bg:rgba(26,122,74,0.10);
+  --ok-border:rgba(26,122,74,0.22);
+
+  --err:#b94040;
+  --err-bg:rgba(185,64,64,0.09);
+  --err-border:rgba(185,64,64,0.20);
+
+  --warn:#8a6d2f;
+  --warn-bg:rgba(138,109,47,0.09);
+  --warn-border:rgba(138,109,47,0.20);
+
+  --info:#2b6cb0;
+  --info-bg:rgba(43,108,176,0.09);
+  --info-border:rgba(43,108,176,0.20);
+
+  --neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.85);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.09),0 4px 12px rgba(0,0,0,0.04);
+
+  --sidebar-w:228px;
+  --topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+
+[data-theme="dark"]{
+  --bg:#0d0d0c;
+  --bg2:#131312;
+  --surface:#1a1a18;
+  --surface2:#1f1f1d;
+  --surface3:#252522;
+  --surface-hover:#2a2a26;
+  --border:rgba(255,255,255,0.07);
+  --border-s:rgba(255,255,255,0.13);
+  --border-m:rgba(255,255,255,0.22);
+  --text:#eeedea;
+  --text2:#a1a09a;
+  --text3:#64635e;
+  --accent:#4d86d8;
+  --accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);
+  --accent-sub:rgba(77,134,216,0.06);
+
+  --ok:#4cad78;
+  --ok-bg:rgba(76,173,120,0.12);
+  --ok-border:rgba(76,173,120,0.24);
+
+  --err:#d96a6a;
+  --err-bg:rgba(217,106,106,0.12);
+  --err-border:rgba(217,106,106,0.24);
+
+  --warn:#c9a84c;
+  --warn-bg:rgba(201,168,76,0.12);
+  --warn-border:rgba(201,168,76,0.24);
+
+  --info:#63b3ed;
+  --info-bg:rgba(99,179,237,0.12);
+  --info-border:rgba(99,179,237,0.24);
+
+  --neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.88);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.50);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:50;
+  overflow-y:auto;scrollbar-width:none;transition:transform .25s ease,background .25s;
+}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{
+  display:flex;align-items:center;gap:8px;padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);font-size:15px;font-weight:700;
+  letter-spacing:-0.04em;color:var(--text);text-decoration:none;
+}
+.sb-mark{
+  width:26px;height:26px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);padding:0 8px;margin:10px 0 4px;
+}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{
+  display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:450;
+  color:var(--text2);padding:7px 10px;border-radius:var(--r-sm);
+  text-decoration:none;transition:all var(--t);
+}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;
+}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--accent-lt);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-weight:700;color:var(--accent);flex-shrink:0;
+}
+
+/* ── Main Layout ──────────────────────────────────── */
+.main{
+  margin-left:var(--sidebar-w);flex:1;min-width:0;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{
+  height:var(--topbar-h);background:var(--glass);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);display:flex;align-items:center;
+  padding:0 28px;gap:14px;position:sticky;top:0;z-index:40;
+  transition:background .25s;
+}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+.ctrl{
+  height:32px;display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:0 10px;cursor:pointer;transition:all var(--t);
+}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+
+.lang-sel{
+  font-family:var(--font);font-size:12.5px;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);
+}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+
+.mobile-menu{
+  display:none;width:34px;height:34px;border:1px solid var(--border-s);
+  border-radius:var(--r-sm);background:transparent;cursor:pointer;
+  align-items:center;justify-content:center;color:var(--text2);
+}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page Body ────────────────────────────────────── */
+.page{
+  flex:1;padding:26px 28px;
+  display:flex;flex-direction:column;gap:22px;
+  max-width:1240px;width:100%;
+}
+
+/* ── Demo Notice Strip ────────────────────────────── */
+.demo-banner{
+  background:var(--warn-bg);border:1px solid var(--warn-border);
+  border-radius:var(--r-md);padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;font-size:12.5px;color:var(--warn);flex-wrap:wrap;
+}
+.demo-banner-content{display:flex;align-items:center;gap:8px;}
+.demo-banner-content svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;}
+.demo-tag{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  background:rgba(138,109,47,0.15);padding:2px 7px;border-radius:4px;
+}
+
+/* ── Claim Selector Card ──────────────────────────── */
+.claim-selector-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:18px 22px;
+  box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:12px;
+}
+.csc-header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+}
+.csc-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text3);display:flex;align-items:center;gap:6px;
+}
+.csc-select{
+  font-family:var(--font);font-size:13.5px;font-weight:550;
+  color:var(--text);background:var(--surface2);
+  border:1px solid var(--border-s);border-radius:var(--r-md);
+  padding:8px 12px;outline:none;cursor:pointer;
+  width:100%;transition:border-color var(--t),box-shadow var(--t);
+}
+.csc-select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-sub);
+}
+
+.selected-claim-details{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:12px 14px;background:var(--surface2);
+  border-radius:var(--r-md);border:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.scd-text{
+  font-size:13.5px;font-weight:500;color:var(--text);line-height:1.45;
+  flex:1;min-width:260px;
+}
+.scd-badges{
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+
+/* ── Badges ───────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;border-radius:12px;padding:3px 9px;
+  white-space:nowrap;
+}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.badge-info{background:var(--info-bg);color:var(--info);border:1px solid var(--info-border);}
+.badge-neutral{background:var(--neutral-bg);color:var(--text2);border:1px solid var(--border-s);}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── Timeline Section Container ───────────────────── */
+.timeline-section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:18px;
+}
+.ts-header{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:14px;
+}
+.ts-title-group{display:flex;flex-direction:column;gap:3px;}
+.ts-title{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);}
+.ts-subtitle{font-size:12px;color:var(--text3);}
+
+/* Horizontal Timeline (Desktop) */
+.timeline-horizontal-wrap{
+  overflow-x:auto;padding:16px 8px 24px;
+  scrollbar-width:thin;scrollbar-color:var(--border-m) transparent;
+}
+.timeline-horizontal-wrap::-webkit-scrollbar{height:6px;}
+.timeline-horizontal-wrap::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:4px;}
+
+.timeline-track-h{
+  display:flex;align-items:stretch;gap:18px;
+  position:relative;min-width:1020px;
+}
+.timeline-spine-h{
+  position:absolute;top:28px;left:40px;right:40px;
+  height:2px;background:var(--border-m);z-index:0;
+}
+
+/* Event Step Card (Horizontal) */
+.event-col{
+  flex:1;min-width:180px;display:flex;flex-direction:column;
+  position:relative;z-index:1;
+}
+.event-node-h{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--border-m);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  color:var(--text2);margin:12px 0 16px 14px;
+  box-shadow:0 0 0 4px var(--surface);
+  transition:all var(--t);
+}
+.event-col:hover .event-node-h{
+  border-color:var(--accent);color:var(--accent);
+  box-shadow:0 0 0 6px var(--accent-lt);
+}
+
+.event-card{
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:14px 15px;
+  display:flex;flex-direction:column;gap:8px;
+  cursor:pointer;transition:all var(--t);flex:1;
+}
+.event-card:hover{
+  background:var(--surface);border-color:var(--border-m);
+  transform:translateY(-2px);box-shadow:var(--shadow-md);
+}
+.event-card.active{
+  border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 2px var(--accent-lt),var(--shadow-md);
+}
+
+.event-stage-tag{
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text3);
+}
+.event-date-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:6px;
+}
+.event-date{
+  font-family:var(--font-mono);font-size:12px;font-weight:600;
+  color:var(--text);font-variant-numeric:tabular-nums;
+}
+.event-source-name{
+  font-size:11.5px;font-weight:600;color:var(--accent);
+}
+.event-title{
+  font-size:13px;font-weight:650;color:var(--text);line-height:1.35;
+}
+.event-summary{
+  font-size:12px;color:var(--text2);line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+
+/* Vertical Timeline (Mobile / Narrow Screens) */
+.timeline-vertical-wrap{
+  display:none;flex-direction:column;position:relative;
+  padding-left:26px;gap:20px;
+}
+.timeline-spine-v{
+  position:absolute;top:10px;bottom:10px;left:11px;
+  width:2px;background:var(--border-m);
+}
+.event-item-v{
+  display:flex;flex-direction:column;gap:8px;position:relative;
+}
+.event-node-v{
+  position:absolute;left:-26px;top:4px;width:24px;height:24px;
+  border-radius:50%;background:var(--surface);border:2px solid var(--border-m);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--text2);
+  box-shadow:0 0 0 3px var(--surface);
+}
+
+/* ── "Evidence Changed Over Time" Section ─────────── */
+.change-section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:18px;
+}
+.cs-header{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:14px;
+}
+.cs-title-group{display:flex;flex-direction:column;gap:3px;}
+.cs-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
+.cs-sub{font-size:12.5px;color:var(--text3);}
+
+.compare-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+.compare-box{
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:18px 20px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.cb-period-tag{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);display:flex;align-items:center;justify-content:space-between;
+}
+.cb-heading{
+  font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.02em;
+}
+.cb-stats-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  background:var(--surface);padding:12px;border-radius:var(--r-sm);
+  border:1px solid var(--border);
+}
+.cbs-item{display:flex;flex-direction:column;gap:2px;}
+.cbs-lbl{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);}
+.cbs-val{font-size:13px;font-weight:650;color:var(--text);}
+.cb-desc{
+  font-size:12.5px;color:var(--text2);line-height:1.65;
+}
+
+/* Synthesis / Evolution Trajectory Banner */
+.synthesis-banner{
+  background:var(--surface3);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:14px 18px;
+  display:flex;align-items:flex-start;gap:12px;font-size:13px;line-height:1.6;
+  color:var(--text2);
+}
+.synthesis-icon{
+  width:24px;height:24px;border-radius:50%;background:var(--accent-lt);
+  color:var(--accent);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.synthesis-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ── Bottom Action Navigation ─────────────────────── */
+.bottom-actions{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:16px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-sm);
+}
+.btn-primary{
+  background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r-md);padding:10px 18px;font-size:13.5px;font-weight:600;
+  font-family:var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:all var(--t);text-decoration:none;
+}
+.btn-primary:hover{background:var(--accent-h);transform:translateY(-1px);}
+.btn-primary svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;}
+
+.btn-secondary{
+  background:transparent;color:var(--text2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:9px 15px;font-size:13px;font-weight:500;
+  font-family:var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t);text-decoration:none;
+}
+.btn-secondary:hover{background:var(--surface2);color:var(--text);}
+.btn-secondary svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ── Event Detail Modal / Backdrop ────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  z-index:90;opacity:0;visibility:hidden;
+  transition:opacity .2s ease,visibility .2s;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{opacity:1;visibility:visible;}
+
+.event-modal{
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:var(--r-lg);width:580px;max-width:100%;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+  display:flex;flex-direction:column;
+  transform:scale(0.96);transition:transform .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-overlay.open .event-modal{transform:scale(1);}
+
+.modal-header{
+  padding:16px 22px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);
+}
+.modal-title-group{display:flex;align-items:center;gap:8px;}
+.modal-stage-num{
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  background:var(--accent-lt);color:var(--accent);
+  padding:2px 7px;border-radius:4px;
+}
+.modal-close-btn{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  background:transparent;border:1px solid var(--border-s);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);transition:all var(--t);
+}
+.modal-close-btn:hover{background:var(--surface);color:var(--text);}
+.modal-close-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.modal-body{
+  padding:22px;display:flex;flex-direction:column;gap:16px;
+  max-height:75vh;overflow-y:auto;
+}
+.modal-event-title{
+  font-size:16px;font-weight:700;color:var(--text);line-height:1.35;
+}
+.modal-meta-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;font-size:12.5px;
+}
+.mmg-item{display:flex;flex-direction:column;gap:2px;}
+.mmg-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3);}
+.mmg-val{color:var(--text);font-weight:550;}
+
+.modal-excerpt-box{
+  background:var(--surface2);border-left:3px solid var(--accent);
+  padding:12px 14px;border-radius:0 var(--r-md) var(--r-md) 0;
+  font-size:13px;color:var(--text);line-height:1.6;font-style:italic;
+}
+.modal-analysis-text{
+  font-size:13px;color:var(--text2);line-height:1.65;
+}
+
+.modal-footer{
+  padding:14px 22px;border-top:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:center;
+  justify-content:flex-end;gap:10px;
+}
+
+/* ── Mobile Sidebar Overlay ───────────────────────── */
+.sb-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  z-index:49;
+}
+.sb-overlay.visible{display:block;}
+
+/* ── Responsive Rules ─────────────────────────────── */
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-menu{display:flex;}
+  .page{padding:16px;}
+  .topbar{padding:0 16px;}
+  .timeline-horizontal-wrap{display:none;}
+  .timeline-vertical-wrap{display:flex;}
+  .compare-grid{grid-template-columns:1fr;}
+}
+@media(max-width:540px){
+  .tb-sub{display:none;}
+  .csc-header{flex-direction:column;align-items:stretch;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Mobile Sidebar Overlay ────────────────────────── -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── Persistent Left Sidebar ───────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+    </div>
+    EvidenceX
+  </a>
+
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidencex.html">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="nav.home">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="verification-center.html">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+          <span data-i18n="nav.verify">Verify</span>
+        </a>
+      </li>
+      <li>
+        <a href="results.html">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          <span data-i18n="nav.results">Results</span>
+          <span class="sb-badge">1</span>
+        </a>
+      </li>
+      <li>
+        <a href="investigation.html">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span data-i18n="nav.investigations">Investigations</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidence-explorer.html">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="nav.evidence">Evidence</span>
+        </a>
+      </li>
+      <li>
+        <!-- HIGHLIGHTED ACTIVE TIMELINE -->
+        <a href="evidence-timeline.html" class="active">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span data-i18n="nav.timeline">Timeline</span>
+          <span class="sb-badge" style="background:var(--ok);">Active</span>
+        </a>
+      </li>
+      <li>
+        <a href="analytics.html">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
+        </a>
+      </li>
+      <li>
+        <a href="copilot.html">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span data-i18n="nav.copilot">AI Copilot</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="settings.html">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span data-i18n="nav.settings">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main Workspace ─────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sticky Topbar -->
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">Evidence Timeline</div>
+      <div class="tb-sub" data-i18n="page.sub">Understand when claims, reports, official statements, and fact-checks appeared.</div>
+    </div>
+    <div class="tb-right">
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="page">
+
+    <!-- Demo Data Prototype Banner -->
+    <div class="demo-banner">
+      <div class="demo-banner-content">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><strong data-i18n="demo.strong">Prototype Demonstration Data:</strong> <span data-i18n="demo.body">Temporal sequence reconstructed from investigation INV-2026-0847 archival records.</span></span>
+      </div>
+      <span class="demo-tag" data-i18n="demo.tag">Demo Data</span>
+    </div>
+
+    <!-- Claim Selector Card -->
+    <section class="claim-selector-card">
+      <div class="csc-header">
+        <span class="csc-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span data-i18n="cs.title">Select Claim to Trace Chronology</span>
+        </span>
+        <span style="font-size:12px;color:var(--text3);" id="timelineSpan">Span: 2018 – 2026 (8-Year Evolution)</span>
+      </div>
+
+      <select class="csc-select" id="claimDropdown" aria-label="Select Claim">
+        <option value="c01">Claim 01: "Regular exercise reduces cardiovascular disease risk by up to 35%"</option>
+        <option value="c02">Claim 02: "The 35% reduction figure applies uniformly across average populations"</option>
+        <option value="c04">Claim 04: "Cardiovascular benefit applies uniformly across all age groups"</option>
+      </select>
+
+      <div class="selected-claim-details">
+        <div class="scd-text" id="selectedClaimText">
+          "Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies."
+        </div>
+        <div class="scd-badges">
+          <span class="badge badge-ok" id="selectedClaimVerdict">
+            <span class="badge-dot"></span>Mostly Supported (88%)
+          </span>
+          <span class="badge badge-neutral" id="selectedClaimEventsCount">6 Timeline Milestones</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Chronological Timeline Section -->
+    <section class="timeline-section">
+      <div class="ts-header">
+        <div class="ts-title-group">
+          <span class="ts-title" data-i18n="ts.title">Chronological Milestones</span>
+          <span class="ts-subtitle" data-i18n="ts.subtitle">Trace the sequential appearance of reporting, research consensus, official guidelines, and fact-checks.</span>
+        </div>
+        <span style="font-size:11.5px;color:var(--text3);" data-i18n="ts.clickhint">Click any milestone for source evidence brief</span>
+      </div>
+
+      <!-- Horizontal Timeline (Desktop) -->
+      <div class="timeline-horizontal-wrap">
+        <div class="timeline-track-h" id="horizontalTrack">
+          <div class="timeline-spine-h"></div>
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Vertical Timeline (Mobile / Tablet) -->
+      <div class="timeline-vertical-wrap" id="verticalTrack">
+        <div class="timeline-spine-v"></div>
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- "Evidence Changed Over Time" Section -->
+    <section class="change-section">
+      <div class="cs-header">
+        <div class="cs-title-group">
+          <span class="cs-title" data-i18n="cs.heading">Evidence Changed Over Time</span>
+          <span class="cs-sub" data-i18n="cs.subhead">Compare how initial observational assertions evolved into verified, dose-specific clinical parameters.</span>
+        </div>
+        <span class="badge badge-info" data-i18n="cs.trajectory">Trajectory: Nuanced Consolidation</span>
+      </div>
+
+      <!-- Side-by-side Comparison Grid -->
+      <div class="compare-grid" id="compareGrid">
+        <!-- Earlier Evidence Phase -->
+        <div class="compare-box">
+          <div class="cb-period-tag">
+            <span data-i18n="comp.early.period">Phase 1: Initial Claims (2018 – 2020)</span>
+            <span class="badge badge-warn" data-i18n="comp.early.badge">Broad &amp; Contested</span>
+          </div>
+          <h3 class="cb-heading" id="earlyHeading">Unbounded Public Claims &amp; Methodological Debate</h3>
+
+          <div class="cb-stats-row">
+            <div class="cbs-item">
+              <span class="cbs-lbl" data-i18n="comp.lbl.scope">Claim Scope</span>
+              <span class="cbs-val" id="earlyScope">Generalized 35% reduction</span>
+            </div>
+            <div class="cbs-item">
+              <span class="cbs-lbl" data-i18n="comp.lbl.consensus">Consensus Level</span>
+              <span class="cbs-val" style="color:var(--warn);" id="earlyConsensus">Moderate (~68%)</span>
+            </div>
+          </div>
+
+          <p class="cb-desc" id="earlyDesc">
+            Early assertions claimed a blanket 35% reduction in cardiovascular disease through exercise alone, without distinguishing workout volume or intensity. Studies like UAH (2018) raised methodological concerns regarding self-reported activity recall biases.
+          </p>
+        </div>
+
+        <!-- Latest Evidence Phase -->
+        <div class="compare-box">
+          <div class="cb-period-tag">
+            <span data-i18n="comp.late.period">Phase 2: Consolidated Evidence (2021 – 2026)</span>
+            <span class="badge badge-ok" data-i18n="comp.late.badge">Dose-Verified Consensus</span>
+          </div>
+          <h3 class="cb-heading" id="lateHeading">Established 150 min/wk Dose-Response Benchmark</h3>
+
+          <div class="cb-stats-row">
+            <div class="cbs-item">
+              <span class="cbs-lbl" data-i18n="comp.lbl.scope">Claim Scope</span>
+              <span class="cbs-val" id="lateScope">150+ min/wk Moderate Aerobic</span>
+            </div>
+            <div class="cbs-item">
+              <span class="cbs-lbl" data-i18n="comp.lbl.consensus">Consensus Level</span>
+              <span class="cbs-val" style="color:var(--ok);" id="lateConsensus">High Agreement (94%)</span>
+            </div>
+          </div>
+
+          <p class="cb-desc" id="lateDesc">
+            Rigorous meta-analyses (Cochrane 2021) and updated global guidelines (WHO 2022, AHA 2023) established that 30% to 35% risk reduction is mathematically reproducible specifically when meeting the 150-minute weekly threshold, establishing a qualified confirmation.
+          </p>
+        </div>
+      </div>
+
+      <!-- Synthesis Banner -->
+      <div class="synthesis-banner">
+        <div class="synthesis-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div>
+          <strong data-i18n="synth.title">Temporal Consensus Shift:</strong>
+          <span id="synthesisText">
+            Over the 8-year span, scientific and journalistic consensus moved from skepticism about blanket statistical promises to robust empirical validation of the underlying causal link, conditioned upon consistent volume.
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Navigation & Cross-Links -->
+    <div class="bottom-actions">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <a href="claim-investigation.html" class="btn-primary" id="openClaimInvestigationBtn">
+          <span data-i18n="btn.openclaim">Open Claim Investigation</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a href="evidence-explorer.html" class="btn-secondary">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="btn.explorer">View in Evidence Explorer</span>
+        </a>
+      </div>
+      <a href="results.html" class="btn-secondary">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-i18n="btn.backresults">Back to Results</span>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Event Detail Modal ────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalEventTitle">
+  <div class="event-modal">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="modal-stage-num" id="modalStageNum">Stage 01</span>
+        <span class="badge" id="modalRelationshipBadge">Supporting</span>
+      </div>
+      <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close details">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <h3 class="modal-event-title" id="modalEventTitle">Event Title</h3>
+
+      <div class="modal-meta-grid">
+        <div class="mmg-item">
+          <span class="mmg-lbl" data-i18n="modal.date">Occurrence Date</span>
+          <span class="mmg-val" id="modalDate">March 2023</span>
+        </div>
+        <div class="mmg-item">
+          <span class="mmg-lbl" data-i18n="modal.source">Reporting Entity</span>
+          <span class="mmg-val" id="modalSource">American Heart Association</span>
+        </div>
+        <div class="mmg-item">
+          <span class="mmg-lbl" data-i18n="modal.stage">Milestone Category</span>
+          <span class="mmg-val" id="modalCategory">Official Statement</span>
+        </div>
+        <div class="mmg-item">
+          <span class="mmg-lbl" data-i18n="modal.relevance">Relevance to Claim</span>
+          <span class="mmg-val" id="modalRelevance">96% Direct</span>
+        </div>
+      </div>
+
+      <div class="modal-excerpt-box" id="modalExcerpt">
+        "Excerpt from published documentation."
+      </div>
+
+      <p class="modal-analysis-text" id="modalAnalysis">
+        Detailed analysis of the event.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <a href="evidence-explorer.html" class="btn-secondary" id="modalInspectEvidenceBtn" data-i18n="modal.inspect">
+        Inspect Source in Explorer
+      </a>
+      <button class="btn-primary" id="modalDoneBtn" data-i18n="modal.done">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── JavaScript Engine ─────────────────────────────── -->
+<script>
+/* ── Localization Dictionary ──────────────────────── */
+const i18n = {
+  en: {
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations',
+    'nav.tools':'Tools','nav.evidence':'Evidence','nav.timeline':'Timeline',
+    'nav.analytics':'Analytics','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'page.title':'Evidence Timeline',
+    'page.sub':'Understand when claims, reports, official statements, and fact-checks appeared.',
+    'demo.strong':'Prototype Demonstration Data:',
+    'demo.body':'Temporal sequence reconstructed from investigation INV-2026-0847 archival records.',
+    'demo.tag':'Demo Data',
+    'cs.title':'Select Claim to Trace Chronology',
+    'ts.title':'Chronological Milestones',
+    'ts.subtitle':'Trace the sequential appearance of reporting, research consensus, official guidelines, and fact-checks.',
+    'ts.clickhint':'Click any milestone for source evidence brief',
+    'cs.heading':'Evidence Changed Over Time',
+    'cs.subhead':'Compare how initial observational assertions evolved into verified, dose-specific clinical parameters.',
+    'cs.trajectory':'Trajectory: Nuanced Consolidation',
+    'comp.early.period':'Phase 1: Initial Claims (2018 – 2020)',
+    'comp.early.badge':'Broad & Contested',
+    'comp.late.period':'Phase 2: Consolidated Evidence (2021 – 2026)',
+    'comp.late.badge':'Dose-Verified Consensus',
+    'comp.lbl.scope':'Claim Scope','comp.lbl.consensus':'Consensus Level',
+    'synth.title':'Temporal Consensus Shift:',
+    'btn.openclaim':'Open Claim Investigation',
+    'btn.explorer':'View in Evidence Explorer',
+    'btn.backresults':'Back to Results',
+    'modal.date':'Occurrence Date','modal.source':'Reporting Entity',
+    'modal.stage':'Milestone Category','modal.relevance':'Relevance to Claim',
+    'modal.inspect':'Inspect Source in Explorer','modal.done':'Done',
+    'rel.supporting':'Supporting','rel.contradicting':'Contradicting','rel.context':'Context',
+    'stage.01':'01 Original Claim','stage.02':'02 First Report',
+    'stage.03':'03 Official Statement','stage.04':'04 Independent Reporting',
+    'stage.05':'05 Fact-check','stage.06':'06 Latest Evidence'
+  },
+  hi: {
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच',
+    'nav.tools':'टूल्स','nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा',
+    'nav.analytics':'विश्लेषण','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'page.title':'साक्ष्य समयरेखा (Evidence Timeline)',
+    'page.sub':'जानें कि दावे, रिपोर्ट, आधिकारिक बयान और तथ्य-जांच कब सामने आए।',
+    'demo.strong':'प्रोटोटाइप प्रदर्शन डेटा:',
+    'demo.body':'जांच INV-2026-0847 अभिलेखीय रिकॉर्ड से पुनर्निर्मित कालानुक्रमिक अनुक्रम।',
+    'demo.tag':'डेमो डेटा',
+    'cs.title':'कालक्रम का पता लगाने के लिए दावा चुनें',
+    'ts.title':'कालानुक्रमिक मील के पत्थर',
+    'ts.subtitle':'रिपोर्टिंग, शोध सहमति, आधिकारिक दिशानिर्देशों और तथ्य-जांच के क्रमिक आगमन का विश्लेषण करें।',
+    'ts.clickhint':'साक्ष्य विवरण के लिए किसी भी मील के पत्थर पर क्लिक करें',
+    'cs.heading':'समय के साथ साक्ष्य में बदलाव',
+    'cs.subhead':'तुलना करें कि कैसे प्रारंभिक दावे सत्यापित नैदानिक मापदंडों में विकसित हुए।',
+    'cs.trajectory':'प्रक्षेपवक्र: परिष्कृत सहमति',
+    'comp.early.period':'चरण 1: प्रारंभिक दावे (2018 - 2020)',
+    'comp.early.badge':'व्यापक एवं विवादित',
+    'comp.late.period':'चरण 2: समेकित साक्ष्य (2021 - 2026)',
+    'comp.late.badge':'खुराक-सत्यापित सहमति',
+    'comp.lbl.scope':'दावे का दायरा','comp.lbl.consensus':'सहमति स्तर',
+    'synth.title':'समय के साथ सहमति में बदलाव:',
+    'btn.openclaim':'दावा जांच खोलें',
+    'btn.explorer':'साक्ष्य अन्वेषक में देखें',
+    'btn.backresults':'परिणामों पर वापस',
+    'modal.date':'घटना की तिथि','modal.source':'रिपोर्टिंग संस्था',
+    'modal.stage':'मील का पत्थर श्रेणी','modal.relevance':'दावे से प्रासंगिकता',
+    'modal.inspect':'अन्वेषक में स्रोत देखें','modal.done':'पूर्ण',
+    'rel.supporting':'समर्थक','rel.contradicting':'विरोधी','rel.context':'संदर्भ',
+    'stage.01':'01 मूल दावा','stage.02':'02 प्रथम रिपोर्ट',
+    'stage.03':'03 आधिकारिक बयान','stage.04':'04 स्वतंत्र रिपोर्टिंग',
+    'stage.05':'05 तथ्य-जांच','stage.06':'06 नवीनतम साक्ष्य'
+  }
+};
+
+let currentLang = 'en';
+function t(k){ return (i18n[currentLang]||i18n.en)[k] || k; }
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if(t(k)) el.textContent = t(k);
+  });
+
+  localStorage.setItem('ex-lang', lang);
+  renderCurrentClaim();
+}
+
+/* ── Theme Handling ───────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  const dark = th === 'dark';
+  document.getElementById('icon-sun').style.display = dark ? 'block' : 'none';
+  document.getElementById('icon-moon').style.display = dark ? 'none' : 'block';
+  localStorage.setItem('ex-theme', th);
+}
+(function(){
+  const s = localStorage.getItem('ex-theme');
+  const sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(s || (sys ? 'dark' : 'light'));
+})();
+document.getElementById('themeToggle').onclick = () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+
+(function(){
+  const l = localStorage.getItem('ex-lang') || 'en';
+  document.getElementById('langSelect').value = l;
+  applyLang(l);
+})();
+document.getElementById('langSelect').onchange = function(){ applyLang(this.value); };
+
+/* ── Timeline Data Store (By Claim) ───────────────── */
+const TIMELINE_DATA = {
+  c01: {
+    id: 'C01',
+    text: 'Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies.',
+    text_hi: 'नियमित व्यायाम से हृदय रोग का जोखिम 35% तक कम हो जाता है, जैसा कि कई समीक्षित अध्ययनों द्वारा पुष्टि की गई है।',
+    verdict: 'Mostly Supported',
+    verdict_hi: 'अधिकांशतः समर्थित (88%)',
+    verdictType: 'ok',
+    span: '2018 – 2026 (8-Year Evolution)',
+    span_hi: '2018 - 2026 (8-वर्षीय विकास)',
+    events: [
+      {
+        stageKey: 'stage.01',
+        stageNum: '01',
+        date: 'Aug 2018',
+        source: 'Social Media & News Feeds',
+        source_hi: 'सोशल मीडिया एवं समाचार फ़ीड्स',
+        title: 'Initial Viral Post: Exercise Cuts Heart Attack Risk by 35%',
+        title_hi: 'प्रारंभिक वायरल पोस्ट: व्यायाम से दिल के दौरे का खतरा 35% कम होता है',
+        summary: 'General public assertion that walking or standard exercise eliminates over a third of heart disease incidence, presented without conditioning criteria.',
+        summary_hi: 'सामान्य दावा कि केवल पैदल चलने या मानक व्यायाम से हृदय रोग की संभावना एक-तिहाई समाप्त हो जाती है।',
+        relationship: 'context',
+        excerpt: '"Scientists discover that regular exercise drops cardiovascular mortality by an astonishing 35% across the board."',
+        analysis: 'This served as the seed assertion submitted to EvidenceX. It lacked specificity regarding exercise intensity, duration, or demographic subgroups.',
+        relevance: 'Origin Seed'
+      },
+      {
+        stageKey: 'stage.02',
+        stageNum: '02',
+        date: 'Sep 2020',
+        source: 'New England Journal of Medicine',
+        source_hi: 'न्यू इंग्लैंड जर्नल ऑफ मेडिसिन (NEJM)',
+        title: 'First Large-Scale Prospective Cohort Confirmation',
+        title_hi: 'प्रथम बड़े पैमाने पर भावी कोहोर्ट पुष्टि',
+        summary: '20-year prospective study of 62,400 adults validates a hazard ratio of 0.66 (34% mortality drop) specifically for vigorous weekly exercisers.',
+        summary_hi: '62,400 वयस्कों के 20-वर्षीय अध्ययन ने जोरदार साप्ताहिक व्यायाम करने वालों में 34% मृत्यु दर में कमी की पुष्टि की।',
+        relationship: 'supporting',
+        excerpt: '"Subjects sustaining high aerobic adherence demonstrated a 34% reduction in fatal myocardial infarction."',
+        analysis: 'First primary peer-reviewed confirmation in an elite journal validating that the 34-35% figure is mathematically grounded.',
+        relevance: '94% Direct'
+      },
+      {
+        stageKey: 'stage.03',
+        stageNum: '03',
+        date: 'Nov 2021',
+        source: 'Cochrane Systematic Review',
+        source_hi: 'कोक्रेन व्यवस्थित समीक्षा',
+        title: 'Meta-Analysis of 28 Clinical Trials Replicates 35% Bound',
+        title_hi: '28 नैदानिक परीक्षणों के मेटा-विश्लेषण ने 35% सीमा को दोहराया',
+        summary: 'Systematic pooling of randomized trials confirms consistent 30% to 35% relative risk reduction for sustained cardiovascular exercise cohorts.',
+        summary_hi: 'यादृच्छिक परीक्षणों के व्यवस्थित विश्लेषण ने निरंतर व्यायाम समूहों के लिए 30% से 35% जोखिम कमी की पुष्टि की।',
+        relationship: 'supporting',
+        excerpt: '"Pooled relative risk reduction across 28 RCTs converged at 31.8% to 35.2% for adherence over 12 months."',
+        analysis: 'Elevated the scientific status from single-cohort observation to systematic Cochrane review consensus.',
+        relevance: '96% Direct'
+      },
+      {
+        stageKey: 'stage.04',
+        stageNum: '04',
+        date: 'Jan 2022',
+        source: 'World Health Organization (WHO)',
+        source_hi: 'विश्व स्वास्थ्य संगठन (WHO)',
+        title: 'Official Global Physical Activity Guidelines Adopt Benchmark',
+        title_hi: 'आधिकारिक वैश्विक शारीरिक गतिविधि दिशानिर्देशों ने बेंचमार्क अपनाया',
+        summary: 'WHO issues formal public health guidance prescribing 150–300 minutes weekly moderate aerobic activity, explicitly citing the ~35% cardiovascular risk reduction.',
+        summary_hi: 'डब्ल्यूएचओ ने प्रति सप्ताह 150-300 मिनट मध्यम एरोबिक गतिविधि निर्धारित करते हुए औपचारिक मार्गदर्शन जारी किया।',
+        relationship: 'supporting',
+        excerpt: '"150-300 minutes of weekly activity provides substantial protection against cardiovascular morbidity."',
+        analysis: 'Official institutional adoption by the premier global health authority, providing normative regulatory weight.',
+        relevance: '92% Official'
+      },
+      {
+        stageKey: 'stage.05',
+        stageNum: '05',
+        date: 'Apr 2023',
+        source: 'Snopes Health Fact-Check',
+        source_hi: 'स्नोप्स हेल्थ फैक्ट-चेक',
+        title: 'Independent Fact-Check: Rating Classified as Mostly True',
+        title_hi: 'स्वतंत्र तथ्य-जांच: रेटिंग को अधिकांशतः सत्य माना गया',
+        summary: 'Fact-checking review evaluates viral headlines, confirming the 35% medical literature grounding while warning against ignoring minimum weekly workout requirements.',
+        summary_hi: 'तथ्य-जांच ने 35% चिकित्सा साहित्य की पुष्टि की, लेकिन साप्ताहिक कसरत आवश्यकताओं की अनदेखी के खिलाफ चेतावनी दी।',
+        relationship: 'supporting',
+        excerpt: '"The 35% figure is grounded in credible cardiology consensus, provided duration qualifiers are respected."',
+        analysis: 'Demonstrates journalistic alignment with the nuance that unconditional claims require dosage context.',
+        relevance: '88% Contextual'
+      },
+      {
+        stageKey: 'stage.06',
+        stageNum: '06',
+        date: 'Oct 2023',
+        source: 'American Heart Association & ESC',
+        source_hi: 'अमेरिकन हार्ट एसोसिएशन एवं ईएससी',
+        title: 'Latest Guidelines: Dose-Response Step Count Integration',
+        title_hi: 'नवीनतम दिशानिर्देश: खुराक-प्रतिक्रिया कदम गणना एकीकरण',
+        summary: 'Circulation and European Heart Journal update recommendations with wearable accelerometer step data, plateauing at 32–36% risk reduction at 9,000 steps/day.',
+        summary_hi: 'पहनने योग्य एक्सेलेरोमीटर डेटा के साथ सिफारिशों को अद्यतन किया गया, जो 9,000 कदम/दिन पर 32-36% जोखिम कमी पर स्थिर हुआ।',
+        relationship: 'supporting',
+        excerpt: '"Nonlinear dose response benchmarks 35% cardiovascular attenuation around 8,500–9,000 daily steps."',
+        analysis: 'The most current authoritative state of the art, transforming abstract aerobic minutes into measurable digital biomarkers.',
+        relevance: '98% Direct'
+      }
+    ],
+    evolution: {
+      earlyHeading: 'Unbounded Public Claims & Methodological Debate',
+      earlyHeading_hi: 'असीमित सार्वजनिक दावे एवं पद्धतिगत बहस',
+      earlyScope: 'Generalized 35% reduction without dosage',
+      earlyScope_hi: 'बिना खुराक के सामान्यीकृत 35% कमी',
+      earlyConsensus: 'Moderate (~68%)',
+      earlyConsensus_hi: 'मध्यम (~68%)',
+      earlyDesc: 'Early assertions claimed a blanket 35% reduction in cardiovascular disease through exercise alone, without distinguishing workout volume or intensity. Studies like UAH (2018) raised methodological concerns regarding self-reported activity recall biases.',
+      earlyDesc_hi: 'शुरुआती दावों में व्यायाम के माध्यम से हृदय रोग में 35% की कमी का दावा किया गया था, बिना कसरत की मात्रा या तीव्रता में अंतर किए। 2018 के अध्ययनों ने आत्म-रिपोर्ट किए गए पूर्वाग्रहों पर चिंता व्यक्त की थी।',
+
+      lateHeading: 'Established 150 min/wk Dose-Response Benchmark',
+      lateHeading_hi: 'स्थापित 150 मिनट/सप्ताह खुराक-प्रतिक्रिया बेंचमार्क',
+      lateScope: '150+ min/wk Moderate Aerobic Threshold',
+      lateScope_hi: '150+ मिनट/सप्ताह मध्यम एरोबिक सीमा',
+      lateConsensus: 'High Agreement (94%)',
+      lateConsensus_hi: 'उच्च सहमति (94%)',
+      lateDesc: 'Rigorous meta-analyses (Cochrane 2021) and updated global guidelines (WHO 2022, AHA 2023) established that 30% to 35% risk reduction is mathematically reproducible specifically when meeting the 150-minute weekly threshold, establishing a qualified confirmation.',
+      lateDesc_hi: 'सटीक मेटा-विश्लेषण (Cochrane 2021) और अद्यतन वैश्विक दिशानिर्देशों (WHO 2022, AHA 2023) ने स्थापित किया कि 150 मिनट की साप्ताहिक सीमा को पूरा करने पर 30% से 35% जोखिम में कमी वैज्ञानिक रूप से पुनरुत्पादित होती है।',
+
+      synthesis: 'Over the 8-year span, scientific and journalistic consensus moved from skepticism about blanket statistical promises to robust empirical validation of the underlying causal link, conditioned upon consistent volume.',
+      synthesis_hi: '8 वर्षों के दौरान, वैज्ञानिक और पत्रकारिता सहमति बिना शर्त वादों पर संदेह से हटकर आवश्यक कसरत मात्रा पर आधारित मजबूत पुष्टि की ओर बढ़ी।'
+    }
+  },
+
+  c02: {
+    id: 'C02',
+    text: 'The 35% reduction figure applies uniformly across average populations without strict regimens.',
+    text_hi: '35% कमी का आंकड़ा बिना किसी सख्त नियम के औसत आबादी पर समान रूप से लागू होता है।',
+    verdict: 'Refuted / Contradicted',
+    verdict_hi: 'खंडित / विवादित (78%)',
+    verdictType: 'err',
+    span: '2018 – 2024 (6-Year Scrutiny)',
+    span_hi: '2018 - 2024 (6-वर्षीय जांच)',
+    events: [
+      {
+        stageKey: 'stage.01',
+        stageNum: '01',
+        date: 'Jun 2018',
+        source: 'Health Blog Postings',
+        source_hi: 'स्वास्थ्य ब्लॉग पोस्टिंग',
+        title: 'Claim: Anyone Exercising Casually Gets 35% Protection',
+        title_hi: 'दावा: कोई भी सामान्य व्यायाम करने पर 35% सुरक्षा प्राप्त करता है',
+        summary: ' 주장 that casual walking or minimal activity yields the full 35% cardiovascular risk reduction unconditionally across any demographic.',
+        summary_hi: 'दावा कि आकस्मिक रूप से टहलने या न्यूनतम गतिविधि से किसी भी वर्ग में पूरी 35% सुरक्षा मिलती है।',
+        relationship: 'contradicting',
+        excerpt: '"You do not need gym workouts — just 15 minutes of light walking gives you the full 35% heart protection."',
+        analysis: 'Seed claim that conflates minimal activity with structured protocol outcomes.',
+        relevance: 'Seed Origin'
+      },
+      {
+        stageKey: 'stage.02',
+        stageNum: '02',
+        date: 'Aug 2018',
+        source: 'Univ. of Alabama Huntsville Study',
+        source_hi: 'अलबामा विश्वविद्यालय हंट्सविले अध्ययन',
+        title: 'First Methodological Refutation via Accelerometer Tracking',
+        title_hi: 'एक्सेलेरोमीटर ट्रैकिंग के माध्यम से पहला पद्धतिगत खंडन',
+        summary: 'Christy et al. analyze passive sensor data, proving casual non-adherents experience only 18% to 22% benefit, debunking universal 35% claims.',
+        summary_hi: 'क्रिस्टी एट अल ने सेंसर डेटा का विश्लेषण किया, जिससे साबित हुआ कि अनियमित अभ्यासियों को केवल 18% से 22% लाभ मिलता है।',
+        relationship: 'contradicting',
+        excerpt: '"Passive accelerometer measurements reveal a true population median risk attenuation of only 19.4%."',
+        analysis: 'Primary empirical counter-evidence proving casual exercisers do not reach the 35% ceiling.',
+        relevance: '92% Opposing'
+      },
+      {
+        stageKey: 'stage.03',
+        stageNum: '03',
+        date: 'Nov 2020',
+        source: 'European Society of Cardiology',
+        source_hi: 'यूरोपीय कार्डियोलॉजी सोसायटी',
+        title: 'Official Clinical Position: Intensity Thresholds are Mandatory',
+        title_hi: 'आधिकारिक स्थिति: व्यायाम तीव्रता सीमाएं अनिवार्य हैं',
+        summary: 'Cardiology consensus document formally clarifies that cardiovascular benefits follow an exponential dose-curve, not an immediate step function.',
+        summary_hi: 'कार्डियोलॉजी सहमति दस्तावेज स्पष्ट करता है कि हृदय संबंधी लाभ एक घातीय वक्र का पालन करते हैं।',
+        relationship: 'contradicting',
+        excerpt: '"Minimal leisure walking fails to achieve target heart-rate reserve necessary for vascular remodeling."',
+        analysis: 'Institutional guidance refuting that casual activity produces high-tier risk drops.',
+        relevance: '90% Opposing'
+      },
+      {
+        stageKey: 'stage.04',
+        stageNum: '04',
+        date: 'Feb 2022',
+        source: 'British Medical Journal Editorial',
+        source_hi: 'ब्रिटिश मेडिकल जर्नल (BMJ) संपादकीय',
+        title: 'BMJ Critique: "Precision Limits in Health Messaging"',
+        title_hi: 'बीएमजे आलोचना: "स्वास्थ्य संदेश में सटीकता की सीमाएं"',
+        summary: 'Editorial calls out deceptive wellness marketing for promising 35% reductions to sedentary populations without disclosing workout intensity prerequisites.',
+        summary_hi: 'संपादकीय ने बिना कसरत की पूर्व शर्तों का खुलासा किए गतिहीन आबादी को 35% लाभ का वादा करने की आलोचना की।',
+        relationship: 'contradicting',
+        excerpt: '"Conflating optimal physiological trial outcomes with population-wide reality misinforms the public."',
+        analysis: 'Severe journalistic and clinical critique of unconditional 35% framing.',
+        relevance: '85% Editorial'
+      },
+      {
+        stageKey: 'stage.05',
+        stageNum: '05',
+        date: 'Jul 2023',
+        source: 'HealthFeedback.org Review',
+        source_hi: 'HealthFeedback.org समीक्षा',
+        title: 'Fact-Check: "Misleading Context" Verdict Issued',
+        title_hi: 'तथ्य-जांच: "भ्रामक संदर्भ" का निर्णय जारी',
+        summary: 'Scientific fact-checking network rates universal 35% benefit claim as MISLEADING due to omission of workout volume requirements.',
+        summary_hi: 'वैज्ञानिक तथ्य-जांच नेटवर्क ने कसरत की आवश्यकता को छिपाने के कारण दावे को भ्रामक करार दिया।',
+        relationship: 'contradicting',
+        excerpt: '"Verdict: Misleading. The 35% claim fails to disclose that this benefit strictly requires meeting CDC guidelines."',
+        analysis: 'Confirms that modern fact-checkers classify the unconditional statement as misleading.',
+        relevance: '94% Fact-Check'
+      },
+      {
+        stageKey: 'stage.06',
+        stageNum: '06',
+        date: 'May 2024',
+        source: 'JAMA Cardiology Large Cohort',
+        source_hi: 'जामा कार्डियोलॉजी बड़ा कोहोर्ट',
+        title: 'Latest Trial: Dose-Dependent Stratification Established',
+        title_hi: 'नवीनतम परीक्षण: खुराक-निर्भर स्तरीकरण स्थापित',
+        summary: '100,000 participant study establishes clear tiered bracket: light activity (14%), moderate adherence (24%), vigorous protocol (35%).',
+        summary_hi: '100,000 प्रतिभागियों के अध्ययन ने स्पष्ट स्तरीकरण स्थापित किया: हल्की गतिविधि (14%), मध्यम (24%), जोरदार (35%)।',
+        relationship: 'contradicting',
+        excerpt: '"Casual activity under 60 minutes weekly yields 12–15% attenuation, fundamentally refuting uniform 35% claims."',
+        analysis: 'Definitive modern clinical closure: the 35% figure is NOT uniform, completely disproving Claim 02.',
+        relevance: '96% Refutation'
+      }
+    ],
+    evolution: {
+      earlyHeading: 'Viral Oversimplification vs. Sensor Data',
+      earlyHeading_hi: 'वायरल अतिसरलीकरण बनाम सेंसर डेटा',
+      earlyScope: 'Assumed uniform 35% for all activity',
+      earlyScope_hi: 'सभी गतिविधियों के लिए 35% की समानता मानी गई',
+      earlyConsensus: 'Heavily Contested',
+      earlyConsensus_hi: 'अत्यधिक विवादित',
+      earlyDesc: 'Between 2018 and 2020, popular health media promoted the idea that any level of casual exercise conferred a 35% risk reduction, ignoring physical intensity prerequisites.',
+      earlyDesc_hi: '2018 और 2020 के बीच, लोकप्रिय मीडिया ने दावा किया कि किसी भी स्तर के व्यायाम से 35% लाभ मिलता है, जो कि गलत साबित हुआ।',
+
+      lateHeading: 'Definitive Tiered Dose-Stratification',
+      lateHeading_hi: 'निश्चित स्तरीकृत खुराक-विभाजन',
+      lateScope: 'Casual = 14% · Vigorous Protocol = 35%',
+      lateScope_hi: 'हल्का = 14% · जोरदार प्रोटोकॉल = 35%',
+      lateConsensus: '96% Clinical Consensus',
+      lateConsensus_hi: '96% नैदानिक सहमति',
+      lateDesc: 'Modern trials demonstrate that causal cardiovascular attenuation is tightly stepped: low-intensity yields ~14%, moderate yields ~24%, and only rigorous guideline adherence reaches the 35% ceiling.',
+      lateDesc_hi: 'आधुनिक परीक्षणों से पता चलता है कि लाभ स्पष्ट चरणों में मिलता है: कम तीव्रता पर ~14%, मध्यम पर ~24%, और केवल सख्त दिशानिर्देशों पर 35% तक पहुंचता है।',
+
+      synthesis: 'Evidence over 6 years conclusively refuted Claim 02: cardiovascular benefits are strictly volume-dependent and cannot be claimed uniformly for casual populations.',
+      synthesis_hi: '6 वर्षों के साक्ष्यों ने दावा 02 को निर्णायक रूप से खारिज कर दिया: लाभ व्यायाम की मात्रा पर अत्यधिक निर्भर है।'
+    }
+  },
+
+  c04: {
+    id: 'C04',
+    text: 'Cardiovascular benefit applies uniformly across all age groups and fitness levels.',
+    text_hi: 'हृदय संबंधी लाभ सभी आयु समूहों और फिटनेस स्तरों पर समान रूप से लागू होता है।',
+    verdict: 'Insufficient Evidence',
+    verdict_hi: 'अपर्याप्त साक्ष्य (41%)',
+    verdictType: 'warn',
+    span: '2019 – 2025 (Heterogeneous Evidence)',
+    span_hi: '2019 - 2025 (विविध साक्ष्य)',
+    events: [
+      {
+        stageKey: 'stage.01',
+        stageNum: '01',
+        date: 'Oct 2019',
+        source: 'Fitness Lifestyle Column',
+        source_hi: 'फिटनेस लाइफस्टाइल कॉलम',
+        title: 'Original Assertion: "Exercise Protects the Heart Equally at Any Age"',
+        title_hi: 'मूल दावा: "व्यायाम किसी भी उम्र में दिल की समान रूप से रक्षा करता है"',
+        summary: 'Pop-science article claiming young and elderly individuals experience the exact same relative cardiovascular risk drop from exercise routines.',
+        summary_hi: 'दावा कि युवा और बुजुर्ग दोनों व्यायाम से बिल्कुल समान सापेक्ष हृदय जोखिम में कमी का अनुभव करते हैं।',
+        relationship: 'context',
+        excerpt: '"Regardless of whether you are 25 or 80, your cardiovascular risk reduction percentage is identical."',
+        analysis: 'Broad assumption of age invariance without clinical stratification.',
+        relevance: 'Seed Origin'
+      },
+      {
+        stageKey: 'stage.02',
+        stageNum: '02',
+        date: 'Jul 2021',
+        source: 'Occupational Medicine Quarterly',
+        source_hi: 'ऑक्यूपेशनल मेडिसिन त्रैमासिक',
+        title: 'Workplace Cohort Finds Major Fitness Disparities',
+        title_hi: 'कार्यस्थल समूह ने फिटनेस में भारी असमानताएं पाईं',
+        summary: 'Sedentary office workers with high baseline metabolic stress showed divergent arterial elasticity adaptations, suggesting baseline fitness alters response.',
+        summary_hi: 'गतिहीन कार्यालय कर्मचारियों ने अलग-अलग धमनी लचीलेपन का प्रदर्शन किया, जिससे पता चला कि आधारभूत फिटनेस प्रतिक्रिया को बदल देती है।',
+        relationship: 'contradicting',
+        excerpt: '"Only 42% of high-stress sedentary workers manifested measurable vascular resistance decreases."',
+        analysis: 'First documentation of heterogeneity based on baseline physiological stress.',
+        relevance: '76% Context'
+      },
+      {
+        stageKey: 'stage.03',
+        stageNum: '03',
+        date: 'May 2023',
+        source: 'The Lancet Healthy Longevity',
+        source_hi: 'द लांसेट हेल्दी लॉन्गिविटी',
+        title: 'Age-Stratified Meta-Analysis Reveals 14% vs 32% Divide',
+        title_hi: 'आयु-स्तरीकृत मेटा-विश्लेषण ने 14% बनाम 32% का अंतर उजागर किया',
+        summary: 'Comprehensive meta-analysis shows cohorts aged 30-50 achieve ~32% reduction, whereas cohorts over 75 achieve only 14% to 22% due to preexisting vascular remodeling.',
+        summary_hi: '30-50 वर्ष के समूहों में 32% की कमी देखी गई, जबकि 75 वर्ष से अधिक के समूहों में केवल 14% से 22% की कमी देखी गई।',
+        relationship: 'contradicting',
+        excerpt: '"Preexisting calcification in octogenarians significantly attenuates proportional relative risk gains from aerobic training."',
+        analysis: 'High-authority empirical evidence disproving uniform percentage gains across age brackets.',
+        relevance: '95% Demarcation'
+      },
+      {
+        stageKey: 'stage.04',
+        stageNum: '04',
+        date: 'Aug 2023',
+        source: 'American Geriatrics Society',
+        source_hi: 'अमेरिकन जेरियाट्रिक्स सोसायटी',
+        title: 'Geriatric Guidelines: Absolute vs. Relative Gain Disparity',
+        title_hi: 'वृद्धावस्था दिशानिर्देश: पूर्ण बनाम सापेक्ष लाभ असमानता',
+        summary: 'Consensus statement clarifies that while elderly individuals gain fewer *relative* percentage points, their *absolute* lives saved is actually higher due to higher baseline risk.',
+        summary_hi: 'स्पष्टीकरण कि यद्यपि बुजुर्गों को कम प्रतिशत लाभ मिलता है, उच्च आधारभूत जोखिम के कारण उनकी बचाई गई वास्तविक संख्या अधिक होती है।',
+        relationship: 'context',
+        excerpt: '"Elderly cohorts gain fewer percentage points (18% vs 34%), yet achieve greater absolute reduction in deaths per 1,000 person-years."',
+        analysis: 'Adds vital epidemiological distinction between relative risk reduction and absolute risk reduction.',
+        relevance: '90% Clinical'
+      },
+      {
+        stageKey: 'stage.05',
+        stageNum: '05',
+        date: 'Jan 2024',
+        source: 'PolitiFact Health Truth-O-Meter',
+        source_hi: 'PolitiFact हेल्थ ट्रुथ-ओ-मीटर',
+        title: 'Review Rates "Same Protection at Any Age" as Half True',
+        title_hi: 'समीक्षा ने "किसी भी उम्र में समान सुरक्षा" को आधा सच माना',
+        summary: 'Fact-check concludes that while exercise is beneficial at all ages, claiming identical percentage risk reduction contradicts published cardiology data.',
+        summary_hi: 'तथ्य-जांच ने निष्कर्ष निकाला कि व्यायाम सभी उम्र में फायदेमंद है, लेकिन समान प्रतिशत कमी का दावा प्रकाशित आंकड़ों का खंडन करता है।',
+        relationship: 'contradicting',
+        excerpt: '"While exercise benefits seniors, stating they receive the exact same 35% relative protection ignores biological aging curves."',
+        analysis: 'Journalistic validation of the age-differentiated biological reality.',
+        relevance: '86% Fact-Check'
+      },
+      {
+        stageKey: 'stage.06',
+        stageNum: '06',
+        date: 'Jun 2025',
+        source: 'NIH Global Aging Initiative',
+        source_hi: 'एनआईएच ग्लोबल एजिंग इनिशिएटिव',
+        title: 'Ongoing Longitudinal Study Calls Evidence Insufficient for Uniformity',
+        title_hi: 'चल रहे दीर्घकालिक अध्ययन ने एकरूपता के लिए साक्ष्य को अपर्याप्त माना',
+        summary: 'Interim 5-year report notes data remains insufficient to establish uniform models across frail elderly cohorts with chronic multi-morbidity.',
+        summary_hi: 'अंतरिम रिपोर्ट में कहा गया है कि बहु-रुग्णता वाले कमजोर बुजुर्गों के समूहों में एक समान मॉडल स्थापित करने के लिए डेटा अपर्याप्त है।',
+        relationship: 'context',
+        excerpt: '"Multi-morbid elderly cohorts exhibit variance too wide to support generalized percentage benefit formulas."',
+        analysis: 'Confirms why EvidenceX reached an "Insufficient Evidence" finding: scientific consensus acknowledges significant epistemic gaps.',
+        relevance: '91% Epistemic'
+      }
+    ],
+    evolution: {
+      earlyHeading: 'Assumed Invariant Percentage Protection',
+      earlyHeading_hi: 'समान प्रतिशत सुरक्षा का अनुमान',
+      earlyScope: 'Identical benefit for 25-year-olds and 80-year-olds',
+      earlyScope_hi: '25 और 80 वर्ष के लोगों के लिए समान लाभ',
+      earlyConsensus: 'Unsubstantiated Assumption',
+      earlyConsensus_hi: 'अपुष्ट धारणा',
+      earlyDesc: 'Early wellness messaging treated the human vascular system as age-invariant, assuming a 30-year-old and an 80-year-old would see the identical 35% relative risk reduction.',
+      earlyDesc_hi: 'प्रारंभिक संदेशों ने माना कि एक 30 वर्षीय और एक 80 वर्षीय व्यक्ति दोनों को समान 35% सापेक्ष जोखिम में कमी मिलेगी।',
+
+      lateHeading: 'Recognition of Biological Aging Disparities',
+      lateHeading_hi: 'जैविक उम्र बढ़ने की असमानताओं की पहचान',
+      lateScope: 'Young (32%) vs. Elderly (14–22%) Relative Gains',
+      lateScope_hi: 'युवा (32%) बनाम वृद्ध (14-22%) सापेक्ष लाभ',
+      lateConsensus: 'Acknowledged Epistemic Uncertainty',
+      lateConsensus_hi: 'स्वीकृत साक्ष्य अनिश्चितता',
+      lateDesc: 'The Lancet (2023) and NIH (2025) proved that relative percentage gains decline with age due to preexisting arterial calcification, confirming that uniform claims lack sufficient evidentiary backing.',
+      lateDesc_hi: 'द लांसेट (2023) और एनआईएच (2025) ने साबित किया कि उम्र के साथ सापेक्ष लाभ कम हो जाता है, जिससे यह पुष्टि हुई कि एक समान दावों में साक्ष्य का अभाव है।',
+
+      synthesis: 'Evidence evolved to recognize that age and baseline frailty fundamentally differentiate cardiovascular adaptations, validating EvidenceX\'s classification of Claim 04 as "Insufficient Evidence".',
+      synthesis_hi: 'साक्ष्यों ने स्वीकार किया कि उम्र और आधारभूत स्थिति लाभ को काफी हद तक बदल देती है, जिससे दावा 04 पर "अपर्याप्त साक्ष्य" का निर्णय सही साबित हुआ।'
+    }
+  }
+};
+
+let currentClaimKey = 'c01';
+let currentModalEvent = null;
+
+/* ── Render Timeline Events & State ───────────────── */
+function renderCurrentClaim(){
+  const claimData = TIMELINE_DATA[currentClaimKey];
+  const isHi = currentLang === 'hi';
+
+  // Update claim text and badges
+  document.getElementById('selectedClaimText').textContent = `"${isHi && claimData.text_hi ? claimData.text_hi : claimData.text}"`;
+  document.getElementById('timelineSpan').textContent = isHi && claimData.span_hi ? claimData.span_hi : claimData.span;
+
+  const verdictEl = document.getElementById('selectedClaimVerdict');
+  verdictEl.className = `badge badge-${claimData.verdictType}`;
+  verdictEl.innerHTML = `<span class="badge-dot"></span>${isHi && claimData.verdict_hi ? claimData.verdict_hi : claimData.verdict}`;
+
+  document.getElementById('selectedClaimEventsCount').textContent = `${claimData.events.length} ${isHi ? 'मील के पत्थर' : 'Timeline Milestones'}`;
+
+  // Render Horizontal Timeline (Desktop)
+  const hTrack = document.getElementById('horizontalTrack');
+  hTrack.innerHTML = '<div class="timeline-spine-h"></div>' + claimData.events.map((ev, i) => {
+    const relBadge = getRelationshipBadge(ev.relationship);
+    const stageLabel = t(ev.stageKey);
+    const title = isHi && ev.title_hi ? ev.title_hi : ev.title;
+    const source = isHi && ev.source_hi ? ev.source_hi : ev.source;
+    const summary = isHi && ev.summary_hi ? ev.summary_hi : ev.summary;
+
+    return `
+      <div class="event-col" data-index="${i}">
+        <div class="event-node-h">${ev.stageNum}</div>
+        <div class="event-card" data-index="${i}" tabindex="0" role="button" aria-label="Milestone ${ev.stageNum}">
+          <div class="event-stage-tag">${stageLabel}</div>
+          <div class="event-date-row">
+            <span class="event-date">${ev.date}</span>
+            ${relBadge}
+          </div>
+          <div class="event-source-name">${source}</div>
+          <div class="event-title">${title}</div>
+          <div class="event-summary">${summary}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Render Vertical Timeline (Mobile)
+  const vTrack = document.getElementById('verticalTrack');
+  vTrack.innerHTML = '<div class="timeline-spine-v"></div>' + claimData.events.map((ev, i) => {
+    const relBadge = getRelationshipBadge(ev.relationship);
+    const stageLabel = t(ev.stageKey);
+    const title = isHi && ev.title_hi ? ev.title_hi : ev.title;
+    const source = isHi && ev.source_hi ? ev.source_hi : ev.source;
+    const summary = isHi && ev.summary_hi ? ev.summary_hi : ev.summary;
+
+    return `
+      <div class="event-item-v" data-index="${i}">
+        <div class="event-node-v">${ev.stageNum}</div>
+        <div class="event-card" data-index="${i}" tabindex="0" role="button" aria-label="Milestone ${ev.stageNum}">
+          <div class="event-stage-tag">${stageLabel}</div>
+          <div class="event-date-row">
+            <span class="event-date">${ev.date}</span>
+            ${relBadge}
+          </div>
+          <div class="event-source-name">${source}</div>
+          <div class="event-title">${title}</div>
+          <div class="event-summary">${summary}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Bind click listeners
+  document.querySelectorAll('.event-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt(card.dataset.index);
+      openEventModal(claimData.events[idx]);
+    });
+    card.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        const idx = parseInt(card.dataset.index);
+        openEventModal(claimData.events[idx]);
+      }
+    });
+  });
+
+  // Render Evolution Comparison Section
+  renderEvolutionComparison(claimData.evolution);
+}
+
+function getRelationshipBadge(rel){
+  if(rel === 'supporting'){
+    return `<span class="badge badge-ok"><span class="badge-dot"></span>${t('rel.supporting')}</span>`;
+  } else if(rel === 'contradicting'){
+    return `<span class="badge badge-err"><span class="badge-dot"></span>${t('rel.contradicting')}</span>`;
+  }
+  return `<span class="badge badge-info"><span class="badge-dot"></span>${t('rel.context')}</span>`;
+}
+
+function renderEvolutionComparison(evo){
+  const isHi = currentLang === 'hi';
+  document.getElementById('earlyHeading').textContent = isHi && evo.earlyHeading_hi ? evo.earlyHeading_hi : evo.earlyHeading;
+  document.getElementById('earlyScope').textContent = isHi && evo.earlyScope_hi ? evo.earlyScope_hi : evo.earlyScope;
+  document.getElementById('earlyConsensus').textContent = isHi && evo.earlyConsensus_hi ? evo.earlyConsensus_hi : evo.earlyConsensus;
+  document.getElementById('earlyDesc').textContent = isHi && evo.earlyDesc_hi ? evo.earlyDesc_hi : evo.earlyDesc;
+
+  document.getElementById('lateHeading').textContent = isHi && evo.lateHeading_hi ? evo.lateHeading_hi : evo.lateHeading;
+  document.getElementById('lateScope').textContent = isHi && evo.lateScope_hi ? evo.lateScope_hi : evo.lateScope;
+  document.getElementById('lateConsensus').textContent = isHi && evo.lateConsensus_hi ? evo.lateConsensus_hi : evo.lateConsensus;
+  document.getElementById('lateDesc').textContent = isHi && evo.lateDesc_hi ? evo.lateDesc_hi : evo.lateDesc;
+
+  document.getElementById('synthesisText').textContent = isHi && evo.synthesis_hi ? evo.synthesis_hi : evo.synthesis;
+}
+
+/* ── Claim Dropdown Switcher ──────────────────────── */
+document.getElementById('claimDropdown').addEventListener('change', function(){
+  currentClaimKey = this.value;
+  renderCurrentClaim();
+});
+
+/* ── Modal Event Details ──────────────────────────── */
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+const modalDoneBtn = document.getElementById('modalDoneBtn');
+
+function openEventModal(ev){
+  currentModalEvent = ev;
+  const isHi = currentLang === 'hi';
+
+  document.getElementById('modalStageNum').textContent = `Milestone ${ev.stageNum}`;
+  document.getElementById('modalEventTitle').textContent = isHi && ev.title_hi ? ev.title_hi : ev.title;
+  document.getElementById('modalDate').textContent = ev.date;
+  document.getElementById('modalSource').textContent = isHi && ev.source_hi ? ev.source_hi : ev.source;
+  document.getElementById('modalCategory').textContent = t(ev.stageKey);
+  document.getElementById('modalRelevance').textContent = ev.relevance;
+
+  const relBadgeEl = document.getElementById('modalRelationshipBadge');
+  if(ev.relationship === 'supporting'){
+    relBadgeEl.className = 'badge badge-ok';
+    relBadgeEl.innerHTML = `<span class="badge-dot"></span>${t('rel.supporting')}`;
+  } else if(ev.relationship === 'contradicting'){
+    relBadgeEl.className = 'badge badge-err';
+    relBadgeEl.innerHTML = `<span class="badge-dot"></span>${t('rel.contradicting')}`;
+  } else {
+    relBadgeEl.className = 'badge badge-info';
+    relBadgeEl.innerHTML = `<span class="badge-dot"></span>${t('rel.context')}`;
+  }
+
+  document.getElementById('modalExcerpt').textContent = ev.excerpt;
+  document.getElementById('modalAnalysis').textContent = ev.analysis;
+
+  modalOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEventModal(){
+  modalOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  currentModalEvent = null;
+}
+
+modalCloseBtn.onclick = closeEventModal;
+modalDoneBtn.onclick = closeEventModal;
+modalOverlay.addEventListener('click', (e) => {
+  if(e.target === modalOverlay) closeEventModal();
+});
+window.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && modalOverlay.classList.contains('open')) closeEventModal();
+});
+
+/* ── Mobile Sidebar Drawer ────────────────────────── */
+const sbOverlay = document.getElementById('sbOverlay');
+const sidebar = document.getElementById('sidebar');
+document.getElementById('mobileMenuBtn').onclick = () => {
+  sidebar.classList.toggle('open');
+  sbOverlay.classList.toggle('visible');
+};
+sbOverlay.onclick = () => {
+  sidebar.classList.remove('open');
+  sbOverlay.classList.remove('visible');
+};
+
+/* ── Initial Load ─────────────────────────────────── */
+renderCurrentClaim();
+</script>
+</body>
+</html>

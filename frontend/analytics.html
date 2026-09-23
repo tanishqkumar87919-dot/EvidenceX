@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verification Analytics — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Core Tokens ───────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+
+  /* Light Theme */
+  --bg:#f5f4f1;
+  --bg2:#eceae4;
+  --surface:#ffffff;
+  --surface2:#f8f7f4;
+  --surface3:#f1efe9;
+  --surface-hover:#f4f2ec;
+  --border:rgba(0,0,0,0.07);
+  --border-s:rgba(0,0,0,0.13);
+  --border-m:rgba(0,0,0,0.22);
+  --text:#111110;
+  --text2:#4e4d49;
+  --text3:#87857e;
+  --accent:#1c4e9e;
+  --accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);
+  --accent-sub:rgba(28,78,158,0.05);
+
+  --ok:#1a7a4a;
+  --ok-bg:rgba(26,122,74,0.10);
+  --ok-border:rgba(26,122,74,0.22);
+
+  --err:#b94040;
+  --err-bg:rgba(185,64,64,0.09);
+  --err-border:rgba(185,64,64,0.20);
+
+  --warn:#8a6d2f;
+  --warn-bg:rgba(138,109,47,0.09);
+  --warn-border:rgba(138,109,47,0.20);
+
+  --neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.85);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.09),0 4px 12px rgba(0,0,0,0.04);
+
+  --sidebar-w:228px;
+  --topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+
+[data-theme="dark"]{
+  --bg:#0d0d0c;
+  --bg2:#131312;
+  --surface:#1a1a18;
+  --surface2:#1f1f1d;
+  --surface3:#252522;
+  --surface-hover:#2a2a26;
+  --border:rgba(255,255,255,0.07);
+  --border-s:rgba(255,255,255,0.13);
+  --border-m:rgba(255,255,255,0.22);
+  --text:#eeedea;
+  --text2:#a1a09a;
+  --text3:#64635e;
+  --accent:#4d86d8;
+  --accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);
+  --accent-sub:rgba(77,134,216,0.06);
+
+  --ok:#4cad78;
+  --ok-bg:rgba(76,173,120,0.12);
+  --ok-border:rgba(76,173,120,0.24);
+
+  --err:#d96a6a;
+  --err-bg:rgba(217,106,106,0.12);
+  --err-border:rgba(217,106,106,0.24);
+
+  --warn:#c9a84c;
+  --warn-bg:rgba(201,168,76,0.12);
+  --warn-border:rgba(201,168,76,0.24);
+
+  --neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.88);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.50);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:50;
+  overflow-y:auto;scrollbar-width:none;transition:transform .25s ease,background .25s;
+}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{
+  display:flex;align-items:center;gap:8px;padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);font-size:15px;font-weight:700;
+  letter-spacing:-0.04em;color:var(--text);text-decoration:none;
+}
+.sb-mark{
+  width:26px;height:26px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);padding:0 8px;margin:10px 0 4px;
+}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{
+  display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:450;
+  color:var(--text2);padding:7px 10px;border-radius:var(--r-sm);
+  text-decoration:none;transition:all var(--t);
+}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;
+}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--accent-lt);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-weight:700;color:var(--accent);flex-shrink:0;
+}
+
+/* ── Main Layout ──────────────────────────────────── */
+.main{
+  margin-left:var(--sidebar-w);flex:1;min-width:0;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{
+  height:var(--topbar-h);background:var(--glass);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);display:flex;align-items:center;
+  padding:0 28px;gap:14px;position:sticky;top:0;z-index:40;
+  transition:background .25s;
+}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+.ctrl{
+  height:32px;display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:0 10px;cursor:pointer;transition:all var(--t);
+}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+
+.timeframe-select{
+  height:32px;padding:0 10px;font-family:var(--font);font-size:12px;
+  font-weight:500;color:var(--text2);background:var(--surface2);
+  border:1px solid var(--border-s);border-radius:var(--r-sm);
+  outline:none;cursor:pointer;transition:all var(--t);
+}
+.timeframe-select:hover{border-color:var(--border-m);color:var(--text);}
+
+.lang-sel{
+  font-family:var(--font);font-size:12.5px;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);
+}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+
+.mobile-menu{
+  display:none;width:34px;height:34px;border:1px solid var(--border-s);
+  border-radius:var(--r-sm);background:transparent;cursor:pointer;
+  align-items:center;justify-content:center;color:var(--text2);
+}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page Body ────────────────────────────────────── */
+.page{
+  flex:1;padding:26px 28px;
+  display:flex;flex-direction:column;gap:20px;
+  max-width:1240px;width:100%;
+}
+
+/* ── Demo Notice Strip ────────────────────────────── */
+.demo-strip{
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:9px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;font-size:12px;color:var(--text2);flex-wrap:wrap;
+}
+.demo-strip-label{display:flex;align-items:center;gap:6px;}
+.demo-strip-label svg{width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:2;}
+.demo-pill{
+  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);
+  padding:2px 8px;border-radius:4px;
+}
+
+/* ── KPI Summary Cards ────────────────────────────── */
+.summary-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));
+  gap:12px;
+}
+.summary-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:16px;
+  display:flex;flex-direction:column;gap:4px;
+  box-shadow:var(--shadow-sm);transition:all var(--t);
+}
+.summary-card:hover{
+  border-color:var(--border-s);box-shadow:var(--shadow-md);
+}
+.sc-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);
+}
+.sc-value{
+  font-size:24px;font-weight:700;letter-spacing:-0.03em;color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+.sc-sub{
+  font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:6px;
+  margin-top:2px;
+}
+.dot-indicator{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:var(--ok);}
+.dot-err{background:var(--err);}
+.dot-warn{background:var(--warn);}
+.dot-accent{background:var(--accent);}
+
+/* ── Charts Grid ──────────────────────────────────── */
+.charts-grid{
+  display:grid;grid-template-columns:1.4fr 1fr;
+  gap:18px;
+}
+@media(max-width:940px){
+  .charts-grid{grid-template-columns:1fr;}
+}
+
+.chart-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;
+  gap:14px;
+}
+.chart-header{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:12px;
+}
+.chart-title-group{display:flex;flex-direction:column;gap:2px;}
+.chart-title{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);}
+.chart-sub{font-size:12px;color:var(--text3);}
+
+/* 1. Verdict Distribution Chart */
+.verdict-bar-wrap{
+  display:flex;flex-direction:column;gap:12px;padding:6px 0;
+}
+.verdict-stack-track{
+  height:14px;border-radius:8px;background:var(--surface3);
+  display:flex;overflow:hidden;gap:2px;
+}
+.stack-seg{height:100%;transition:width .8s cubic-bezier(0.16,1,0.3,1);}
+.seg-ok{background:var(--ok);}
+.seg-err{background:var(--err);}
+.seg-warn{background:var(--warn);}
+
+.verdict-legend-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  margin-top:4px;
+}
+.v-leg-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:10px 12px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.v-leg-head{
+  font-size:11px;font-weight:600;color:var(--text3);
+  display:flex;align-items:center;gap:6px;
+}
+.v-leg-val{
+  font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;
+}
+.v-leg-pct{
+  font-size:11px;font-weight:550;color:var(--text3);
+}
+
+/* 2. Activity SVG Chart */
+.activity-chart-wrap{
+  width:100%;height:180px;position:relative;display:flex;align-items:flex-end;
+}
+.activity-svg{width:100%;height:100%;overflow:visible;}
+
+/* 3. Source Type Distribution Bars */
+.source-types-list{
+  display:flex;flex-direction:column;gap:10px;padding:4px 0;
+}
+.st-row{display:flex;align-items:center;gap:10px;font-size:12.5px;}
+.st-label{width:110px;font-weight:500;color:var(--text2);flex-shrink:0;}
+.st-track{
+  flex:1;height:8px;background:var(--surface3);
+  border-radius:4px;overflow:hidden;
+}
+.st-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .8s ease;}
+.st-count{
+  width:48px;font-family:var(--font-mono);font-size:11.5px;
+  font-weight:600;color:var(--text);text-align:right;flex-shrink:0;
+}
+.st-pct{width:36px;font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;}
+
+/* ── Recent Investigations Table ──────────────────── */
+.investigations-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;
+}
+.ic-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ic-title{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);}
+.ic-hint{font-size:11.5px;color:var(--text3);}
+
+.table-wrap{overflow-x:auto;width:100%;}
+.inv-table{
+  width:100%;border-collapse:collapse;text-align:left;
+  font-size:13px;min-width:760px;
+}
+.inv-table th{
+  background:var(--surface2);padding:10px 16px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);border-bottom:1px solid var(--border);
+  white-space:nowrap;user-select:none;
+}
+.inv-table td{
+  padding:13px 16px;border-bottom:1px solid var(--border);
+  color:var(--text);vertical-align:middle;transition:background var(--t);
+}
+.inv-row{cursor:pointer;}
+.inv-row:hover td{background:var(--surface-hover);}
+
+/* Badges & Icons */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;border-radius:12px;padding:3px 9px;
+  white-space:nowrap;
+}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.badge-neutral{background:var(--neutral-bg);color:var(--text2);border:1px solid var(--border-s);}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.input-type-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11.5px;font-weight:550;color:var(--text2);
+}
+.input-type-tag svg{width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:1.75;}
+
+.inv-id-link{
+  font-family:var(--font-mono);font-size:11.5px;font-weight:600;
+  color:var(--accent);text-decoration:none;
+}
+.inv-id-link:hover{text-decoration:underline;}
+
+/* ── Mobile Sidebar Overlay ───────────────────────── */
+.sb-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  z-index:49;
+}
+.sb-overlay.visible{display:block;}
+
+/* ── Responsive Rules ─────────────────────────────── */
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-menu{display:flex;}
+  .page{padding:16px;}
+  .topbar{padding:0 16px;}
+  .verdict-legend-grid{grid-template-columns:1fr;}
+}
+@media(max-width:540px){
+  .tb-sub{display:none;}
+  .summary-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Mobile Sidebar Overlay ────────────────────────── -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── Persistent Left Sidebar ───────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+    </div>
+    EvidenceX
+  </a>
+
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidencex.html">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="nav.home">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="verification-center.html">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+          <span data-i18n="nav.verify">Verify</span>
+        </a>
+      </li>
+      <li>
+        <a href="results.html">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          <span data-i18n="nav.results">Results</span>
+          <span class="sb-badge">1</span>
+        </a>
+      </li>
+      <li>
+        <a href="investigation.html">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span data-i18n="nav.investigations">Investigations</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidence-explorer.html">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="nav.evidence">Evidence</span>
+        </a>
+      </li>
+      <li>
+        <a href="evidence-timeline.html">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span data-i18n="nav.timeline">Timeline</span>
+        </a>
+      </li>
+      <li>
+        <!-- HIGHLIGHTED ACTIVE ANALYTICS -->
+        <a href="analytics.html" class="active">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
+          <span class="sb-badge" style="background:var(--ok);">SaaS</span>
+        </a>
+      </li>
+      <li>
+        <a href="copilot.html">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span data-i18n="nav.copilot">AI Copilot</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="settings.html">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span data-i18n="nav.settings">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main Workspace ─────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sticky Topbar -->
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">Verification Analytics</div>
+      <div class="tb-sub" data-i18n="page.sub">Overview of recent EvidenceX investigations.</div>
+    </div>
+    <div class="tb-right">
+      <select class="timeframe-select" id="timeframeSelect" aria-label="Timeframe">
+        <option value="30d" data-i18n="tf.30d">Last 30 Days</option>
+        <option value="7d" data-i18n="tf.7d">Last 7 Days</option>
+        <option value="90d" data-i18n="tf.90d">Last 90 Days</option>
+        <option value="all" data-i18n="tf.all">All Time</option>
+      </select>
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Page Body -->
+  <main class="page">
+
+    <!-- Demo Notice Strip -->
+    <div class="demo-strip">
+      <div class="demo-strip-label">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        <span data-i18n="demo.label">Simulated aggregate platform telemetry · Structured for backend database connection</span>
+      </div>
+      <span class="demo-pill" data-i18n="demo.pill">Demo Telemetry</span>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <section class="summary-grid" id="summaryGrid">
+      <div class="summary-card">
+        <span class="sc-label" data-i18n="kpi.total">Total Claims Verified</span>
+        <span class="sc-value" id="kpiTotal">1,428</span>
+        <span class="sc-sub"><span class="dot-indicator dot-accent"></span> +18.4% <span data-i18n="kpi.vsprev">vs prev period</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="sc-label" data-i18n="kpi.supported">Supported</span>
+        <span class="sc-value" style="color:var(--ok);" id="kpiSup">812</span>
+        <span class="sc-sub"><span class="dot-indicator dot-ok"></span> 56.9% <span data-i18n="kpi.ofverified">of all claims</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="sc-label" data-i18n="kpi.refuted">Refuted</span>
+        <span class="sc-value" style="color:var(--err);" id="kpiRef">394</span>
+        <span class="sc-sub"><span class="dot-indicator dot-err"></span> 27.6% <span data-i18n="kpi.contradicted">disproven</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="sc-label" data-i18n="kpi.insufficient">Insufficient Evidence</span>
+        <span class="sc-value" style="color:var(--warn);" id="kpiIns">222</span>
+        <span class="sc-sub"><span class="dot-indicator dot-warn"></span> 15.5% <span data-i18n="kpi.inconclusive">unverified gap</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="sc-label" data-i18n="kpi.sources">Sources Analyzed</span>
+        <span class="sc-value" id="kpiSources">14,860</span>
+        <span class="sc-sub"><span class="dot-indicator dot-accent"></span> ~10.4 <span data-i18n="kpi.perclaim">sources/claim</span></span>
+      </div>
+    </section>
+
+    <!-- Minimal Analytics Charts -->
+    <section class="charts-grid">
+
+      <!-- Chart 1: Verdict Distribution -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <span class="chart-title" data-i18n="chart.verdict.title">Verdict Distribution</span>
+            <span class="chart-sub" data-i18n="chart.verdict.sub">Breakdown of verification conclusions across 1,428 claims</span>
+          </div>
+        </div>
+
+        <div class="verdict-bar-wrap">
+          <!-- Multi-segment progress bar -->
+          <div class="verdict-stack-track">
+            <div class="stack-seg seg-ok" style="width:56.9%;" title="Supported: 56.9%"></div>
+            <div class="stack-seg seg-err" style="width:27.6%;" title="Refuted: 27.6%"></div>
+            <div class="stack-seg seg-warn" style="width:15.5%;" title="Insufficient Evidence: 15.5%"></div>
+          </div>
+
+          <!-- Segment detail cards -->
+          <div class="verdict-legend-grid">
+            <div class="v-leg-item">
+              <div class="v-leg-head">
+                <span class="dot-indicator dot-ok"></span>
+                <span data-i18n="kpi.supported">Supported</span>
+              </div>
+              <span class="v-leg-val">812</span>
+              <span class="v-leg-pct">56.9%</span>
+            </div>
+            <div class="v-leg-item">
+              <div class="v-leg-head">
+                <span class="dot-indicator dot-err"></span>
+                <span data-i18n="kpi.refuted">Refuted</span>
+              </div>
+              <span class="v-leg-val">394</span>
+              <span class="v-leg-pct">27.6%</span>
+            </div>
+            <div class="v-leg-item">
+              <div class="v-leg-head">
+                <span class="dot-indicator dot-warn"></span>
+                <span data-i18n="kpi.insufficient">Insufficient</span>
+              </div>
+              <span class="v-leg-val">222</span>
+              <span class="v-leg-pct">15.5%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Activity Over Time (SVG) -->
+        <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="chart-title" style="font-size:11.5px;" data-i18n="chart.activity.title">Verification Activity Over Time</span>
+            <span style="font-size:11px;color:var(--text3);" data-i18n="chart.activity.sub">Claims verified per week</span>
+          </div>
+
+          <div class="activity-chart-wrap">
+            <svg class="activity-svg" viewBox="0 0 540 140" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="0" y1="20" x2="540" y2="20" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+              <line x1="0" y1="60" x2="540" y2="60" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+              <line x1="0" y1="100" x2="540" y2="100" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+
+              <!-- Bar 1 -->
+              <rect x="25" y="65" width="28" height="60" rx="4" fill="var(--accent)" opacity="0.8"/>
+              <text x="39" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W1</text>
+
+              <!-- Bar 2 -->
+              <rect x="75" y="45" width="28" height="80" rx="4" fill="var(--accent)" opacity="0.8"/>
+              <text x="89" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W2</text>
+
+              <!-- Bar 3 -->
+              <rect x="125" y="55" width="28" height="70" rx="4" fill="var(--accent)" opacity="0.8"/>
+              <text x="139" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W3</text>
+
+              <!-- Bar 4 -->
+              <rect x="175" y="30" width="28" height="95" rx="4" fill="var(--accent)" opacity="0.85"/>
+              <text x="189" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W4</text>
+
+              <!-- Bar 5 -->
+              <rect x="225" y="40" width="28" height="85" rx="4" fill="var(--accent)" opacity="0.85"/>
+              <text x="239" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W5</text>
+
+              <!-- Bar 6 -->
+              <rect x="275" y="22" width="28" height="103" rx="4" fill="var(--accent)" opacity="0.9"/>
+              <text x="289" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W6</text>
+
+              <!-- Bar 7 -->
+              <rect x="325" y="35" width="28" height="90" rx="4" fill="var(--accent)" opacity="0.85"/>
+              <text x="339" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W7</text>
+
+              <!-- Bar 8 -->
+              <rect x="375" y="18" width="28" height="107" rx="4" fill="var(--accent)" opacity="0.9"/>
+              <text x="389" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W8</text>
+
+              <!-- Bar 9 -->
+              <rect x="425" y="14" width="28" height="111" rx="4" fill="var(--accent)" opacity="0.95"/>
+              <text x="439" y="136" font-size="10" text-anchor="middle" fill="var(--text3)" font-family="var(--font-mono)">W9</text>
+
+              <!-- Bar 10 (Current week) -->
+              <rect x="475" y="24" width="28" height="101" rx="4" fill="var(--ok)" opacity="0.9"/>
+              <text x="489" y="136" font-size="10" text-anchor="middle" fill="var(--ok)" font-weight="600" font-family="var(--font-mono)">W10</text>
+
+              <!-- Trendline -->
+              <path d="M39 65 Q 139 50, 239 40 T 439 14 T 489 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-dasharray="4,3" opacity="0.6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 2: Source Type Distribution -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title-group">
+            <span class="chart-title" data-i18n="chart.sources.title">Source Type Distribution</span>
+            <span class="chart-sub" data-i18n="chart.sources.sub">Classification of 14,860 evaluated sources</span>
+          </div>
+        </div>
+
+        <div class="source-types-list">
+          <div class="st-row">
+            <span class="st-label" data-i18n="st.research">Research</span>
+            <div class="st-track"><div class="st-fill" style="width:46%;background:var(--accent);"></div></div>
+            <span class="st-count">6,835</span>
+            <span class="st-pct">46%</span>
+          </div>
+          <div class="st-row">
+            <span class="st-label" data-i18n="st.official">Official Body</span>
+            <div class="st-track"><div class="st-fill" style="width:24%;background:#6b7280;"></div></div>
+            <span class="st-count">3,566</span>
+            <span class="st-pct">24%</span>
+          </div>
+          <div class="st-row">
+            <span class="st-label" data-i18n="st.news">News / Media</span>
+            <div class="st-track"><div class="st-fill" style="width:18%;background:#9b8cd4;"></div></div>
+            <span class="st-count">2,674</span>
+            <span class="st-pct">18%</span>
+          </div>
+          <div class="st-row">
+            <span class="st-label" data-i18n="st.factcheck">Fact-check Org</span>
+            <div class="st-track"><div class="st-fill" style="width:8%;background:#c9a84c;"></div></div>
+            <span class="st-count">1,188</span>
+            <span class="st-pct">8%</span>
+          </div>
+          <div class="st-row">
+            <span class="st-label" data-i18n="st.other">Other Sources</span>
+            <div class="st-track"><div class="st-fill" style="width:4%;background:var(--text3);"></div></div>
+            <span class="st-count">597</span>
+            <span class="st-pct">4%</span>
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:var(--r-sm);padding:10px 12px;font-size:11.5px;color:var(--text3);line-height:1.55;border:1px solid var(--border);">
+          <strong data-i18n="st.note.head">Primary Policy:</strong> <span data-i18n="st.note.body">EvidenceX prioritizes tier-1 peer-reviewed research and normative official public health directives to prevent misinformation amplification.</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Recent Investigations Table -->
+    <section class="investigations-card">
+      <div class="ic-header">
+        <span class="ic-title" data-i18n="ic.title">Recent Investigations</span>
+        <span class="ic-hint" data-i18n="ic.hint">Click any row to open the full Results view</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="inv-table" aria-label="Recent Investigations">
+          <thead>
+            <tr>
+              <th style="width:16%;" data-i18n="th.date">Date</th>
+              <th style="width:14%;" data-i18n="th.input">Input Type</th>
+              <th style="width:18%;" data-i18n="th.id">Investigation ID</th>
+              <th style="width:14%;" data-i18n="th.claims">Claims</th>
+              <th style="width:22%;" data-i18n="th.verdict">Verdict</th>
+              <th style="width:16%;text-align:right;" data-i18n="th.sources">Sources</th>
+            </tr>
+          </thead>
+          <tbody id="investigationsTbody">
+            <!-- Row 1: Active demo claim -->
+            <tr class="inv-row" onclick="window.location.href='results.html';">
+              <td style="color:var(--text2);font-variant-numeric:tabular-nums;">Sep 23, 2026, 14:20</td>
+              <td>
+                <span class="input-type-tag">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+                  <span>Text Input</span>
+                </span>
+              </td>
+              <td><a href="results.html" class="inv-id-link">INV-2026-0847</a></td>
+              <td><strong>4</strong> claims</td>
+              <td><span class="badge badge-ok"><span class="badge-dot"></span>Mostly Supported</span></td>
+              <td style="text-align:right;font-family:var(--font-mono);">18 sources</td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr class="inv-row" onclick="window.location.href='results.html';">
+              <td style="color:var(--text2);font-variant-numeric:tabular-nums;">Sep 22, 2026, 18:45</td>
+              <td>
+                <span class="input-type-tag">
+                  <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <span>URL Webpage</span>
+                </span>
+              </td>
+              <td><a href="results.html" class="inv-id-link">INV-2026-0846</a></td>
+              <td><strong>2</strong> claims</td>
+              <td><span class="badge badge-ok"><span class="badge-dot"></span>Supported</span></td>
+              <td style="text-align:right;font-family:var(--font-mono);">9 sources</td>
+            </tr>
+
+            <!-- Row 3 -->
+            <tr class="inv-row" onclick="window.location.href='results.html';">
+              <td style="color:var(--text2);font-variant-numeric:tabular-nums;">Sep 22, 2026, 11:15</td>
+              <td>
+                <span class="input-type-tag">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>Image Screenshot</span>
+                </span>
+              </td>
+              <td><a href="results.html" class="inv-id-link">INV-2026-0845</a></td>
+              <td><strong>3</strong> claims</td>
+              <td><span class="badge badge-err"><span class="badge-dot"></span>Refuted</span></td>
+              <td style="text-align:right;font-family:var(--font-mono);">14 sources</td>
+            </tr>
+
+            <!-- Row 4 -->
+            <tr class="inv-row" onclick="window.location.href='results.html';">
+              <td style="color:var(--text2);font-variant-numeric:tabular-nums;">Sep 21, 2026, 16:30</td>
+              <td>
+                <span class="input-type-tag">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+                  <span>Text Input</span>
+                </span>
+              </td>
+              <td><a href="results.html" class="inv-id-link">INV-2026-0844</a></td>
+              <td><strong>5</strong> claims</td>
+              <td><span class="badge badge-warn"><span class="badge-dot"></span>Insufficient Evidence</span></td>
+              <td style="text-align:right;font-family:var(--font-mono);">12 sources</td>
+            </tr>
+
+            <!-- Row 5 -->
+            <tr class="inv-row" onclick="window.location.href='results.html';">
+              <td style="color:var(--text2);font-variant-numeric:tabular-nums;">Sep 20, 2026, 09:12</td>
+              <td>
+                <span class="input-type-tag">
+                  <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <span>URL Webpage</span>
+                </span>
+              </td>
+              <td><a href="results.html" class="inv-id-link">INV-2026-0843</a></td>
+              <td><strong>1</strong> claim</td>
+              <td><span class="badge badge-ok"><span class="badge-dot"></span>Supported</span></td>
+              <td style="text-align:right;font-family:var(--font-mono);">8 sources</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── JavaScript Engine ─────────────────────────────── -->
+<script>
+/* ── Localization Dictionary ──────────────────────── */
+const i18n = {
+  en: {
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations',
+    'nav.tools':'Tools','nav.evidence':'Evidence','nav.timeline':'Timeline',
+    'nav.analytics':'Analytics','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'page.title':'Verification Analytics',
+    'page.sub':'Overview of recent EvidenceX investigations.',
+    'tf.30d':'Last 30 Days','tf.7d':'Last 7 Days','tf.90d':'Last 90 Days','tf.all':'All Time',
+    'demo.label':'Simulated aggregate platform telemetry · Structured for backend database connection',
+    'demo.pill':'Demo Telemetry',
+    'kpi.total':'Total Claims Verified','kpi.vsprev':'vs prev period',
+    'kpi.supported':'Supported','kpi.ofverified':'of all claims',
+    'kpi.refuted':'Refuted','kpi.contradicted':'disproven',
+    'kpi.insufficient':'Insufficient Evidence','kpi.inconclusive':'unverified gap',
+    'kpi.sources':'Sources Analyzed','kpi.perclaim':'sources/claim',
+    'chart.verdict.title':'Verdict Distribution',
+    'chart.verdict.sub':'Breakdown of verification conclusions across 1,428 claims',
+    'chart.activity.title':'Verification Activity Over Time',
+    'chart.activity.sub':'Claims verified per week',
+    'chart.sources.title':'Source Type Distribution',
+    'chart.sources.sub':'Classification of 14,860 evaluated sources',
+    'st.research':'Research','st.official':'Official Body',
+    'st.news':'News / Media','st.factcheck':'Fact-check Org','st.other':'Other Sources',
+    'st.note.head':'Primary Policy:','st.note.body':'EvidenceX prioritizes tier-1 peer-reviewed research and normative official public health directives to prevent misinformation amplification.',
+    'ic.title':'Recent Investigations','ic.hint':'Click any row to open the full Results view',
+    'th.date':'Date','th.input':'Input Type','th.id':'Investigation ID',
+    'th.claims':'Claims','th.verdict':'Verdict','th.sources':'Sources'
+  },
+  hi: {
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच',
+    'nav.tools':'टूल्स','nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा',
+    'nav.analytics':'विश्लेषण','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'page.title':'सत्यापन विश्लेषण (Verification Analytics)',
+    'page.sub':'हाल की EvidenceX जांचों का संपूर्ण अवलोकन।',
+    'tf.30d':'पिछले 30 दिन','tf.7d':'पिछले 7 दिन','tf.90d':'पिछले 90 दिन','tf.all':'सम्पूर्ण काल',
+    'demo.label':'सिम्युलेटेड समग्र प्लेटफ़ॉर्म टेलीमेट्री · बैकएंड डेटाबेस कनेक्शन के लिए संरचित',
+    'demo.pill':'डेमो टेलीमेट्री',
+    'kpi.total':'कुल सत्यापित दावे','kpi.vsprev':'पिछली अवधि की तुलना में',
+    'kpi.supported':'समर्थित','kpi.ofverified':'सभी दावों में से',
+    'kpi.refuted':'खंडित','kpi.contradicted':'असत्य सिद्ध',
+    'kpi.insufficient':'अपर्याप्त साक्ष्य','kpi.inconclusive':'असत्यापित अंतर',
+    'kpi.sources':'विश्लेषित स्रोत','kpi.perclaim':'स्रोत प्रति दावा',
+    'chart.verdict.title':'निर्णय वितरण (Verdict Distribution)',
+    'chart.verdict.sub':'1,428 दावों में सत्यापन निष्कर्षों का विभाजन',
+    'chart.activity.title':'समय के साथ सत्यापन गतिविधि',
+    'chart.activity.sub':'प्रति सप्ताह सत्यापित दावे',
+    'chart.sources.title':'स्रोत प्रकार वितरण',
+    'chart.sources.sub':'14,860 मूल्यांकित स्रोतों का वर्गीकरण',
+    'st.research':'शोध','st.official':'आधिकारिक संस्था',
+    'st.news':'समाचार / मीडिया','st.factcheck':'तथ्य-जांच संगठन','st.other':'अन्य स्रोत',
+    'st.note.head':'प्राथमिक नीति:','st.note.body':'EvidenceX गलत सूचना के प्रसार को रोकने के लिए टियर-1 समीक्षित शोध और आधिकारिक निर्देशों को प्राथमिकता देता है।',
+    'ic.title':'हाल की जांचें','ic.hint':'परिणाम देखने के लिए किसी भी पंक्ति पर क्लिक करें',
+    'th.date':'तिथि','th.input':'इनपुट प्रकार','th.id':'जांच ID',
+    'th.claims':'दावे','th.verdict':'निर्णय','th.sources':'स्रोत'
+  }
+};
+
+let currentLang = 'en';
+function t(k){ return (i18n[currentLang]||i18n.en)[k] || k; }
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if(t(k)) el.textContent = t(k);
+  });
+
+  localStorage.setItem('ex-lang', lang);
+}
+
+/* ── Theme Handling ───────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  const dark = th === 'dark';
+  document.getElementById('icon-sun').style.display = dark ? 'block' : 'none';
+  document.getElementById('icon-moon').style.display = dark ? 'none' : 'block';
+  localStorage.setItem('ex-theme', th);
+}
+(function(){
+  const s = localStorage.getItem('ex-theme');
+  const sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(s || (sys ? 'dark' : 'light'));
+})();
+document.getElementById('themeToggle').onclick = () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+
+(function(){
+  const l = localStorage.getItem('ex-lang') || 'en';
+  document.getElementById('langSelect').value = l;
+  applyLang(l);
+})();
+document.getElementById('langSelect').onchange = function(){ applyLang(this.value); };
+
+/* ── Timeframe Filter Simulator ───────────────────── */
+document.getElementById('timeframeSelect').addEventListener('change', function(){
+  const val = this.value;
+  const kpiTotal = document.getElementById('kpiTotal');
+  const kpiSup = document.getElementById('kpiSup');
+  const kpiRef = document.getElementById('kpiRef');
+  const kpiIns = document.getElementById('kpiIns');
+  const kpiSources = document.getElementById('kpiSources');
+
+  if(val === '7d'){
+    kpiTotal.textContent = '342';
+    kpiSup.textContent = '198';
+    kpiRef.textContent = '94';
+    kpiIns.textContent = '50';
+    kpiSources.textContent = '3,556';
+  } else if(val === '90d'){
+    kpiTotal.textContent = '4,120';
+    kpiSup.textContent = '2,310';
+    kpiRef.textContent = '1,150';
+    kpiIns.textContent = '660';
+    kpiSources.textContent = '42,840';
+  } else if(val === 'all'){
+    kpiTotal.textContent = '12,490';
+    kpiSup.textContent = '7,110';
+    kpiRef.textContent = '3,480';
+    kpiIns.textContent = '1,900';
+    kpiSources.textContent = '129,900';
+  } else {
+    // 30d default
+    kpiTotal.textContent = '1,428';
+    kpiSup.textContent = '812';
+    kpiRef.textContent = '394';
+    kpiIns.textContent = '222';
+    kpiSources.textContent = '14,860';
+  }
+});
+
+/* ── Mobile Sidebar Drawer ────────────────────────── */
+const sbOverlay = document.getElementById('sbOverlay');
+const sidebar = document.getElementById('sidebar');
+document.getElementById('mobileMenuBtn').onclick = () => {
+  sidebar.classList.toggle('open');
+  sbOverlay.classList.toggle('visible');
+};
+sbOverlay.onclick = () => {
+  sidebar.classList.remove('open');
+  sbOverlay.classList.remove('visible');
+};
+</script>
+</body>
+</html>

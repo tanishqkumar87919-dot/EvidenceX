@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Claim Investigation — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s;}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  --bg:#f5f4f1;--bg2:#eceae4;
+  --surface:#ffffff;--surface2:#f8f7f4;--surface3:#f1efe9;
+  --border:rgba(0,0,0,0.07);--border-s:rgba(0,0,0,0.12);--border-m:rgba(0,0,0,0.18);
+  --text:#111110;--text2:#4e4d49;--text3:#87857e;
+  --accent:#1c4e9e;--accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);--accent-sub:rgba(28,78,158,0.05);
+  --ok:#1a7a4a;--ok-bg:rgba(26,122,74,0.10);--ok-border:rgba(26,122,74,0.18);
+  --err:#b94040;--err-bg:rgba(185,64,64,0.09);--err-border:rgba(185,64,64,0.16);
+  --warn:#8a6d2f;--warn-bg:rgba(138,109,47,0.09);--warn-border:rgba(138,109,47,0.16);
+  --neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.82);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 10px 36px rgba(0,0,0,0.09),0 4px 8px rgba(0,0,0,0.04);
+  --sidebar-w:228px;--topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+[data-theme="dark"]{
+  --bg:#0d0d0c;--bg2:#131312;
+  --surface:#1a1a18;--surface2:#1f1f1d;--surface3:#252522;
+  --border:rgba(255,255,255,0.07);--border-s:rgba(255,255,255,0.12);--border-m:rgba(255,255,255,0.18);
+  --text:#eeedea;--text2:#a1a09a;--text3:#64635e;
+  --accent:#4d86d8;--accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);--accent-sub:rgba(77,134,216,0.06);
+  --ok:#4cad78;--ok-bg:rgba(76,173,120,0.12);--ok-border:rgba(76,173,120,0.22);
+  --err:#d96a6a;--err-bg:rgba(217,106,106,0.12);--err-border:rgba(217,106,106,0.20);
+  --warn:#c9a84c;--warn-bg:rgba(201,168,76,0.12);--warn-border:rgba(201,168,76,0.20);
+  --neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.85);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 10px 36px rgba(0,0,0,0.50);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto;scrollbar-width:none;transition:transform .25s,background .25s;}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:18px 18px 14px;border-bottom:1px solid var(--border);font-size:15px;font-weight:700;letter-spacing:-0.04em;color:var(--text);text-decoration:none;}
+.sb-mark{width:26px;height:26px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin:10px 0 4px;}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:450;color:var(--text2);padding:7px 10px;border-radius:var(--r-sm);text-decoration:none;transition:all var(--t);}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;}
+
+/* ── Main ─────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{height:var(--topbar-h);background:var(--glass);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:40;transition:background .25s;}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ctrl{height:32px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);padding:0 10px;cursor:pointer;transition:all var(--t);}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.lang-sel{font-family:var(--font);font-size:12.5px;color:var(--text2);background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+.mobile-menu{display:none;width:34px;height:34px;border:1px solid var(--border-s);border-radius:var(--r-sm);background:transparent;cursor:pointer;align-items:center;justify-content:center;color:var(--text2);}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page ─────────────────────────────────────────── */
+.page{flex:1;padding:28px;display:flex;flex-direction:column;gap:22px;max-width:1160px;width:100%;}
+
+/* ── Breadcrumb ───────────────────────────────────── */
+.breadcrumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text3);}
+.breadcrumb a{color:var(--text3);text-decoration:none;transition:color var(--t);}
+.breadcrumb a:hover{color:var(--accent);}
+.bc-sep{font-size:11px;color:var(--text3);opacity:.5;}
+.bc-current{color:var(--text2);font-weight:500;}
+
+/* ── Page Header ──────────────────────────────────── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ph-title-group{}
+.ph-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.ph-title{font-size:24px;font-weight:700;letter-spacing:-0.03em;color:var(--text);line-height:1.1;}
+.ph-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:12px;padding:4px 10px;}
+.tag-accent{background:var(--accent-lt);color:var(--accent);border:1px solid rgba(28,78,158,.15);}
+.tag-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.tag-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.tag-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.tag-neutral{background:var(--neutral-bg);color:var(--text2);border:1px solid var(--border-s);}
+[data-theme="dark"] .tag-accent{border-color:rgba(77,134,216,.2);}
+
+/* ── Section label ────────────────────────────────── */
+.sec-lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.sec-lbl::before{content:'';display:inline-block;width:14px;height:1.5px;background:var(--text3);border-radius:2px;}
+
+/* ── Panel base ───────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+.panel-head{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.panel-title{font-size:12px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.panel-body{padding:22px;}
+
+/* ── Claim Panel ──────────────────────────────────── */
+.claim-panel{position:relative;overflow:hidden;}
+.claim-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:linear-gradient(90deg,var(--accent),transparent 70%);}
+.claim-quote{font-size:18px;font-weight:500;color:var(--text);line-height:1.6;padding:22px 24px 18px;border-bottom:1px solid var(--border);letter-spacing:-0.01em;font-style:italic;}
+.claim-meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0;}
+.claim-meta-cell{padding:14px 22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.claim-meta-cell:last-child{border-right:none;}
+.cm-lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.cm-val{font-size:13.5px;font-weight:500;color:var(--text);line-height:1.4;}
+.cm-val.accent{color:var(--accent);}
+
+/* ── Verdict Panel ────────────────────────────────── */
+.verdict-grid{display:grid;grid-template-columns:auto 1fr;gap:0;}
+.verdict-left{padding:24px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:14px;min-width:220px;max-width:260px;}
+.verdict-word{font-size:20px;font-weight:700;letter-spacing:-0.03em;line-height:1.1;}
+.verdict-word.v-ok{color:var(--ok);}
+.verdict-word.v-err{color:var(--err);}
+.verdict-word.v-warn{color:var(--warn);}
+.verdict-word.v-neutral{color:var(--text2);}
+.verdict-indicator{display:flex;gap:5px;}
+.vi-seg{height:6px;flex:1;border-radius:3px;background:var(--surface3);}
+.vi-seg.on-ok{background:var(--ok);}
+.vi-seg.on-warn{background:var(--warn);}
+.vi-seg.on-err{background:var(--err);}
+.verdict-label-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);padding:0 1px;}
+.verdict-scope-tag{font-size:11.5px;color:var(--text2);line-height:1.5;}
+
+.verdict-right{padding:22px 24px;display:flex;flex-direction:column;gap:18px;}
+.conf-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+.conf-lbl{font-size:12px;font-weight:600;color:var(--text2);}
+.conf-pct-large{font-size:22px;font-weight:700;letter-spacing:-0.03em;color:var(--text);font-variant-numeric:tabular-nums;}
+.conf-track{height:7px;background:var(--surface3);border-radius:7px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--ok),#5ec48a);transition:width 1s ease;}
+.conf-ticks{display:flex;justify-content:space-between;margin-top:4px;padding:0 1px;}
+.conf-tick{font-size:9.5px;color:var(--text3);}
+
+.suf-row{margin-top:2px;}
+.suf-lbl-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+.suf-lbl{font-size:12px;font-weight:600;color:var(--text2);}
+.suf-word{font-size:12px;font-weight:600;color:var(--ok);}
+.suf-segs{display:flex;gap:3px;}
+.suf-seg{height:7px;flex:1;border-radius:3px;background:var(--surface3);transition:background .4s;}
+.suf-seg.on{background:var(--ok);}
+
+.verdict-explanation{font-size:13.5px;color:var(--text2);line-height:1.65;padding-top:14px;border-top:1px solid var(--border);}
+.verdict-explanation cite{font-style:normal;display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-sub);border-radius:4px;padding:1px 6px;margin:0 2px;}
+
+/* ── Evidence Breakdown ───────────────────────────── */
+.evidence-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:900px){.evidence-cols{grid-template-columns:1fr;}}
+.ev-col-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.ev-col-title{font-size:13px;font-weight:650;color:var(--text);}
+.ev-count-badge{font-size:11px;font-weight:700;border-radius:12px;padding:2px 8px;}
+.ecb-ok{background:var(--ok-bg);color:var(--ok);}
+.ecb-err{background:var(--err-bg);color:var(--err);}
+
+.ev-source-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:11px;transition:all var(--t);cursor:pointer;}
+.ev-source-card:hover{border-color:var(--border-s);box-shadow:var(--shadow-md);}
+.ev-source-card.highlighted{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-sub);}
+.ev-source-card:last-child{margin-bottom:0;}
+.ev-card-head{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.ev-stance-bar{width:3px;border-radius:3px;flex-shrink:0;margin-top:2px;align-self:stretch;}
+.ev-stance-ok{background:var(--ok);}
+.ev-stance-err{background:var(--err);}
+.ev-card-meta{flex:1;min-width:0;}
+.ev-source-title{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:3px;}
+.ev-source-pub{font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ev-pub-dot{width:3px;height:3px;border-radius:50%;background:var(--border-s);flex-shrink:0;}
+.ev-source-type-tag{font-size:10.5px;font-weight:600;background:var(--surface3);color:var(--text3);border-radius:10px;padding:1px 7px;}
+.ev-card-body{padding:0 14px 14px;}
+.ev-why{font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:9px;}
+.ev-why-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.ev-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ev-rel-chip{font-size:11px;font-weight:600;background:var(--surface3);color:var(--text3);border-radius:12px;padding:3px 9px;}
+.ev-open-link{font-size:12px;font-weight:500;color:var(--accent);margin-left:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none;transition:opacity var(--t);}
+.ev-open-link:hover{opacity:.7;}
+.ev-open-link svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ev-expand-icon{width:20px;height:20px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:transform .2s;}
+.ev-expand-icon svg{width:11px;height:11px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;}
+.ev-source-card.open .ev-expand-icon{transform:rotate(180deg);}
+.ev-card-body{display:none;}
+.ev-source-card.open .ev-card-body{display:block;}
+
+/* ── Conflict Graph ───────────────────────────────── */
+.conflict-wrap{background:var(--surface2);border-radius:var(--r-md);border:1px solid var(--border);overflow:hidden;}
+.conflict-svg{width:100%;display:block;}
+.graph-legend{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text3);}
+.leg-line{width:20px;height:2px;border-radius:2px;}
+.graph-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border-s);border-radius:var(--r-sm);padding:9px 12px;font-size:12px;color:var(--text);box-shadow:var(--shadow-md);pointer-events:none;opacity:0;transition:opacity .15s;max-width:200px;z-index:10;line-height:1.5;}
+
+/* ── Source Assessment ────────────────────────────── */
+.assessment-wrap{display:grid;grid-template-columns:220px 1fr;gap:0;}
+@media(max-width:700px){.assessment-wrap{grid-template-columns:1fr;}}
+.src-selector{border-right:1px solid var(--border);padding:4px;display:flex;flex-direction:column;gap:2px;}
+.src-sel-btn{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:450;color:var(--text2);padding:8px 10px;border-radius:var(--r-sm);cursor:pointer;background:none;border:none;font-family:var(--font);text-align:left;transition:all var(--t);width:100%;}
+.src-sel-btn:hover{background:var(--surface2);color:var(--text);}
+.src-sel-btn.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.src-stance-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sd-ok{background:var(--ok);}
+.sd-err{background:var(--err);}
+.sd-neutral{background:var(--text3);}
+
+.src-detail{padding:22px;}
+.src-detail-title{font-size:14px;font-weight:650;color:var(--text);margin-bottom:4px;}
+.src-detail-pub{font-size:12px;color:var(--text3);margin-bottom:16px;}
+.src-assessment-note{font-size:11.5px;color:var(--text3);font-style:italic;margin-bottom:14px;padding:8px 12px;background:var(--surface2);border-radius:var(--r-sm);border-left:2px solid var(--border-s);}
+.factor-list{display:flex;flex-direction:column;gap:11px;}
+.factor-row{display:flex;align-items:center;gap:12px;}
+.factor-lbl{font-size:12.5px;font-weight:550;color:var(--text2);width:110px;flex-shrink:0;}
+.factor-track{flex:1;height:8px;background:var(--surface3);border-radius:8px;overflow:hidden;}
+.factor-fill{height:100%;border-radius:8px;transition:width 1s ease;}
+.ff-high{background:var(--ok);}
+.ff-med{background:var(--warn);}
+.ff-low{background:var(--err);}
+.factor-word{font-size:11.5px;font-weight:600;width:60px;text-align:right;flex-shrink:0;}
+.fw-high{color:var(--ok);}
+.fw-med{color:var(--warn);}
+.fw-low{color:var(--err);}
+
+/* ── Temporal Context ─────────────────────────────── */
+.timeline-panel{}
+.timeline-track{padding:22px;overflow-x:auto;}
+.timeline-line{display:flex;align-items:flex-start;gap:0;position:relative;min-width:540px;}
+.timeline-line::before{content:'';position:absolute;top:14px;left:0;right:0;height:1.5px;background:var(--border-s);z-index:0;}
+.tl-node{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;min-width:110px;}
+.tl-dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--surface);flex-shrink:0;}
+.tld-claim{background:var(--accent);box-shadow:0 0 0 3px var(--accent-lt);}
+.tld-ok{background:var(--ok);}
+.tld-err{background:var(--err);}
+.tld-neutral{background:var(--text3);}
+.tl-date{font-size:10.5px;color:var(--text3);margin-top:7px;text-align:center;font-variant-numeric:tabular-nums;}
+.tl-label{font-size:11.5px;font-weight:550;color:var(--text2);text-align:center;max-width:100px;line-height:1.3;margin-top:3px;}
+.tl-sub{font-size:10px;color:var(--text3);text-align:center;margin-top:2px;}
+.tl-spacer{flex:1;}
+
+/* ── AI Reasoning ─────────────────────────────────── */
+.reasoning-body{font-size:14px;color:var(--text2);line-height:1.75;}
+.reasoning-section{margin-bottom:18px;}
+.reasoning-section:last-child{margin-bottom:0;}
+.rs-head{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.rs-head::before{content:'';display:inline-block;width:10px;height:1.5px;background:var(--text3);border-radius:2px;}
+.rs-text{font-size:14px;color:var(--text2);line-height:1.7;}
+.cite{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-sub);border-radius:4px;padding:1px 6px;margin:0 2px;cursor:default;}
+.cite:hover{background:var(--accent-lt);}
+.reasoning-note{margin-top:16px;padding:12px 14px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.6;}
+
+/* ── Action bar ───────────────────────────────────── */
+.action-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-size:13.5px;font-weight:500;border-radius:var(--r-md);padding:9px 17px;cursor:pointer;border:1.5px solid transparent;transition:all var(--t);text-decoration:none;}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:0 4px 12px rgba(28,78,158,.25);}
+.btn-outline{background:transparent;color:var(--text2);border-color:var(--border-s);}
+.btn-outline:hover{background:var(--surface2);color:var(--text);}
+
+/* ── Divider ──────────────────────────────────────── */
+.divider{height:1px;background:var(--border);}
+
+/* ── Sidebar overlay ──────────────────────────────── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;}
+.sb-overlay.visible{display:block;}
+
+/* ── Responsive ───────────────────────────────────── */
+@media(max-width:780px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-menu{display:flex;}
+  .page{padding:16px;}
+  .topbar{padding:0 16px;}
+  .verdict-grid{grid-template-columns:1fr;}
+  .verdict-left{border-right:none;border-bottom:1px solid var(--border);max-width:none;}
+  .claim-meta-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .tb-sub{display:none;}
+  .claim-meta-grid{grid-template-columns:1fr;}
+  .claim-meta-cell{border-right:none;}
+}
+/* ── Demo Notice Strip ────────────────────────────── */
+.demo-banner{
+  background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);
+  border-radius:var(--r-md);padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;font-size:12.5px;color:#b45309;flex-wrap:wrap;margin-bottom:16px;
+}
+[data-theme="dark"] .demo-banner{background:rgba(234,179,8,0.12);border-color:rgba(234,179,8,0.3);color:#fbbf24;}
+.demo-banner-content{display:flex;align-items:center;gap:8px;}
+.demo-banner-content svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;}
+.demo-tag{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  background:rgba(180,83,9,0.15);padding:2px 7px;border-radius:4px;color:currentColor;
+}
+</style>
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── SIDEBAR ───────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg></div>
+    EvidenceX
+  </a>
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li><a href="evidencex.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-i18n="nav.home">Home</span></a></li>
+      <li><a href="verification-center.html"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg><span data-i18n="nav.verify">Verify</span></a></li>
+      <li><a href="results.html" class="active"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg><span data-i18n="nav.results">Results</span><span class="sb-badge">1</span></a></li>
+      <li><a href="investigation.html"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span data-i18n="nav.investigations">Investigations</span></a></li>
+    </ul>
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li><a href="evidence-explorer.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-i18n="nav.evidence">Evidence</span></a></li>
+      <li><a href="evidence-timeline.html"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span data-i18n="nav.timeline">Timeline</span></a></li>
+      <li><a href="analytics.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="nav.analytics">Analytics</span></a></li>
+      <li><a href="copilot.html"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg><span data-i18n="nav.copilot">AI Copilot</span></a></li>
+    </ul>
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li><a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span data-i18n="nav.settings">Settings</span></a></li>
+    </ul>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ───────────────────────────────────────────── -->
+<div class="main">
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">Claim Investigation</div>
+      <div class="tb-sub">INV-2026-0847 · Claim 01 of 04</div>
+    </div>
+    <div class="tb-right">
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <!-- Demo Notice Strip -->
+    <div class="demo-banner">
+      <div class="demo-banner-content">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><strong data-i18n="demo.strong">Prototype Demonstration Data:</strong> <span data-i18n="demo.body">Deep investigation drill-down for Claim 01 (INV-2026-0847). Prepared for agentic multimodal verification engine.</span></span>
+      </div>
+      <span class="demo-tag" data-i18n="demo.tag">Demo Data</span>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="results.html" data-i18n="bc.results">Results</a>
+      <span class="bc-sep">›</span>
+      <a href="investigation.html" data-i18n="bc.investigation">Investigation</a>
+      <span class="bc-sep">›</span>
+      <span class="bc-current" data-i18n="bc.claim">Claim 01</span>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="ph-title-group">
+        <div class="ph-eyebrow" data-i18n="ph.eyebrow">Deep Claim Analysis</div>
+        <div class="ph-title" data-i18n="ph.title">Claim Investigation</div>
+        <div class="ph-badges">
+          <span class="tag tag-accent" data-i18n="ph.type">Quantitative Claim</span>
+          <span class="tag tag-ok">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="ph.verdict">Mostly Supported</span>
+          </span>
+          <span class="tag tag-neutral">INV-2026-0847 · C01</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 1. Claim Panel ──────────────────────────── -->
+    <div>
+      <div class="sec-lbl" data-i18n="sec.claim">The Claim</div>
+      <div class="panel claim-panel">
+        <div class="claim-quote" id="claimQuote">
+          "Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies published in major medical journals."
+        </div>
+        <div class="claim-meta-grid">
+          <div class="claim-meta-cell">
+            <div class="cm-lbl" data-i18n="cm.type">Claim Type</div>
+            <div class="cm-val accent" data-i18n="cm.type.val">Quantitative Claim</div>
+          </div>
+          <div class="claim-meta-cell">
+            <div class="cm-lbl" data-i18n="cm.lang">Detected Language</div>
+            <div class="cm-val" data-i18n="cm.lang.val">English</div>
+          </div>
+          <div class="claim-meta-cell">
+            <div class="cm-lbl" data-i18n="cm.detected">Detected From</div>
+            <div class="cm-val" data-i18n="cm.detected.val">Submitted text</div>
+          </div>
+          <div class="claim-meta-cell" style="border-right:none;">
+            <div class="cm-lbl" data-i18n="cm.context">Context Note</div>
+            <div class="cm-val" data-i18n="cm.context.val">No context provided by user</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. Verdict ─────────────────────────────── -->
+    <div>
+      <div class="sec-lbl" data-i18n="sec.verdict">Verdict</div>
+      <div class="panel">
+        <div class="verdict-grid">
+          <div class="verdict-left">
+            <div>
+              <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;" data-i18n="verdict.label">Finding</div>
+              <div class="verdict-word v-ok" data-i18n="verdict.word">Mostly Supported</div>
+            </div>
+            <div>
+              <div class="verdict-indicator">
+                <div class="vi-seg on-ok"></div>
+                <div class="vi-seg on-ok"></div>
+                <div class="vi-seg on-ok"></div>
+                <div class="vi-seg on-warn"></div>
+                <div class="vi-seg"></div>
+              </div>
+              <div class="verdict-label-row">
+                <span data-i18n="vi.refuted">Refuted</span>
+                <span data-i18n="vi.supported">Supported</span>
+              </div>
+            </div>
+            <div class="verdict-scope-tag" data-i18n="verdict.scope">Core claim is substantiated. The "35%" upper bound requires qualification — it applies to specific exercise regimes, not all populations.</div>
+          </div>
+          <div class="verdict-right">
+            <div>
+              <div class="conf-row">
+                <span class="conf-lbl" data-i18n="verdict.conf">Confidence</span>
+                <span class="conf-pct-large">88%</span>
+              </div>
+              <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+              <div class="conf-ticks">
+                <span class="conf-tick" data-i18n="ct.low">Low</span>
+                <span class="conf-tick" data-i18n="ct.moderate">Moderate</span>
+                <span class="conf-tick" data-i18n="ct.high">High</span>
+              </div>
+            </div>
+            <div class="suf-row">
+              <div class="suf-lbl-row">
+                <span class="suf-lbl" data-i18n="verdict.suf">Evidence Sufficiency</span>
+                <span class="suf-word" data-i18n="verdict.suf.val">Strong</span>
+              </div>
+              <div class="suf-segs">
+                <div class="suf-seg on" style="border-radius:3px 0 0 3px;"></div>
+                <div class="suf-seg on"></div>
+                <div class="suf-seg on"></div>
+                <div class="suf-seg on"></div>
+                <div class="suf-seg" style="border-radius:0 3px 3px 0;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9.5px;color:var(--text3);padding:0 1px;">
+                <span data-i18n="suf.none">None</span>
+                <span data-i18n="suf.weak">Weak</span>
+                <span data-i18n="suf.moderate">Moderate</span>
+                <span data-i18n="suf.strong">Strong</span>
+                <span data-i18n="suf.definitive">Definitive</span>
+              </div>
+            </div>
+            <div class="verdict-explanation" id="verdictExplanation">
+              Eleven independent sources confirm that regular aerobic exercise substantially reduces cardiovascular disease risk <cite>[AHA 2023]</cite> <cite>[Cochrane 2021]</cite>. The specific "35%" figure is accurate but applies to populations exercising 150+ minutes/week <cite>[WHO 2022]</cite>. Two sources present a methodological counterpoint to the precise figure, reducing confidence from near-certain to <em>mostly supported</em>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. Evidence Breakdown ──────────────────── -->
+    <div id="evidence-section">
+      <div class="sec-lbl" data-i18n="sec.evidence">Evidence Breakdown</div>
+      <div class="evidence-cols">
+        <!-- Supporting -->
+        <div>
+          <div class="ev-col-head">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="ev-col-title" data-i18n="ev.supporting.title">Supporting Evidence</span>
+            <span class="ev-count-badge ecb-ok">4</span>
+          </div>
+          <div id="supportingList"></div>
+        </div>
+        <!-- Contradicting -->
+        <div>
+          <div class="ev-col-head">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--err)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="ev-col-title" data-i18n="ev.contradicting.title">Contradicting Evidence</span>
+            <span class="ev-count-badge ecb-err">2</span>
+          </div>
+          <div id="contradictingList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. Conflict Graph ───────────────────────── -->
+    <div>
+      <div class="sec-lbl" data-i18n="sec.graph">Evidence Conflict Graph</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="graph.title">Claim–Source Connections</span>
+          <span style="font-size:12px;color:var(--text3);" data-i18n="graph.hint">Click a source node to highlight its evidence card</span>
+        </div>
+        <div class="conflict-wrap" style="position:relative;">
+          <svg class="conflict-svg" id="conflictSvg" viewBox="0 0 860 280" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="graph-tooltip" id="graphTooltip"></div>
+          <div class="graph-legend">
+            <div class="leg-item"><div class="leg-line" style="background:var(--ok);"></div><span data-i18n="leg.sup">Supporting</span></div>
+            <div class="leg-item"><div class="leg-line" style="background:var(--err);"></div><span data-i18n="leg.con">Contradicting</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5. Source Assessment ────────────────────── -->
+    <div>
+      <div class="sec-lbl" data-i18n="sec.assess">Evidence Source Assessment</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="assess.title">Source Assessment</span>
+          <span style="font-size:12px;color:var(--text3);" data-i18n="assess.note.head">These ratings reflect EvidenceX's evaluation of each source — not absolute truth claims.</span>
+        </div>
+        <div class="assessment-wrap">
+          <div class="src-selector" id="srcSelector"></div>
+          <div class="src-detail" id="srcDetail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. Temporal Context ────────────────────── -->
+    <div id="temporal-section">
+      <div class="sec-lbl" data-i18n="sec.temporal">Temporal Context</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="temporal.title">Evidence Timeline</span>
+          <span style="font-size:12px;color:var(--text3);" data-i18n="temporal.sub">Claim submission date and source publication dates</span>
+        </div>
+        <div class="timeline-track">
+          <div class="timeline-line" id="timelineEl"></div>
+        </div>
+        <div style="padding:14px 22px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text2);line-height:1.6;" data-i18n="temporal.note">
+          All supporting sources postdate or coincide with the period during which the scientific consensus on exercise and cardiovascular health was established (2010–2023). The contradicting source (UAH 2018) addresses a methodological question about dataset construction, not the core causal claim.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 7. AI Reasoning ────────────────────────── -->
+    <div>
+      <div class="sec-lbl" data-i18n="sec.reasoning">AI Reasoning</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="reasoning.title">Why EvidenceX reached this finding</span>
+        </div>
+        <div class="panel-body">
+          <div id="reasoningBody"></div>
+          <div class="reasoning-note" style="margin-top:16px;">
+            <strong data-i18n="reasoning.note.head">Transparency note:</strong>
+            <span data-i18n="reasoning.note.body"> This rationale is derived exclusively from evidence retrieved and assessed during this investigation. EvidenceX does not expose internal model chain-of-thought. The reasoning presented is grounded in source comparisons, stance classification, and credibility assessment — not model assumptions.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Action Bar ─────────────────────────────── -->
+    <div class="action-bar">
+      <a href="results.html" class="btn btn-outline">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="btn.back">Back to Results</span>
+      </a>
+      <a href="#evidence-section" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span data-i18n="btn.evidence">View Evidence</span>
+      </a>
+      <button class="btn btn-outline">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span data-i18n="btn.timeline">View Timeline</span>
+      </button>
+      <button class="btn btn-outline">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-i18n="btn.export">Export Investigation</span>
+      </button>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<script>
+/* ── i18n ─────────────────────────────────────────── */
+const S={
+  en:{
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations',
+    'nav.tools':'Tools','nav.evidence':'Evidence','nav.timeline':'Timeline',
+    'nav.analytics':'Analytics','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'bc.results':'Results','bc.investigation':'Investigation','bc.claim':'Claim 01',
+    'page.title':'Claim Investigation',
+    'ph.eyebrow':'Deep Claim Analysis','ph.title':'Claim Investigation',
+    'ph.type':'Quantitative Claim','ph.verdict':'Mostly Supported',
+    'sec.claim':'The Claim',
+    'cm.type':'Claim Type','cm.type.val':'Quantitative Claim',
+    'cm.lang':'Detected Language','cm.lang.val':'English',
+    'cm.detected':'Detected From','cm.detected.val':'Submitted text',
+    'cm.context':'Context Note','cm.context.val':'No context provided by user',
+    'sec.verdict':'Verdict',
+    'verdict.label':'Finding','verdict.word':'Mostly Supported',
+    'vi.refuted':'Refuted','vi.supported':'Supported',
+    'verdict.scope':'Core claim is substantiated. The "35%" upper bound requires qualification — it applies to specific exercise regimes, not all populations.',
+    'verdict.conf':'Confidence',
+    'ct.low':'Low','ct.moderate':'Moderate','ct.high':'High',
+    'verdict.suf':'Evidence Sufficiency','verdict.suf.val':'Strong',
+    'suf.none':'None','suf.weak':'Weak','suf.moderate':'Moderate','suf.strong':'Strong','suf.definitive':'Definitive',
+    'sec.evidence':'Evidence Breakdown',
+    'ev.supporting.title':'Supporting Evidence','ev.contradicting.title':'Contradicting Evidence',
+    'ev.why.support':'Why it supports','ev.why.contra':'Why it contradicts',
+    'ev.open':'Open source','ev.relevance':'Relevance',
+    'sec.graph':'Evidence Conflict Graph',
+    'graph.title':'Claim–Source Connections','graph.hint':'Click a source node to highlight its evidence card',
+    'leg.sup':'Supporting','leg.con':'Contradicting',
+    'sec.assess':'Evidence Source Assessment',
+    'assess.title':'Source Assessment',
+    'assess.note.head':'These ratings reflect EvidenceX\'s evaluation of each source — not absolute truth claims.',
+    'assess.note.body':'EvidenceX evaluates sources on five dimensions to give context for how each source was weighted in the final verdict.',
+    'factor.authority':'Authority','factor.recency':'Recency','factor.independence':'Independence',
+    'factor.directness':'Directness','factor.relevance':'Relevance',
+    'sec.temporal':'Temporal Context',
+    'temporal.title':'Evidence Timeline','temporal.sub':'Claim submission date and source publication dates',
+    'temporal.note':'All supporting sources postdate or coincide with the period during which the scientific consensus on exercise and cardiovascular health was established (2010–2023). The contradicting source (UAH 2018) addresses a methodological question about dataset construction, not the core causal claim.',
+    'tl.claim':'Claim submitted','tl.source':'Source published',
+    'sec.reasoning':'AI Reasoning',
+    'reasoning.title':'Why EvidenceX reached this finding',
+    'reasoning.note.head':'Transparency note:',
+    'reasoning.note.body':' This rationale is derived exclusively from evidence retrieved and assessed during this investigation. EvidenceX does not expose internal model chain-of-thought. The reasoning presented is grounded in source comparisons, stance classification, and credibility assessment — not model assumptions.',
+    'btn.back':'Back to Results','btn.evidence':'View Evidence',
+    'btn.timeline':'View Timeline','btn.export':'Export Investigation',
+    'r.head1':'Claim Analysis','r.head2':'Evidence Weight','r.head3':'Conclusion',
+    'r.text1':'The claim asserts a specific quantitative relationship between exercise and cardiovascular disease (CVD) risk, with a stated upper bound of 35%. EvidenceX decomposed this into three verifiable sub-claims: (1) that exercise reduces CVD risk, (2) that the reduction reaches "up to 35%", and (3) that this is supported by peer-reviewed literature.',
+    'r.text2':'Sub-claim 1 received strong support from 11 independent sources, including the American Heart Association\'s 2023 guidelines <cite>[AHA 2023]</cite> and a Cochrane systematic review of 28 trials <cite>[Cochrane 2021]</cite>. Sub-claim 2 is supported but contextually bounded — the 35% figure appears in sources that specify 150+ minutes of moderate-intensity exercise per week <cite>[WHO 2022]</cite> <cite>[NEJM 2020]</cite>. Two sources present lower estimates (20–28%) for general populations with varied exercise intensity <cite>[Christy 2018]</cite> <cite>[BMJ 2022]</cite>, reducing confidence in the precision of the claim without refuting its core substance.',
+    'r.text3':'EvidenceX weighted sources by methodological strength, peer-review status, and independence from industry funding. The preponderance of high-quality evidence supports the claim\'s central assertion. The confidence rating of 88% reflects agreement on the direction of effect, with a small deduction for the precision of the "35%" figure, which is supported but population-specific.',
+    'demo.strong':'Prototype Demonstration Data:',
+    'demo.body':'Deep investigation drill-down for Claim 01 (INV-2026-0847). Prepared for agentic multimodal verification engine.',
+    'demo.tag':'Demo Data',
+  },
+  hi:{
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच',
+    'nav.tools':'टूल्स','nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा',
+    'nav.analytics':'विश्लेषण','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'bc.results':'परिणाम','bc.investigation':'जांच','bc.claim':'दावा 01',
+    'page.title':'दावा जांच',
+    'ph.eyebrow':'गहन दावा विश्लेषण','ph.title':'दावा जांच',
+    'ph.type':'मात्रात्मक दावा','ph.verdict':'अधिकांशतः समर्थित',
+    'sec.claim':'दावा',
+    'cm.type':'दावा प्रकार','cm.type.val':'मात्रात्मक दावा',
+    'cm.lang':'पहचानी गई भाषा','cm.lang.val':'अंग्रेज़ी',
+    'cm.detected':'पहचाना गया','cm.detected.val':'सबमिट किए गए पाठ से',
+    'cm.context':'संदर्भ नोट','cm.context.val':'उपयोगकर्ता द्वारा कोई संदर्भ नहीं दिया गया',
+    'sec.verdict':'निर्णय',
+    'verdict.label':'निष्कर्ष','verdict.word':'अधिकांशतः समर्थित',
+    'vi.refuted':'खंडित','vi.supported':'समर्थित',
+    'verdict.scope':'मूल दावे को पुष्टि मिलती है। "35%" की ऊपरी सीमा के लिए स्पष्टीकरण आवश्यक है — यह विशिष्ट व्यायाम व्यवस्था पर लागू होती है।',
+    'verdict.conf':'विश्वास स्कोर',
+    'ct.low':'कम','ct.moderate':'मध्यम','ct.high':'उच्च',
+    'verdict.suf':'साक्ष्य पर्याप्तता','verdict.suf.val':'मजबूत',
+    'suf.none':'शून्य','suf.weak':'कमज़ोर','suf.moderate':'मध्यम','suf.strong':'मजबूत','suf.definitive':'निश्चित',
+    'sec.evidence':'साक्ष्य विवरण',
+    'ev.supporting.title':'समर्थक साक्ष्य','ev.contradicting.title':'विरोधी साक्ष्य',
+    'ev.why.support':'यह क्यों समर्थन करता है','ev.why.contra':'यह क्यों विरोध करता है',
+    'ev.open':'स्रोत खोलें','ev.relevance':'प्रासंगिकता',
+    'sec.graph':'साक्ष्य संघर्ष ग्राफ',
+    'graph.title':'दावा–स्रोत संबंध','graph.hint':'साक्ष्य कार्ड हाइलाइट करने के लिए स्रोत नोड पर क्लिक करें',
+    'leg.sup':'समर्थक','leg.con':'विरोधी',
+    'sec.assess':'साक्ष्य स्रोत मूल्यांकन',
+    'assess.title':'स्रोत मूल्यांकन',
+    'assess.note.head':'ये रेटिंग EvidenceX के मूल्यांकन को दर्शाती हैं — पूर्ण सत्य का दावा नहीं।',
+    'assess.note.body':'EvidenceX पाँच आयामों पर स्रोतों का मूल्यांकन करता है।',
+    'factor.authority':'प्राधिकरण','factor.recency':'नवीनता','factor.independence':'स्वतंत्रता',
+    'factor.directness':'प्रत्यक्षता','factor.relevance':'प्रासंगिकता',
+    'sec.temporal':'कालानुक्रमिक संदर्भ',
+    'temporal.title':'साक्ष्य समयरेखा','temporal.sub':'दावा सबमिशन तिथि और स्रोत प्रकाशन तिथियाँ',
+    'temporal.note':'सभी समर्थक स्रोत उस अवधि के बाद प्रकाशित हुए जब व्यायाम और हृदय स्वास्थ्य पर वैज्ञानिक सहमति स्थापित हुई।',
+    'tl.claim':'दावा सबमिट','tl.source':'स्रोत प्रकाशित',
+    'sec.reasoning':'AI तर्क',
+    'reasoning.title':'EvidenceX ने यह निष्कर्ष क्यों दिया',
+    'reasoning.note.head':'पारदर्शिता नोट:',
+    'reasoning.note.body':' यह तर्क विशेष रूप से इस जांच के दौरान पुनर्प्राप्त साक्ष्य पर आधारित है। EvidenceX आंतरिक मॉडल श्रृंखला-विचार को उजागर नहीं करता।',
+    'btn.back':'परिणामों पर वापस','btn.evidence':'साक्ष्य देखें',
+    'btn.timeline':'समयरेखा देखें','btn.export':'जांच निर्यात करें',
+    'r.head1':'दावा विश्लेषण','r.head2':'साक्ष्य भार','r.head3':'निष्कर्ष',
+    'r.text1':'दावा व्यायाम और हृदय रोग जोखिम के बीच एक विशिष्ट मात्रात्मक संबंध का दावा करता है, जिसमें 35% की ऊपरी सीमा बताई गई है। EvidenceX ने इसे तीन सत्यापन योग्य उप-दावों में विभाजित किया।',
+    'r.text2':'उप-दावा 1 को 11 स्वतंत्र स्रोतों का मजबूत समर्थन मिला, जिसमें AHA 2023 दिशानिर्देश <cite>[AHA 2023]</cite> और Cochrane समीक्षा <cite>[Cochrane 2021]</cite> शामिल हैं।',
+    'r.text3':'EvidenceX ने पद्धतिगत शक्ति, समीक्षित स्थिति और उद्योग वित्तपोषण से स्वतंत्रता के आधार पर स्रोतों का वजन किया। उच्च गुणवत्ता वाले साक्ष्य की प्रधानता दावे का समर्थन करती है।',
+    'demo.strong':'प्रोटोटाइप प्रदर्शन डेटा:',
+    'demo.body':'दावा 01 (INV-2026-0847) के लिए गहन जांच विवरण। एजेंटिक मल्टीमॉडल सत्यापन इंजन के लिए तैयार।',
+    'demo.tag':'डेमो डेटा',
+  }
+};
+
+let lang='en';
+function t(k){return (S[lang]||S.en)[k]||k;}
+function applyLang(l){
+  lang=l;
+  document.documentElement.lang=l==='hi'?'hi':'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const v=t(k);if(v!==k)el.textContent=v;});
+  renderEvidence();renderReasoning();renderAssessment(0);
+  localStorage.setItem('ex-lang',l);
+}
+
+/* ── Theme ────────────────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme',th);
+  const dark=th==='dark';
+  document.getElementById('icon-sun').style.display=dark?'block':'none';
+  document.getElementById('icon-moon').style.display=dark?'none':'block';
+  localStorage.setItem('ex-theme',th);
+  renderGraph();
+}
+(function(){const s=localStorage.getItem('ex-theme');const sys=window.matchMedia('(prefers-color-scheme: dark)').matches;applyTheme(s||(sys?'dark':'light'));})();
+document.getElementById('themeToggle').onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+(function(){const l=localStorage.getItem('ex-lang')||'en';document.getElementById('langSelect').value=l;applyLang(l);})();
+document.getElementById('langSelect').onchange=function(){applyLang(this.value);};
+
+/* ── Data ─────────────────────────────────────────── */
+const SUPPORTING = [
+  {id:'s1',title:'Physical Activity and Cardiovascular Disease Prevention',publisher:'American Heart Association',date:'Mar 2023',type:'Peer-reviewed',relevance:'High',why_en:'Directly establishes 150 min/week aerobic exercise produces 27–35% reduction in CVD risk. Uses 18-year cohort data across 48,000 participants.',why_hi:'150 मिनट/सप्ताह एरोबिक व्यायाम से CVD जोखिम में 27–35% की कमी स्थापित करता है।'},
+  {id:'s2',title:'Exercise Interventions in Cardiovascular Disease: Cochrane Review',publisher:'Cochrane Library',date:'Nov 2021',type:'Systematic Review',relevance:'High',why_en:'Meta-analysis of 28 randomised controlled trials confirms sustained moderate exercise reduces CVD mortality and incidence, with 30–35% risk reduction for sustained adherents.',why_hi:'28 यादृच्छिक परीक्षणों का मेटा-विश्लेषण जो CVD मृत्यु दर में कमी की पुष्टि करता है।'},
+  {id:'s3',title:'WHO Global Guidelines on Physical Activity and Health',publisher:'World Health Organization',date:'Jan 2022',type:'Official Guidelines',relevance:'High',why_en:'WHO guidelines confirm 150–300 min/week of moderate physical activity reduces risk of cardiovascular diseases, hypertension, and all-cause mortality.',why_hi:'WHO दिशानिर्देश 150–300 मिनट/सप्ताह की मध्यम शारीरिक गतिविधि की पुष्टि करते हैं।'},
+  {id:'s4',title:'Exercise Frequency and Cardiovascular Outcomes: 20-Year Prospective Study',publisher:'New England Journal of Medicine',date:'Sep 2020',type:'Prospective Study',relevance:'Medium',why_en:'Longitudinal study of 62,000 adults over 20 years found consistent exercisers (3–5×/week) showed 28–35% lower CVD event rates compared to sedentary controls.',why_hi:'62,000 वयस्कों पर 20 वर्षीय अध्ययन में नियमित व्यायाम करने वालों में 28–35% कम CVD घटनाएं पाई गईं।'},
+];
+
+const CONTRADICTING = [
+  {id:'c1',title:'Reassessment of Exercise-CVD Risk Quantification Using Satellite Datasets',publisher:'University of Alabama, Huntsville',date:'Aug 2018',type:'Research Paper',relevance:'Medium',why_en:'Argues that population-wide 35% reduction figure overstates effect size for general populations with heterogeneous exercise habits. Estimates 20–28% for non-specialist cohorts.',why_hi:'तर्क देता है कि सामान्य जनसंख्या के लिए 35% की कमी अत्यधिक है। गैर-विशेषज्ञ समूहों के लिए 20–28% का अनुमान।'},
+  {id:'c2',title:'Precision Limits of Exercise-Cardiovascular Benefit Claims',publisher:'British Medical Journal — Editorial',date:'Feb 2022',type:'Expert Editorial',relevance:'Medium',why_en:'Questions the communicative precision of stating "up to 35%" without specifying exercise intensity and duration qualifiers. Does not dispute the causal direction of effect.',why_hi:'व्यायाम की तीव्रता निर्दिष्ट किए बिना "35% तक" कहने की सटीकता पर प्रश्न उठाता है।'},
+];
+
+const ALL_SOURCES = [...SUPPORTING.map(s=>({...s,stance:'support'})), ...CONTRADICTING.map(s=>({...s,stance:'contra'}))];
+
+const SOURCE_ASSESSMENT = {
+  s1:{authority:92,recency:95,independence:88,directness:95,relevance:96},
+  s2:{authority:96,recency:85,independence:94,directness:92,relevance:95},
+  s3:{authority:98,recency:90,independence:96,directness:80,relevance:88},
+  s4:{authority:84,recency:78,independence:82,directness:88,relevance:85},
+  c1:{authority:52,recency:72,independence:70,directness:60,relevance:65},
+  c2:{authority:76,recency:88,independence:82,directness:55,relevance:70},
+};
+
+/* ── Render Evidence ──────────────────────────────── */
+function evCard(src, stance){
+  const isOk=stance==='support';
+  const barCls=isOk?'ev-stance-ok':'ev-stance-err';
+  const whyLabel=isOk?t('ev.why.support'):t('ev.why.contra');
+  const why=lang==='hi'?src.why_hi:src.why_en;
+  return `<div class="ev-source-card" data-source-id="${src.id}" id="evcard-${src.id}">
+    <div class="ev-card-head">
+      <div class="ev-stance-bar ${barCls}"></div>
+      <div class="ev-card-meta">
+        <div class="ev-source-title">${src.title}</div>
+        <div class="ev-source-pub">
+          <span>${src.publisher}</span>
+          <div class="ev-pub-dot"></div>
+          <span>${src.date}</span>
+          <div class="ev-pub-dot"></div>
+          <span class="ev-source-type-tag">${src.type}</span>
+        </div>
+      </div>
+      <div class="ev-expand-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="ev-card-body">
+      <div class="ev-why-label">${whyLabel}</div>
+      <div class="ev-why">${why}</div>
+      <div class="ev-footer">
+        <span class="ev-rel-chip">${t('ev.relevance')}: ${src.relevance}</span>
+        <a href="evidence-explorer.html" class="ev-open-link">
+          ${t('ev.open')}
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderEvidence(){
+  document.getElementById('supportingList').innerHTML=SUPPORTING.map(s=>evCard(s,'support')).join('');
+  document.getElementById('contradictingList').innerHTML=CONTRADICTING.map(s=>evCard(s,'contra')).join('');
+  document.querySelectorAll('.ev-source-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const wasOpen=card.classList.contains('open');
+      card.classList.toggle('open',!wasOpen);
+    });
+  });
+}
+
+/* ── Render Source Assessment ─────────────────────── */
+let currentSrc=0;
+function renderAssessment(idx){
+  const src=ALL_SOURCES[idx];
+  const scores=SOURCE_ASSESSMENT[src.id];
+  const factors=['authority','recency','independence','directness','relevance'];
+  function level(v){return v>=80?{cls:'ff-high',word:'fw-high',label:lang==='hi'?'उच्च':'High'}:v>=60?{cls:'ff-med',word:'fw-med',label:lang==='hi'?'मध्यम':'Medium'}:{cls:'ff-low',word:'fw-low',label:lang==='hi'?'कम':'Low'};}
+
+  const sel=document.getElementById('srcSelector');
+  sel.innerHTML=ALL_SOURCES.map((s,i)=>`
+    <button class="src-sel-btn ${i===idx?'active':''}" data-src-idx="${i}">
+      <div class="src-stance-dot ${s.stance==='support'?'sd-ok':'sd-err'}"></div>
+      <span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${s.publisher}</span>
+    </button>`).join('');
+  sel.querySelectorAll('[data-src-idx]').forEach(btn=>{
+    btn.onclick=()=>{currentSrc=parseInt(btn.dataset.srcIdx);renderAssessment(currentSrc);};
+  });
+
+  const det=document.getElementById('srcDetail');
+  det.innerHTML=`
+    <div class="src-detail-title">${src.title}</div>
+    <div class="src-detail-pub">${src.publisher} · ${src.date} · ${src.type}</div>
+    <div class="src-assessment-note">${t('assess.note.body')}</div>
+    <div class="factor-list">
+      ${factors.map(f=>{const v=scores[f];const lv=level(v);return`
+        <div class="factor-row">
+          <span class="factor-lbl">${t('factor.'+f)}</span>
+          <div class="factor-track"><div class="factor-fill ${lv.cls}" style="width:0%" data-target="${v}"></div></div>
+          <span class="factor-word ${lv.word}">${lv.label}</span>
+        </div>`;}).join('')}
+    </div>`;
+
+  // Animate factor bars
+  setTimeout(()=>{
+    det.querySelectorAll('.factor-fill').forEach(el=>{
+      el.style.width=el.dataset.target+'%';
+    });
+  },50);
+}
+
+/* ── Render Conflict Graph ────────────────────────── */
+function renderGraph(){
+  const svg=document.getElementById('conflictSvg');
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const colOk=dark?'#4cad78':'#1a7a4a';
+  const colErr=dark?'#d96a6a':'#b94040';
+  const colText=dark?'#eeedea':'#111110';
+  const colText3=dark?'#64635e':'#87857e';
+  const colAccent=dark?'#4d86d8':'#1c4e9e';
+  const colSurf=dark?'#1f1f1d':'#ffffff';
+
+  // Node positions: claim center, supporting left, contradicting right
+  const nodes=[
+    {id:'claim',x:430,y:140,r:28,color:colAccent,label:'Claim',sublabel:'EX'},
+    {id:'s1',x:110,y:55,r:19,color:colOk,label:'AHA 2023',stance:'support'},
+    {id:'s2',x:110,y:125,r:19,color:colOk,label:'Cochrane',stance:'support'},
+    {id:'s3',x:110,y:195,r:19,color:colOk,label:'WHO 2022',stance:'support'},
+    {id:'s4',x:110,y:265,r:19,color:colOk,label:'NEJM 2020',stance:'support'},
+    {id:'c1',x:750,y:100,r:19,color:colErr,label:'UAH 2018',stance:'contra'},
+    {id:'c2',x:750,y:200,r:19,color:colErr,label:'BMJ 2022',stance:'contra'},
+  ];
+
+  const edges=[
+    {from:'claim',to:'s1',col:colOk,label:'Supports'},
+    {from:'claim',to:'s2',col:colOk,label:'Supports'},
+    {from:'claim',to:'s3',col:colOk,label:'Supports'},
+    {from:'claim',to:'s4',col:colOk,label:'Supports'},
+    {from:'claim',to:'c1',col:colErr,label:'Contradicts'},
+    {from:'claim',to:'c2',col:colErr,label:'Contradicts'},
+  ];
+
+  const nl={};nodes.forEach(n=>nl[n.id]=n);
+
+  const edgesSVG=edges.map(e=>{
+    const a=nl[e.from],b=nl[e.to];
+    const isLeft=b.x<a.x;
+    const x1=isLeft?a.x-a.r:a.x+a.r;
+    const x2=isLeft?b.x+b.r:b.x-b.r;
+    const my=(a.y+b.y)/2;
+    const mx=isLeft?(x1+x2)/2-20:(x1+x2)/2+20;
+    return `<path d="M${x1},${a.y} Q${mx},${my} ${x2},${b.y}" stroke="${e.col}" stroke-width="1.8" fill="none" stroke-opacity=".7" stroke-linecap="round"/>
+      <text x="${mx}" y="${my-5}" text-anchor="middle" font-size="9" fill="${e.col}" font-family="Inter,sans-serif" opacity=".8">${e.label}</text>`;
+  }).join('');
+
+  const nodesAndLabels=nodes.map(n=>{
+    const isLeft=n.x<430;
+    const anchor=isLeft?'end':'start';
+    const lx=isLeft?n.x-n.r-6:n.x+n.r+6;
+    const dataAttr=n.id!=='claim'?`data-node-id="${n.id}" style="cursor:pointer"`:'';
+    return `<g class="graph-node" id="gnode-${n.id}" ${dataAttr}>
+      <circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.color}" fill-opacity=".85" stroke="${colSurf}" stroke-width="2"/>
+      ${n.sublabel?`<text x="${n.x}" y="${n.y-5}" text-anchor="middle" font-size="9" font-weight="800" fill="white" font-family="Inter,sans-serif">${n.sublabel}</text><text x="${n.x}" y="${n.y+7}" text-anchor="middle" font-size="7" fill="white" font-family="Inter,sans-serif" opacity=".8">${n.label}</text>`:
+      `<text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-size="8" font-weight="700" fill="white" font-family="Inter,sans-serif">${n.label.length>8?n.label.substring(0,7)+'…':n.label}</text>`}
+    </g>
+    ${n.id!=='claim'?`<text x="${lx}" y="${n.y+4}" text-anchor="${anchor}" font-size="10.5" fill="${colText3}" font-family="Inter,sans-serif" pointer-events="none">${n.label}</text>`:''}`;
+  }).join('');
+
+  svg.innerHTML=edgesSVG+nodesAndLabels;
+
+  // Tooltip & click
+  const tooltip=document.getElementById('graphTooltip');
+  const wrap=document.querySelector('.conflict-wrap');
+  const srcMap={s1:SUPPORTING[0],s2:SUPPORTING[1],s3:SUPPORTING[2],s4:SUPPORTING[3],c1:CONTRADICTING[0],c2:CONTRADICTING[1]};
+  svg.querySelectorAll('[data-node-id]').forEach(g=>{
+    const nid=g.getAttribute('data-node-id');
+    const src=srcMap[nid]; if(!src)return;
+    const stance=nid.startsWith('s')?'Supporting':'Contradicting';
+    const stanceColor=nid.startsWith('s')?colOk:colErr;
+    g.addEventListener('mouseenter',ev=>{
+      tooltip.innerHTML=`<div style="font-weight:600;margin-bottom:2px;">${src.publisher}</div><div style="font-size:11px;color:${colText3};">${src.type} · ${src.date}</div><div style="font-size:11px;margin-top:4px;color:${stanceColor};">${stance}</div>`;
+      tooltip.style.opacity='1';posTooltip(ev);
+    });
+    g.addEventListener('mousemove',ev=>posTooltip(ev));
+    g.addEventListener('mouseleave',()=>{tooltip.style.opacity='0';});
+    g.addEventListener('click',()=>{
+      const card=document.getElementById('evcard-'+nid);
+      if(card){
+        card.scrollIntoView({behavior:'smooth',block:'center'});
+        card.classList.add('highlighted');
+        card.classList.add('open');
+        setTimeout(()=>card.classList.remove('highlighted'),2000);
+      }
+    });
+  });
+  function posTooltip(ev){
+    const r=wrap.getBoundingClientRect();
+    let x=ev.clientX-r.left+14,y=ev.clientY-r.top-10;
+    if(x+205>r.width)x=ev.clientX-r.left-215;
+    tooltip.style.left=x+'px';tooltip.style.top=y+'px';
+  }
+}
+
+/* ── Temporal Timeline ────────────────────────────── */
+function renderTimeline(){
+  const items=[
+    {date:'2018',label:'UAH 2018',stance:'contra',sub:'Contradicting'},
+    {date:'2020',label:'NEJM 2020',stance:'support',sub:'Supporting'},
+    {date:'2021',label:'Cochrane 2021',stance:'support',sub:'Supporting'},
+    {date:'Jan 2022',label:'WHO 2022',stance:'support',sub:'Supporting'},
+    {date:'Feb 2022',label:'BMJ 2022',stance:'contra',sub:'Contradicting'},
+    {date:'Mar 2023',label:'AHA 2023',stance:'support',sub:'Supporting'},
+    {date:'Sep 2026',label:lang==='hi'?'दावा सबमिट':'Claim submitted',stance:'claim',sub:lang==='hi'?'आज':'Today'},
+  ];
+  const dotCls={support:'tld-ok',contra:'tld-err',claim:'tld-claim'};
+  const el=document.getElementById('timelineEl');
+  el.innerHTML=items.map((item,i)=>`
+    <div class="tl-node">
+      <div class="tl-dot ${dotCls[item.stance]||'tld-neutral'}"></div>
+      <div class="tl-date">${item.date}</div>
+      <div class="tl-label">${item.label}</div>
+      <div class="tl-sub">${item.sub}</div>
+    </div>
+    ${i<items.length-1?'<div class="tl-spacer"></div>':''}`).join('');
+}
+
+/* ── Render Reasoning ─────────────────────────────── */
+const REASONING_EN=[
+  {head:'r.head1',text:'r.text1'},
+  {head:'r.head2',text:'r.text2'},
+  {head:'r.head3',text:'r.text3'},
+];
+function renderReasoning(){
+  document.getElementById('reasoningBody').innerHTML=REASONING_EN.map(s=>`
+    <div class="reasoning-section">
+      <div class="rs-head">${t(s.head)}</div>
+      <div class="rs-text">${t(s.text)}</div>
+    </div>`).join('');
+}
+
+/* ── Animate confidence bar ───────────────────────── */
+setTimeout(()=>{document.getElementById('confFill').style.width='88%';},400);
+
+/* ── Mobile sidebar ──────────────────────────────── */
+const sbOv=document.getElementById('sbOverlay');
+document.getElementById('mobileMenuBtn').onclick=()=>{document.getElementById('sidebar').classList.toggle('open');sbOv.classList.toggle('visible');};
+sbOv.onclick=()=>{document.getElementById('sidebar').classList.remove('open');sbOv.classList.remove('visible');};
+
+/* ── Init ─────────────────────────────────────────── */
+renderEvidence();
+renderGraph();
+renderAssessment(0);
+renderTimeline();
+renderReasoning();
+</script>
+</body>
+</html>

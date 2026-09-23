@@ -8,11 +8,43 @@ EvidenceX analyzes text, screenshots/images, and online content to decompose cla
 
 ## Project Status
 
-- **Phase:** Repository & Foundation Setup (Phase 0 Complete)
+- **Phase:** Frontend Complete & Audited (10/10 Pages Ready for Backend Integration)
 - **Repository:** `https://github.com/tanishqkumar87919-dot/EvidenceX.git`
 - **Database:** Supabase (PostgreSQL with RLS & Migrations)
 - **Backend:** Python 3.11+ / FastAPI
-- **Frontend:** Next.js / TypeScript / Tailwind CSS
+- **Frontend:** Analytical Glassmorphic UI (HTML5 / Vanilla CSS / ES6 JavaScript) with Light/Dark Mode & English/Hindi i18n
+
+---
+
+## Frontend Pages (10/10 Complete)
+
+The complete analytical frontend suite is located in [`frontend/`](frontend/) with zero build step required:
+
+| Page | File | Purpose |
+| --- | --- | --- |
+| **01. Home / Landing** | [`frontend/evidencex.html`](frontend/evidencex.html) | Public platform overview, methodology principles, sample report preview |
+| **02. Verification Center** | [`frontend/verification-center.html`](frontend/verification-center.html) | Multimodal intake workspace (Text, Screenshots/Images, URLs) with depth options |
+| **03. Investigation Pipeline** | [`frontend/investigation.html`](frontend/investigation.html) | 7-stage live decomposition & verification progress tracker with agent logs |
+| **04. Verification Results** | [`frontend/results.html`](frontend/results.html) | Synthesis dashboard: verdict, confidence, stance breakdown, evidence conflict graph |
+| **05. Claim Investigation** | [`frontend/claim-investigation.html`](frontend/claim-investigation.html) | Single-claim deep-dive: source assessment factors, temporal context, AI reasoning trace |
+| **06. Evidence Explorer** | [`frontend/evidence-explorer.html`](frontend/evidence-explorer.html) | Research workbench: full-text evidence filtering, source detail drawer, citation audit |
+| **07. Evidence Timeline** | [`frontend/evidence-timeline.html`](frontend/evidence-timeline.html) | Chronological claim evolution, consensus tracking, early vs. latest evidence comparison |
+| **08. Analytics Dashboard** | [`frontend/analytics.html`](frontend/analytics.html) | Aggregated verification activity, verdict distribution, source diversity analytics |
+| **09. AI Copilot** | [`frontend/copilot.html`](frontend/copilot.html) | Evidence-grounded retrieval-augmented investigation assistant with citations |
+| **10. Settings** | [`frontend/settings.html`](frontend/settings.html) | Theme (Light/Dark), Language (EN/HI), verification depth, privacy controls, telemetry |
+
+---
+
+### Running the Frontend Locally
+
+```bash
+# Serve static frontend workspace locally
+python3 -m http.server 3000
+
+# Open in browser:
+# http://localhost:3000 (redirects to frontend/evidencex.html)
+# or open frontend/evidencex.html directly in any modern browser
+```
 
 ---
 

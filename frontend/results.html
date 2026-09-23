@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verification Results — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Base ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s;}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+/* ── Design Tokens ────────────────────────────────── */
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  /* Light */
+  --bg:#f5f4f1;--bg2:#eceae4;
+  --surface:#ffffff;--surface2:#f8f7f4;--surface3:#f1efe9;
+  --border:rgba(0,0,0,0.07);--border-s:rgba(0,0,0,0.12);
+  --text:#111110;--text2:#4e4d49;--text3:#87857e;
+  --accent:#1c4e9e;--accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);--accent-sub:rgba(28,78,158,0.05);
+  --ok:#1a7a4a;--ok-bg:rgba(26,122,74,0.10);--ok-border:rgba(26,122,74,0.18);
+  --err:#b94040;--err-bg:rgba(185,64,64,0.09);--err-border:rgba(185,64,64,0.16);
+  --warn:#8a6d2f;--warn-bg:rgba(138,109,47,0.09);--warn-border:rgba(138,109,47,0.16);
+  --neutral:#4e4d49;--neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.80);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 10px 36px rgba(0,0,0,0.09),0 4px 8px rgba(0,0,0,0.04);
+  --sidebar-w:228px;--topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+[data-theme="dark"]{
+  --bg:#0d0d0c;--bg2:#131312;
+  --surface:#1a1a18;--surface2:#1f1f1d;--surface3:#252522;
+  --border:rgba(255,255,255,0.07);--border-s:rgba(255,255,255,0.12);
+  --text:#eeedea;--text2:#a1a09a;--text3:#64635e;
+  --accent:#4d86d8;--accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);--accent-sub:rgba(77,134,216,0.06);
+  --ok:#4cad78;--ok-bg:rgba(76,173,120,0.12);--ok-border:rgba(76,173,120,0.22);
+  --err:#d96a6a;--err-bg:rgba(217,106,106,0.12);--err-border:rgba(217,106,106,0.20);
+  --warn:#c9a84c;--warn-bg:rgba(201,168,76,0.12);--warn-border:rgba(201,168,76,0.20);
+  --neutral:#a1a09a;--neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.85);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 10px 36px rgba(0,0,0,0.50);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto;scrollbar-width:none;transition:transform .25s ease,background .25s;}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:18px 18px 14px;border-bottom:1px solid var(--border);font-size:15px;font-weight:700;letter-spacing:-0.04em;color:var(--text);text-decoration:none;}
+.sb-mark{width:26px;height:26px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin:10px 0 4px;}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:450;color:var(--text2);padding:7px 10px;border-radius:var(--r-sm);text-decoration:none;transition:all var(--t);}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;}
+
+/* ── Main ─────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{height:var(--topbar-h);background:var(--glass);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:40;transition:background .25s;}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ctrl{height:32px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);padding:0 10px;cursor:pointer;transition:all var(--t);}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.lang-sel{font-family:var(--font);font-size:12.5px;color:var(--text2);background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+.mobile-menu{display:none;width:34px;height:34px;border:1px solid var(--border-s);border-radius:var(--r-sm);background:transparent;cursor:pointer;align-items:center;justify-content:center;color:var(--text2);}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page Content ─────────────────────────────────── */
+.page{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px;max-width:1200px;width:100%;}
+
+/* ── Section headings ─────────────────────────────── */
+.sec-label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.sec-label::before{content:'';display:inline-block;width:14px;height:1.5px;background:var(--text3);border-radius:2px;}
+
+/* ── Panel base ───────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;}
+.panel-head{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:12px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.panel-body{padding:22px;}
+
+/* ── Metadata bar ─────────────────────────────────── */
+.meta-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 22px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.meta-item{display:flex;align-items:center;gap:6px;}
+.meta-lbl{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);}
+.meta-val{font-size:12.5px;font-weight:500;color:var(--text2);}
+.meta-sep{width:1px;height:16px;background:var(--border-s);flex-shrink:0;}
+.status-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);border-radius:12px;padding:3px 9px;}
+.status-chip::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ok);}
+
+/* ── Overall Assessment ───────────────────────────── */
+.assessment-grid{display:grid;grid-template-columns:auto 1fr auto;gap:0;align-items:stretch;}
+.assessment-verdict{padding:28px 32px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;min-width:240px;}
+.verdict-word{font-size:22px;font-weight:700;letter-spacing:-0.03em;color:var(--text);margin-bottom:4px;}
+.verdict-word.supported{color:var(--ok);}
+.verdict-word.refuted{color:var(--err);}
+.verdict-word.partial{color:var(--warn);}
+.verdict-scope{font-size:13px;color:var(--text2);line-height:1.5;max-width:200px;margin-bottom:16px;}
+.verdict-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);border-radius:12px;padding:4px 10px;}
+
+.assessment-center{padding:24px 28px;flex:1;display:flex;flex-direction:column;gap:20px;}
+
+.conf-section{}
+.conf-label-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+.conf-lbl{font-size:12px;font-weight:600;color:var(--text2);}
+.conf-pct{font-size:18px;font-weight:700;letter-spacing:-0.03em;color:var(--text);font-variant-numeric:tabular-nums;}
+.conf-track{height:8px;background:var(--surface3);border-radius:8px;overflow:hidden;position:relative;margin-bottom:5px;}
+.conf-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--ok),#52b883);transition:width 1s cubic-bezier(.4,0,.2,1);}
+.conf-ticks{display:flex;justify-content:space-between;padding:0 2px;}
+.conf-tick{font-size:10px;color:var(--text3);}
+
+.strength-row{display:flex;align-items:center;gap:10px;}
+.strength-lbl{font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap;}
+.strength-scale{display:flex;gap:3px;}
+.strength-seg{height:7px;border-radius:3px;flex:1;background:var(--surface3);transition:background .4s;}
+.strength-seg.on-ok{background:var(--ok);}
+.strength-seg.on-warn{background:var(--warn);}
+.strength-seg.on-err{background:var(--err);}
+.strength-word{font-size:12px;font-weight:600;color:var(--ok);white-space:nowrap;}
+
+.assessment-right{padding:24px 28px;border-left:1px solid var(--border);display:flex;flex-direction:column;gap:0;min-width:180px;}
+.stat-group{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:8px 0;}
+.stat-group:not(:last-child){border-bottom:1px solid var(--border);}
+.stat-n{font-size:28px;font-weight:700;letter-spacing:-0.04em;color:var(--text);font-variant-numeric:tabular-nums;}
+.stat-l{font-size:11.5px;color:var(--text3);margin-top:2px;}
+
+/* ── Claim Cards ──────────────────────────────────── */
+.claims-list{display:flex;flex-direction:column;gap:0;}
+.claim-row{padding:18px 22px;border-bottom:1px solid var(--border);transition:background var(--t);position:relative;}
+.claim-row:last-child{border-bottom:none;}
+.claim-row:hover{background:var(--surface2);}
+.claim-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;}
+.claim-num{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);white-space:nowrap;margin-top:2px;flex-shrink:0;}
+.claim-text{font-size:14px;color:var(--text);line-height:1.55;flex:1;}
+.claim-badges{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.verdict-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:12px;padding:4px 10px;}
+.vb-supported{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.vb-refuted{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.vb-insufficient{background:var(--neutral-bg);color:var(--neutral);border:1px solid var(--border-s);}
+.claim-metrics{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.claim-conf-row{display:flex;align-items:center;gap:8px;}
+.claim-conf-lbl{font-size:11.5px;color:var(--text3);}
+.claim-conf-bar{width:72px;height:4px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.claim-conf-fill{height:100%;border-radius:4px;}
+.fill-ok{background:var(--ok);}
+.fill-err{background:var(--err);}
+.fill-warn{background:var(--warn);}
+.fill-neutral{background:var(--text3);}
+.claim-conf-pct{font-size:11.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;}
+.evidence-tally{display:flex;align-items:center;gap:10px;}
+.tally-item{display:flex;align-items:center;gap:4px;font-size:12px;}
+.tally-dot{width:6px;height:6px;border-radius:50%;}
+.td-ok{background:var(--ok);}
+.td-err{background:var(--err);}
+.td-neutral{background:var(--text3);}
+.tally-num{font-weight:600;color:var(--text);}
+.tally-lbl{color:var(--text3);}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:12px;font-weight:500;color:var(--accent);background:var(--accent-lt);border:1px solid rgba(28,78,158,.15);border-radius:var(--r-sm);padding:5px 11px;cursor:pointer;transition:all var(--t);text-decoration:none;white-space:nowrap;}
+.btn-sm:hover{background:var(--accent);color:#fff;}
+.btn-sm svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+[data-theme="dark"] .btn-sm{border-color:rgba(77,134,216,.2);}
+
+/* Insufficient Evidence note */
+.insuf-note{margin-top:8px;font-size:12px;color:var(--text3);padding:7px 10px;background:var(--surface3);border-radius:var(--r-sm);border-left:2px solid var(--border-s);line-height:1.5;}
+
+/* ── Evidence Overview ────────────────────────────── */
+.evidence-two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:760px){.evidence-two-col{grid-template-columns:1fr;}}
+.ev-section-title{font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:14px;}
+.bar-chart{display:flex;flex-direction:column;gap:10px;}
+.bc-row{display:flex;align-items:center;gap:10px;}
+.bc-lbl{font-size:12.5px;color:var(--text2);width:110px;flex-shrink:0;}
+.bc-track{flex:1;height:10px;background:var(--surface3);border-radius:5px;overflow:hidden;}
+.bc-fill{height:100%;border-radius:5px;transition:width 1.1s cubic-bezier(.4,0,.2,1);}
+.bc-count{font-size:12px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;width:28px;text-align:right;flex-shrink:0;}
+.bc-pct{font-size:11px;color:var(--text3);width:36px;flex-shrink:0;}
+
+/* ── Conflict Graph ───────────────────────────────── */
+.conflict-wrap{position:relative;overflow:hidden;border-radius:var(--r-md);background:var(--surface2);border:1px solid var(--border);}
+.conflict-svg{width:100%;display:block;}
+.graph-legend{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text3);}
+.leg-line{width:20px;height:2px;border-radius:2px;}
+.leg-ok{background:var(--ok);}
+.leg-err{background:var(--err);}
+.leg-neutral{background:var(--text3);opacity:.5;}
+
+/* Tooltip */
+.graph-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border-s);border-radius:var(--r-sm);padding:8px 11px;font-size:12px;color:var(--text);box-shadow:var(--shadow-md);pointer-events:none;opacity:0;transition:opacity .15s;max-width:180px;z-index:10;}
+.gt-name{font-weight:600;margin-bottom:2px;}
+.gt-type{font-size:11px;color:var(--text3);}
+.gt-stance{font-size:11px;margin-top:4px;}
+
+/* ── AI Explanation ───────────────────────────────── */
+.explanation-body{font-size:14px;color:var(--text2);line-height:1.75;}
+.explanation-body p{margin-bottom:14px;}
+.explanation-body p:last-child{margin-bottom:0;}
+.cite{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-sub);border-radius:4px;padding:1px 6px;margin:0 2px;cursor:default;transition:background var(--t);}
+.cite:hover{background:var(--accent-lt);}
+.explain-note{margin-top:16px;padding:12px 14px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.55;}
+.explain-note strong{color:var(--text2);}
+
+/* ── Action Bar ───────────────────────────────────── */
+.action-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font);font-size:13.5px;font-weight:500;border-radius:var(--r-md);padding:9px 17px;cursor:pointer;border:1.5px solid transparent;transition:all var(--t);text-decoration:none;}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:var(--accent-h);border-color:var(--accent-h);transform:translateY(-1px);box-shadow:0 4px 12px rgba(28,78,158,.25);}
+.btn-outline{background:transparent;color:var(--text2);border-color:var(--border-s);}
+.btn-outline:hover{background:var(--surface2);color:var(--text);}
+.action-bar-note{margin-left:auto;font-size:12px;color:var(--text3);}
+
+/* ── Sidebar overlay (mobile) ─────────────────────── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;}
+.sb-overlay.visible{display:block;}
+
+/* ── Responsive ───────────────────────────────────── */
+@media(max-width:1050px){
+  .assessment-grid{grid-template-columns:1fr;grid-template-rows:auto;border:none;}
+  .assessment-verdict{border-right:none;border-bottom:1px solid var(--border);padding:22px;}
+  .assessment-right{border-left:none;border-top:1px solid var(--border);flex-direction:row;gap:0;min-width:0;}
+  .stat-group{flex:1;border-bottom:none;border-right:1px solid var(--border);}
+  .stat-group:last-child{border-right:none;}
+}
+@media(max-width:780px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-menu{display:flex;}
+  .page{padding:16px;}
+  .meta-sep{display:none;}
+  .meta-bar{gap:12px;}
+  .topbar{padding:0 16px;}
+}
+@media(max-width:520px){
+  .tb-sub{display:none;}
+  .claim-badges{justify-content:flex-start;}
+}
+/* ── Demo Notice Strip ────────────────────────────── */
+.demo-banner{
+  background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);
+  border-radius:var(--r-md);padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;font-size:12.5px;color:#b45309;flex-wrap:wrap;margin-bottom:16px;
+}
+[data-theme="dark"] .demo-banner{background:rgba(234,179,8,0.12);border-color:rgba(234,179,8,0.3);color:#fbbf24;}
+.demo-banner-content{display:flex;align-items:center;gap:8px;}
+.demo-banner-content svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;}
+.demo-tag{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  background:rgba(180,83,9,0.15);padding:2px 7px;border-radius:4px;color:currentColor;
+}
+</style>
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── SIDEBAR ───────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg></div>
+    EvidenceX
+  </a>
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li><a href="evidencex.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-i18n="nav.home">Home</span></a></li>
+      <li><a href="verification-center.html"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg><span data-i18n="nav.verify">Verify</span></a></li>
+      <li><a href="#" class="active"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg><span data-i18n="nav.results">Results</span><span class="sb-badge">1</span></a></li>
+      <li><a href="investigation.html"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span data-i18n="nav.investigations">Investigations</span></a></li>
+    </ul>
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li><a href="evidence-explorer.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-i18n="nav.evidence">Evidence</span></a></li>
+      <li><a href="evidence-timeline.html"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span data-i18n="nav.timeline">Timeline</span></a></li>
+      <li><a href="analytics.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="nav.analytics">Analytics</span></a></li>
+      <li><a href="copilot.html"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg><span data-i18n="nav.copilot">AI Copilot</span></a></li>
+    </ul>
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li><a href="settings.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span data-i18n="nav.settings">Settings</span></a></li>
+    </ul>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ───────────────────────────────────────────── -->
+<div class="main">
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">Verification Results</div>
+      <div class="tb-sub" data-i18n="page.sub">Investigation INV-2026-0847 · Completed</div>
+    </div>
+    <div class="tb-right">
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <!-- Demo Notice Strip -->
+    <div class="demo-banner">
+      <div class="demo-banner-content">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><strong data-i18n="demo.strong">Prototype Demonstration Data:</strong> <span data-i18n="demo.body">Sample verification assessment for investigation INV-2026-0847. Prepared for agentic multimodal verification engine.</span></span>
+      </div>
+      <span class="demo-tag" data-i18n="demo.tag">Demo Data</span>
+    </div>
+
+    <!-- ── Metadata Bar ─────────────────────────────── -->
+    <div class="meta-bar">
+      <div class="meta-item">
+        <span class="meta-lbl" data-i18n="meta.id">ID</span>
+        <span class="meta-val" style="font-variant-numeric:tabular-nums;">INV-2026-0847</span>
+      </div>
+      <div class="meta-sep"></div>
+      <div class="meta-item">
+        <span class="meta-lbl" data-i18n="meta.date">Date</span>
+        <span class="meta-val">23 Sep 2026, 14:20</span>
+      </div>
+      <div class="meta-sep"></div>
+      <div class="meta-item">
+        <span class="meta-lbl" data-i18n="meta.input">Input</span>
+        <span class="meta-val" data-i18n="meta.input.text">Text</span>
+      </div>
+      <div class="meta-sep"></div>
+      <div class="meta-item">
+        <span class="meta-lbl" data-i18n="meta.depth">Depth</span>
+        <span class="meta-val" data-i18n="meta.depth.val">Standard</span>
+      </div>
+      <div class="meta-sep"></div>
+      <div class="meta-item">
+        <span class="meta-lbl" data-i18n="meta.time">Processing</span>
+        <span class="meta-val">0:42</span>
+      </div>
+      <div style="margin-left:auto;">
+        <span class="status-chip" data-i18n="meta.status">Investigation Complete</span>
+      </div>
+    </div>
+
+    <!-- ── Overall Assessment ────────────────────────── -->
+    <div>
+      <div class="sec-label" data-i18n="sec.assessment">Overall Assessment</div>
+      <div class="panel">
+        <div class="assessment-grid">
+
+          <!-- Verdict -->
+          <div class="assessment-verdict">
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;" data-i18n="assess.verdict.label">Verdict</div>
+            <div class="verdict-word supported" data-i18n="assess.verdict">Mostly Supported</div>
+            <div class="verdict-scope" data-i18n="assess.verdict.scope">The core claim is substantiated by credible sources. One sub-claim lacks sufficient evidence to verify.</div>
+            <div class="verdict-tag">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="assess.verdict.tag">Evidence-backed</span>
+            </div>
+          </div>
+
+          <!-- Confidence + Strength -->
+          <div class="assessment-center">
+            <div class="conf-section">
+              <div class="conf-label-row">
+                <span class="conf-lbl" data-i18n="assess.confidence">Confidence Score</span>
+                <span class="conf-pct" id="confPct">82%</span>
+              </div>
+              <div class="conf-track">
+                <div class="conf-fill" id="confFill" style="width:0%"></div>
+              </div>
+              <div class="conf-ticks">
+                <span class="conf-tick" data-i18n="conf.low">Low</span>
+                <span class="conf-tick" data-i18n="conf.moderate">Moderate</span>
+                <span class="conf-tick" data-i18n="conf.high">High</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;" data-i18n="assess.strength">Evidence Strength</div>
+              <div class="strength-row">
+                <div class="strength-scale" style="flex:1;">
+                  <div class="strength-seg on-ok" style="border-radius:3px 0 0 3px;"></div>
+                  <div class="strength-seg on-ok"></div>
+                  <div class="strength-seg on-ok"></div>
+                  <div class="strength-seg" style="border-radius:0 3px 3px 0;"></div>
+                </div>
+                <span class="strength-word" data-i18n="assess.strength.val">Strong</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;padding:0 1px;">
+                <span style="font-size:10px;color:var(--text3);" data-i18n="str.insuf">Insufficient</span>
+                <span style="font-size:10px;color:var(--text3);" data-i18n="str.limited">Limited</span>
+                <span style="font-size:10px;color:var(--text3);" data-i18n="str.moderate">Moderate</span>
+                <span style="font-size:10px;color:var(--text3);" data-i18n="str.strong">Strong</span>
+              </div>
+            </div>
+
+            <div style="font-size:12px;color:var(--text3);line-height:1.6;padding-top:4px;border-top:1px solid var(--border);" data-i18n="assess.note">
+              Confidence reflects the degree of agreement among independent, credible sources — not the volume of sources alone. A 82% score indicates clear preponderance of reliable evidence.
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="assessment-right">
+            <div class="stat-group">
+              <div class="stat-n" id="st-claims">4</div>
+              <div class="stat-l" data-i18n="st.claims">Claims analyzed</div>
+            </div>
+            <div class="stat-group">
+              <div class="stat-n" id="st-sources">18</div>
+              <div class="stat-l" data-i18n="st.sources">Sources reviewed</div>
+            </div>
+            <div class="stat-group">
+              <div class="stat-n" style="color:var(--ok);">11</div>
+              <div class="stat-l" data-i18n="st.supporting">Supporting</div>
+            </div>
+            <div class="stat-group">
+              <div class="stat-n" style="color:var(--err);">4</div>
+              <div class="stat-l" data-i18n="st.contradicting">Contradicting</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Claim Summary ─────────────────────────────── -->
+    <div>
+      <div class="sec-label" data-i18n="sec.claims">Claim Summary</div>
+      <div class="panel">
+        <div class="claims-list" id="claimsList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Evidence Overview ──────────────────────────── -->
+    <div id="evidence-section">
+      <div class="sec-label" data-i18n="sec.evidence">Evidence Overview</div>
+      <div class="panel">
+        <div class="panel-body">
+          <div class="evidence-two-col">
+
+            <!-- Stance chart -->
+            <div>
+              <div class="ev-section-title" data-i18n="ev.stance">Evidence Stance</div>
+              <div class="bar-chart">
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="ev.supporting">Supporting</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-supporting" style="width:0%;background:var(--ok);"></div></div>
+                  <span class="bc-count">11</span>
+                  <span class="bc-pct">61%</span>
+                </div>
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="ev.contradicting">Contradicting</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-contradicting" style="width:0%;background:var(--err);"></div></div>
+                  <span class="bc-count">4</span>
+                  <span class="bc-pct">22%</span>
+                </div>
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="ev.inconclusive">Inconclusive</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-inconclusive" style="width:0%;background:var(--text3);"></div></div>
+                  <span class="bc-count">3</span>
+                  <span class="bc-pct">17%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Source type chart -->
+            <div>
+              <div class="ev-section-title" data-i18n="ev.sourcetypes">Source Types</div>
+              <div class="bar-chart">
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="src.research">Research</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-research" style="width:0%;background:var(--accent);"></div></div>
+                  <span class="bc-count">8</span>
+                  <span class="bc-pct">44%</span>
+                </div>
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="src.official">Official</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-official" style="width:0%;background:#6b7280;"></div></div>
+                  <span class="bc-count">4</span>
+                  <span class="bc-pct">22%</span>
+                </div>
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="src.news">News</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-news" style="width:0%;background:#9b8cd4;"></div></div>
+                  <span class="bc-count">4</span>
+                  <span class="bc-pct">22%</span>
+                </div>
+                <div class="bc-row">
+                  <span class="bc-lbl" data-i18n="src.factcheck">Fact-check</span>
+                  <div class="bc-track"><div class="bc-fill" id="bf-factcheck" style="width:0%;background:#c9a84c;"></div></div>
+                  <span class="bc-count">2</span>
+                  <span class="bc-pct">11%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Evidence Conflict Graph ────────────────────── -->
+    <div>
+      <div class="sec-label" data-i18n="sec.graph">Evidence Conflict Graph</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="graph.title">Claim → Source Connections</span>
+          <span style="font-size:12px;color:var(--text3);" data-i18n="graph.sub">Hover source nodes to view details</span>
+        </div>
+        <div class="conflict-wrap">
+          <svg class="conflict-svg" id="conflictSvg" viewBox="0 0 900 320" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="graph-tooltip" id="graphTooltip"></div>
+          <div class="graph-legend">
+            <div class="leg-item"><div class="leg-line leg-ok"></div><span data-i18n="leg.supporting">Supporting evidence</span></div>
+            <div class="leg-item"><div class="leg-line leg-err"></div><span data-i18n="leg.contradicting">Contradicting evidence</span></div>
+            <div class="leg-item"><div class="leg-line leg-neutral"></div><span data-i18n="leg.inconclusive">Inconclusive</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AI Explanation ────────────────────────────── -->
+    <div>
+      <div class="sec-label" data-i18n="sec.explain">AI Explanation</div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" data-i18n="explain.title">Why EvidenceX reached this assessment</span>
+        </div>
+        <div class="panel-body">
+          <div class="explanation-body" id="explanationBody">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="explain-note">
+            <strong data-i18n="explain.note.head">Methodology note:</strong>
+            <span data-i18n="explain.note.body"> This assessment was produced by comparing evidence stance, source credibility ratings, publication recency, and methodological quality. It does not represent medical, legal, or editorial advice. All sources are listed in the Evidence panel.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Action Bar ─────────────────────────────────── -->
+    <div class="action-bar">
+      <a href="#evidence-section" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span data-i18n="btn.evidence">View Evidence</span>
+      </a>
+      <a href="evidence-timeline.html" class="btn btn-outline">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span data-i18n="btn.timeline">Open Timeline</span>
+      </a>
+      <button class="btn btn-outline" onclick="window.print()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-i18n="btn.export">Export Report</span>
+      </button>
+      <span class="action-bar-note" data-i18n="action.note">INV-2026-0847 · 23 Sep 2026</span>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<script>
+/* ── i18n ─────────────────────────────────────────── */
+const S = {
+  en: {
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations','nav.tools':'Tools',
+    'nav.evidence':'Evidence','nav.timeline':'Timeline','nav.analytics':'Analytics',
+    'nav.copilot':'AI Copilot','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'page.title':'Verification Results','page.sub':'Investigation INV-2026-0847 · Completed',
+    'meta.id':'ID','meta.date':'Date','meta.input':'Input','meta.input.text':'Text',
+    'meta.depth':'Depth','meta.depth.val':'Standard','meta.time':'Processing',
+    'meta.status':'Investigation Complete',
+    'sec.assessment':'Overall Assessment','sec.claims':'Claim Summary',
+    'sec.evidence':'Evidence Overview','sec.graph':'Evidence Conflict Graph',
+    'sec.explain':'AI Explanation',
+    'assess.verdict.label':'Overall Verdict',
+    'assess.verdict':'Mostly Supported','assess.verdict.scope':'The core claim is substantiated by credible sources. One sub-claim lacks sufficient evidence to verify.',
+    'assess.verdict.tag':'Evidence-backed',
+    'assess.confidence':'Confidence Score','conf.low':'Low','conf.moderate':'Moderate','conf.high':'High',
+    'assess.strength':'Evidence Strength','assess.strength.val':'Strong',
+    'str.insuf':'Insufficient','str.limited':'Limited','str.moderate':'Moderate','str.strong':'Strong',
+    'assess.note':'Confidence reflects the degree of agreement among independent, credible sources — not the volume of sources alone. A 82% score indicates clear preponderance of reliable evidence.',
+    'st.claims':'Claims analyzed','st.sources':'Sources reviewed','st.supporting':'Supporting','st.contradicting':'Contradicting',
+    'ev.stance':'Evidence Stance','ev.supporting':'Supporting','ev.contradicting':'Contradicting',
+    'ev.inconclusive':'Inconclusive','ev.sourcetypes':'Source Types',
+    'src.research':'Research','src.official':'Official','src.news':'News','src.factcheck':'Fact-check',
+    'graph.title':'Claim → Source Connections','graph.sub':'Hover source nodes to view details',
+    'leg.supporting':'Supporting evidence','leg.contradicting':'Contradicting evidence','leg.inconclusive':'Inconclusive',
+    'explain.title':'Why EvidenceX reached this assessment',
+    'explain.note.head':'Methodology note:',
+    'explain.note.body':' This assessment was produced by comparing evidence stance, source credibility ratings, publication recency, and methodological quality. It does not represent medical, legal, or editorial advice. All sources are listed in the Evidence panel.',
+    'btn.evidence':'View Evidence','btn.timeline':'Open Timeline','btn.export':'Export Report',
+    'action.note':'INV-2026-0847 · 23 Sep 2026',
+    'claim.btn':'Investigate Claim',
+    'verdict.supported':'Supported','verdict.refuted':'Refuted','verdict.insufficient':'Insufficient Evidence',
+    'claim.supporting':'supporting','claim.contradicting':'contradicting','claim.inconclusive':'inconclusive',
+    'insuf.note':'Insufficient Evidence is a valid finding. It means available sources do not provide enough data to confirm or refute this claim with confidence.',
+    'sec.claims.label':'Claim',
+    'demo.strong':'Prototype Demonstration Data:',
+    'demo.body':'Sample verification assessment for investigation INV-2026-0847. Prepared for agentic multimodal verification engine.',
+    'demo.tag':'Demo Data',
+  },
+  hi: {
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच','nav.tools':'टूल्स',
+    'nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा','nav.analytics':'विश्लेषण',
+    'nav.copilot':'AI सहायक','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'page.title':'सत्यापन परिणाम','page.sub':'जांच INV-2026-0847 · पूर्ण',
+    'meta.id':'ID','meta.date':'दिनांक','meta.input':'इनपुट','meta.input.text':'पाठ',
+    'meta.depth':'गहराई','meta.depth.val':'मानक','meta.time':'प्रसंस्करण',
+    'meta.status':'जांच पूर्ण',
+    'sec.assessment':'समग्र मूल्यांकन','sec.claims':'दावा सारांश',
+    'sec.evidence':'साक्ष्य अवलोकन','sec.graph':'साक्ष्य संघर्ष ग्राफ',
+    'sec.explain':'AI व्याख्या',
+    'assess.verdict.label':'समग्र निर्णय',
+    'assess.verdict':'अधिकांशतः समर्थित','assess.verdict.scope':'मूल दावे को विश्वसनीय स्रोतों से पुष्टि मिलती है। एक उप-दावे के लिए पर्याप्त साक्ष्य उपलब्ध नहीं है।',
+    'assess.verdict.tag':'साक्ष्य-आधारित',
+    'assess.confidence':'विश्वास स्कोर','conf.low':'कम','conf.moderate':'मध्यम','conf.high':'उच्च',
+    'assess.strength':'साक्ष्य बल','assess.strength.val':'मजबूत',
+    'str.insuf':'अपर्याप्त','str.limited':'सीमित','str.moderate':'मध्यम','str.strong':'मजबूत',
+    'assess.note':'विश्वास स्कोर स्वतंत्र, विश्वसनीय स्रोतों के बीच सहमति की डिग्री को दर्शाता है — केवल स्रोतों की मात्रा को नहीं।',
+    'st.claims':'दावे विश्लेषित','st.sources':'स्रोत समीक्षित','st.supporting':'समर्थक','st.contradicting':'विरोधी',
+    'ev.stance':'साक्ष्य रुख','ev.supporting':'समर्थक','ev.contradicting':'विरोधी',
+    'ev.inconclusive':'अनिर्णायक','ev.sourcetypes':'स्रोत प्रकार',
+    'src.research':'शोध','src.official':'आधिकारिक','src.news':'समाचार','src.factcheck':'तथ्य-जांच',
+    'graph.title':'दावा → स्रोत संबंध','graph.sub':'विवरण के लिए स्रोत नोड पर होवर करें',
+    'leg.supporting':'समर्थक साक्ष्य','leg.contradicting':'विरोधी साक्ष्य','leg.inconclusive':'अनिर्णायक',
+    'explain.title':'EvidenceX ने यह निर्णय क्यों दिया',
+    'explain.note.head':'पद्धति नोट:',
+    'explain.note.body':' यह मूल्यांकन साक्ष्य रुख, स्रोत विश्वसनीयता रेटिंग, प्रकाशन की नवीनता और पद्धतिगत गुणवत्ता की तुलना करके तैयार किया गया। यह चिकित्सीय, कानूनी या संपादकीय सलाह नहीं है।',
+    'btn.evidence':'साक्ष्य देखें','btn.timeline':'समयरेखा खोलें','btn.export':'रिपोर्ट निर्यात करें',
+    'action.note':'INV-2026-0847 · 23 सितंबर 2026',
+    'claim.btn':'दावे की जांच करें',
+    'verdict.supported':'समर्थित','verdict.refuted':'खंडित','verdict.insufficient':'अपर्याप्त साक्ष्य',
+    'claim.supporting':'समर्थक','claim.contradicting':'विरोधी','claim.inconclusive':'अनिर्णायक',
+    'insuf.note':'अपर्याप्त साक्ष्य एक वैध निष्कर्ष है। इसका अर्थ है कि उपलब्ध स्रोत इस दावे को विश्वास के साथ पुष्टि या खंडन करने के लिए पर्याप्त नहीं हैं।',
+    'sec.claims.label':'दावा',
+    'demo.strong':'प्रोटोटाइप प्रदर्शन डेटा:',
+    'demo.body':'जांच INV-2026-0847 के लिए नमूना सत्यापन मूल्यांकन। एजेंटिक मल्टीमॉडल सत्यापन इंजन के लिए तैयार।',
+    'demo.tag':'डेमो डेटा',
+  }
+};
+
+let lang = 'en';
+function t(k){ return (S[lang]||S.en)[k] || k; }
+
+function applyLang(l){
+  lang = l;
+  document.documentElement.lang = l==='hi'?'hi':'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n; const v=t(k);
+    if(v!==k) el.textContent=v;
+  });
+  renderClaims();
+  renderExplanation();
+  localStorage.setItem('ex-lang', l);
+}
+
+/* ── Theme ────────────────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  const dark=th==='dark';
+  document.getElementById('icon-sun').style.display=dark?'block':'none';
+  document.getElementById('icon-moon').style.display=dark?'none':'block';
+  localStorage.setItem('ex-theme', th);
+  renderGraph();
+}
+(function(){
+  const s=localStorage.getItem('ex-theme');
+  const sys=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(s||(sys?'dark':'light'));
+})();
+document.getElementById('themeToggle').onclick=()=>
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+
+(function(){
+  const l=localStorage.getItem('ex-lang')||'en';
+  document.getElementById('langSelect').value=l;
+  applyLang(l);
+})();
+document.getElementById('langSelect').onchange=function(){applyLang(this.value);};
+
+/* ── Data ─────────────────────────────────────────── */
+const CLAIMS = [
+  {
+    id:1,
+    text_en:'"Regular exercise reduces the risk of cardiovascular disease."',
+    text_hi:'"नियमित व्यायाम हृदय रोग के जोखिम को कम करता है।"',
+    verdict:'supported', confidence:88,
+    supporting:11, contradicting:2, inconclusive:1,
+  },
+  {
+    id:2,
+    text_en:'"The risk reduction is up to 35%."',
+    text_hi:'"जोखिम में कमी 35% तक होती है।"',
+    verdict:'supported', confidence:72,
+    supporting:8, contradicting:4, inconclusive:2,
+  },
+  {
+    id:3,
+    text_en:'"This is confirmed by multiple peer-reviewed studies published in major medical journals."',
+    text_hi:'"इसकी पुष्टि प्रमुख चिकित्सा पत्रिकाओं में प्रकाशित कई समीक्षित अध्ययनों द्वारा की गई है।"',
+    verdict:'supported', confidence:94,
+    supporting:14, contradicting:0, inconclusive:1,
+  },
+  {
+    id:4,
+    text_en:'"The cardiovascular benefit applies uniformly across all age groups and fitness levels."',
+    text_hi:'"हृदय संबंधी लाभ सभी आयु समूहों और फिटनेस स्तरों पर समान रूप से लागू होता है।"',
+    verdict:'insufficient', confidence:41,
+    supporting:3, contradicting:3, inconclusive:3,
+  },
+];
+
+const verdictMeta = {
+  supported:{ cls:'vb-supported', fillCls:'fill-ok' },
+  refuted:  { cls:'vb-refuted',   fillCls:'fill-err' },
+  insufficient:{ cls:'vb-insufficient', fillCls:'fill-neutral' },
+};
+
+function renderClaims(){
+  const list = document.getElementById('claimsList');
+  list.innerHTML = CLAIMS.map((c,i)=>{
+    const vm = verdictMeta[c.verdict];
+    const text = lang==='hi' ? c.text_hi : c.text_en;
+    const vLabel = t('verdict.'+c.verdict);
+    const insufNote = c.verdict==='insufficient'
+      ? `<div class="insuf-note">${t('insuf.note')}</div>` : '';
+    return `<div class="claim-row">
+      <div class="claim-top">
+        <span class="claim-num">${t('sec.claims.label')} ${String(i+1).padStart(2,'0')}</span>
+        <span class="claim-text">${text}</span>
+        <div class="claim-badges">
+          <span class="verdict-badge ${vm.cls}">${vLabel}</span>
+          <a href="claim-investigation.html" class="btn-sm" aria-label="${t('claim.btn')}">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            ${t('claim.btn')}
+          </a>
+        </div>
+      </div>
+      <div class="claim-metrics">
+        <div class="claim-conf-row">
+          <span class="claim-conf-lbl">${t('assess.confidence').split(' ')[0]}</span>
+          <div class="claim-conf-bar">
+            <div class="claim-conf-fill ${vm.fillCls}" style="width:${c.confidence}%"></div>
+          </div>
+          <span class="claim-conf-pct">${c.confidence}%</span>
+        </div>
+        <div class="evidence-tally">
+          <div class="tally-item"><div class="tally-dot td-ok"></div><span class="tally-num">${c.supporting}</span>&nbsp;<span class="tally-lbl">${t('claim.supporting')}</span></div>
+          <div class="tally-item"><div class="tally-dot td-err"></div><span class="tally-num">${c.contradicting}</span>&nbsp;<span class="tally-lbl">${t('claim.contradicting')}</span></div>
+          <div class="tally-item"><div class="tally-dot td-neutral"></div><span class="tally-num">${c.inconclusive}</span>&nbsp;<span class="tally-lbl">${t('claim.inconclusive')}</span></div>
+        </div>
+      </div>
+      ${insufNote}
+    </div>`;
+  }).join('');
+}
+
+/* ── Explanation ─────────────────────────────────── */
+const explanations = {
+  en: `<p>Three of the four identified claims are supported by credible, peer-reviewed evidence. The American Heart Association's 2023 guidelines <span class="cite">[AHA 2023]</span> and a meta-analysis across 18 studies <span class="cite">[Cochrane 2021]</span> confirm that sustained aerobic activity reduces cardiovascular disease risk by 27–35%, consistent with the "up to 35%" figure in the original claim.</p>
+<p>Claim 2 — the precision of the "35%" figure — is supported but with a qualification: this upper bound applies specifically to populations engaging in 150+ minutes of moderate activity per week <span class="cite">[WHO 2022]</span>. The Christy et al. satellite data <span class="cite">[UAH 2018]</span> presents a marginal methodological counterpoint, but is contested in peer review and does not materially affect the verdict.</p>
+<p>Claim 4 — that benefits apply uniformly across all age groups — cannot be verified with available evidence. Studies consistently show age-differentiated effect sizes, making a blanket claim unsupportable. <strong>This is not a failed result</strong>; it reflects genuine scientific uncertainty that EvidenceX reports honestly rather than resolving artificially.</p>`,
+  hi: `<p>चार में से तीन दावों को विश्वसनीय, समीक्षित साक्ष्य द्वारा समर्थन मिलता है। अमेरिकन हार्ट एसोसिएशन के 2023 दिशानिर्देश <span class="cite">[AHA 2023]</span> और 18 अध्ययनों के मेटा-विश्लेषण <span class="cite">[Cochrane 2021]</span> पुष्टि करते हैं कि नियमित एरोबिक गतिविधि हृदय रोग के जोखिम को 27–35% तक कम करती है।</p>
+<p>दावा 2 — "35%" की सटीकता — समर्थित है लेकिन एक योग्यता के साथ: यह ऊपरी सीमा विशेष रूप से उन लोगों पर लागू होती है जो प्रति सप्ताह 150+ मिनट मध्यम गतिविधि करते हैं <span class="cite">[WHO 2022]</span>।</p>
+<p>दावा 4 — कि लाभ सभी आयु समूहों में समान रूप से लागू होता है — उपलब्ध साक्ष्य से सत्यापित नहीं किया जा सकता। यह एक <strong>वैध वैज्ञानिक अनिश्चितता</strong> है जिसे EvidenceX ईमानदारी से रिपोर्ट करता है।</p>`
+};
+
+function renderExplanation(){
+  document.getElementById('explanationBody').innerHTML = explanations[lang]||explanations.en;
+}
+
+/* ── Conflict Graph ──────────────────────────────── */
+const GRAPH_NODES = [
+  // claim
+  {id:'claim', label:'Claim', type:'claim', x:450, y:160},
+  // supporting
+  {id:'s1', label:'AHA 2023', type:'research', stance:'support', x:150, y:60},
+  {id:'s2', label:'Cochrane 2021', type:'research', stance:'support', x:150, y:130},
+  {id:'s3', label:'WHO 2022', type:'official', stance:'support', x:150, y:200},
+  {id:'s4', label:'NEJM Study', type:'research', stance:'support', x:150, y:270},
+  {id:'s5', label:'CDC Guidelines', type:'official', stance:'support', x:260, y:40},
+  // contradicting
+  {id:'c1', label:'UAH 2018', type:'research', stance:'contra', x:740, y:80},
+  {id:'c2', label:'Christy et al.', type:'research', stance:'contra', x:740, y:180},
+  {id:'c3', label:'BMJ Letter', type:'news', stance:'contra', x:740, y:270},
+  // inconclusive
+  {id:'i1', label:'Reuters Health', type:'news', stance:'neutral', x:450, y:295},
+  {id:'i2', label:'Snopes Review', type:'factcheck', stance:'neutral', x:600, y:295},
+];
+
+const GRAPH_EDGES = [
+  {from:'claim',to:'s1',stance:'support'},{from:'claim',to:'s2',stance:'support'},
+  {from:'claim',to:'s3',stance:'support'},{from:'claim',to:'s4',stance:'support'},
+  {from:'claim',to:'s5',stance:'support'},
+  {from:'claim',to:'c1',stance:'contra'},{from:'claim',to:'c2',stance:'contra'},
+  {from:'claim',to:'c3',stance:'contra'},
+  {from:'claim',to:'i1',stance:'neutral'},{from:'claim',to:'i2',stance:'neutral'},
+];
+
+const NODE_INFO = {
+  s1:{name:'American Heart Association 2023',type:'Research · Peer-reviewed',stance:'Supporting',cred:'High credibility'},
+  s2:{name:'Cochrane Review 2021',type:'Systematic Review',stance:'Supporting',cred:'High credibility'},
+  s3:{name:'WHO Physical Activity Guidelines 2022',type:'Official · Institutional',stance:'Supporting',cred:'High credibility'},
+  s4:{name:'NEJM Prospective Study',type:'Research · Peer-reviewed',stance:'Supporting',cred:'High credibility'},
+  s5:{name:'CDC Physical Activity Guidelines',type:'Official · Government',stance:'Supporting',cred:'High credibility'},
+  c1:{name:'UAH Satellite Temperature Data 2018',type:'Research · Contested',stance:'Contradicting',cred:'Medium credibility'},
+  c2:{name:'Christy et al. 2018',type:'Research · Peer-disputed',stance:'Contradicting',cred:'Medium credibility'},
+  c3:{name:'BMJ Editorial Letter',type:'News · Expert opinion',stance:'Contradicting',cred:'Medium credibility'},
+  i1:{name:'Reuters Health Report',type:'News · Journalism',stance:'Inconclusive',cred:'Medium credibility'},
+  i2:{name:'Snopes Fact-check',type:'Fact-check',stance:'Inconclusive',cred:'Medium credibility'},
+};
+
+function getCSSVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function renderGraph(){
+  const svg = document.getElementById('conflictSvg');
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  const colOk   = dark ? '#4cad78' : '#1a7a4a';
+  const colErr  = dark ? '#d96a6a' : '#b94040';
+  const colNeut = dark ? 'rgba(161,160,154,.45)' : 'rgba(135,133,126,.4)';
+  const colText = dark ? '#eeedea' : '#111110';
+  const colText3 = dark ? '#64635e' : '#87857e';
+  const colSurf = dark ? '#1f1f1d' : '#ffffff';
+  const colBorder = dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)';
+  const colAccent = dark ? '#4d86d8' : '#1c4e9e';
+
+  const nodeLookup = {};
+  GRAPH_NODES.forEach(n=>nodeLookup[n.id]=n);
+
+  let edgesHTML = GRAPH_EDGES.map(e=>{
+    const a=nodeLookup[e.from], b=nodeLookup[e.to];
+    const col = e.stance==='support'?colOk:e.stance==='contra'?colErr:colNeut;
+    const dash = e.stance==='neutral'?'5,4':'';
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${col}" stroke-width="${e.stance==='neutral'?1.2:1.8}" stroke-opacity="${e.stance==='neutral'?0.5:0.75}" ${dash?`stroke-dasharray="${dash}"`:''} stroke-linecap="round"/>`;
+  }).join('');
+
+  let nodesHTML = GRAPH_NODES.map(n=>{
+    const isClaim = n.id==='claim';
+    const r = isClaim?22:16;
+    const bg = isClaim ? colAccent
+      : n.stance==='support' ? colOk
+      : n.stance==='contra' ? colErr
+      : colText3;
+    const textCol = '#fff';
+    const lx = n.x, ly = n.y;
+    const labelBelow = `${n.label.length>10?n.label.substring(0,10)+'…':n.label}`;
+    // Wrap in a group for hover
+    const dataAttr = n.id!=='claim' ? `data-node="${n.id}"` : '';
+    return `<g class="graph-node" ${dataAttr} style="cursor:${n.id!=='claim'?'pointer':'default'}">
+      <circle cx="${lx}" cy="${ly}" r="${r}" fill="${bg}" fill-opacity="${isClaim?1:.85}" stroke="${bg}" stroke-width="${isClaim?2:1.5}" stroke-opacity=".3"/>
+      ${isClaim
+        ? `<text x="${lx}" y="${ly-4}" text-anchor="middle" font-size="8" font-weight="700" fill="${textCol}" font-family="Inter,sans-serif">EX</text><text x="${lx}" y="${ly+7}" text-anchor="middle" font-size="6.5" fill="${textCol}" font-family="Inter,sans-serif" opacity=".8">Claim</text>`
+        : `<text x="${lx}" y="${ly+4}" text-anchor="middle" font-size="7.5" font-weight="600" fill="${textCol}" font-family="Inter,sans-serif">${r>16?labelBelow.substring(0,8):labelBelow.substring(0,7)}</text>`
+      }
+    </g>`;
+  }).join('');
+
+  // Labels outside
+  let labelsHTML = GRAPH_NODES.filter(n=>n.id!=='claim').map(n=>{
+    const onLeft = n.x < 450;
+    const anchor = onLeft ? 'end' : 'start';
+    const xOff = onLeft ? -20 : 20;
+    return `<text x="${n.x+xOff}" y="${n.y+4}" text-anchor="${anchor}" font-size="10" fill="${colText3}" font-family="Inter,sans-serif" pointer-events="none">${n.label}</text>`;
+  }).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <marker id="ah-ok" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${colOk}" opacity=".7"/></marker>
+      <marker id="ah-err" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${colErr}" opacity=".7"/></marker>
+    </defs>
+    ${edgesHTML}${labelsHTML}${nodesHTML}`;
+
+  // Tooltip interactions
+  const tooltip = document.getElementById('graphTooltip');
+  svg.querySelectorAll('[data-node]').forEach(g=>{
+    const nid = g.getAttribute('data-node');
+    const info = NODE_INFO[nid];
+    if(!info) return;
+    const stanceColor = info.stance==='Supporting'?colOk:info.stance==='Contradicting'?colErr:colText3;
+    g.addEventListener('mouseenter', ev=>{
+      tooltip.innerHTML = `<div class="gt-name">${info.name}</div><div class="gt-type">${info.type}</div><div class="gt-stance" style="color:${stanceColor}">${info.stance}</div><div style="font-size:10.5px;color:${colText3};margin-top:2px;">${info.cred}</div>`;
+      tooltip.style.opacity='1';
+      positionTooltip(ev);
+    });
+    g.addEventListener('mousemove', ev=>positionTooltip(ev));
+    g.addEventListener('mouseleave', ()=>{ tooltip.style.opacity='0'; });
+  });
+}
+
+function positionTooltip(ev){
+  const wrap = document.querySelector('.conflict-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const tip = document.getElementById('graphTooltip');
+  let x = ev.clientX - rect.left + 14;
+  let y = ev.clientY - rect.top - 10;
+  if(x + 185 > rect.width) x = ev.clientX - rect.left - 195;
+  tip.style.left = x+'px';
+  tip.style.top  = y+'px';
+}
+
+/* ── Animate bars on scroll ───────────────────────── */
+const bars = [
+  {id:'bf-supporting', pct:61},
+  {id:'bf-contradicting', pct:22},
+  {id:'bf-inconclusive', pct:17},
+  {id:'bf-research', pct:44},
+  {id:'bf-official', pct:22},
+  {id:'bf-news', pct:22},
+  {id:'bf-factcheck', pct:11},
+];
+
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      bars.forEach(b=>{
+        const el=document.getElementById(b.id);
+        if(el) el.style.width=b.pct+'%';
+      });
+      io.disconnect();
+    }
+  });
+},{threshold:0.2});
+const evSec = document.getElementById('evidence-section');
+if(evSec) io.observe(evSec);
+
+// Animate confidence fill
+setTimeout(()=>{
+  document.getElementById('confFill').style.width='82%';
+},300);
+
+/* ── Mobile sidebar ──────────────────────────────── */
+const sbOv = document.getElementById('sbOverlay');
+document.getElementById('mobileMenuBtn').onclick=()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+  sbOv.classList.toggle('visible');
+};
+sbOv.onclick=()=>{
+  document.getElementById('sidebar').classList.remove('open');
+  sbOv.classList.remove('visible');
+};
+
+/* ── Init ─────────────────────────────────────────── */
+renderClaims();
+renderExplanation();
+renderGraph();
+</script>
+</body>
+</html>

@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Copilot — EvidenceX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Core Tokens ───────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;scroll-behavior:smooth;}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+[lang="hi"]{font-family:var(--font-deva);}
+::selection{background:var(--accent);color:#fff;}
+
+:root{
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --font-deva:'Noto Sans Devanagari','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+
+  /* Light Theme */
+  --bg:#f5f4f1;
+  --bg2:#eceae4;
+  --surface:#ffffff;
+  --surface2:#f8f7f4;
+  --surface3:#f1efe9;
+  --surface-hover:#f4f2ec;
+  --border:rgba(0,0,0,0.07);
+  --border-s:rgba(0,0,0,0.13);
+  --border-m:rgba(0,0,0,0.22);
+  --text:#111110;
+  --text2:#4e4d49;
+  --text3:#87857e;
+  --accent:#1c4e9e;
+  --accent-h:#163e80;
+  --accent-lt:rgba(28,78,158,0.09);
+  --accent-sub:rgba(28,78,158,0.05);
+
+  --ok:#1a7a4a;
+  --ok-bg:rgba(26,122,74,0.10);
+  --ok-border:rgba(26,122,74,0.22);
+
+  --err:#b94040;
+  --err-bg:rgba(185,64,64,0.09);
+  --err-border:rgba(185,64,64,0.20);
+
+  --warn:#8a6d2f;
+  --warn-bg:rgba(138,109,47,0.09);
+  --warn-border:rgba(138,109,47,0.20);
+
+  --neutral-bg:rgba(78,77,73,0.07);
+  --glass:rgba(255,255,255,0.85);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.03);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.09),0 4px 12px rgba(0,0,0,0.04);
+
+  --sidebar-w:228px;
+  --topbar-h:58px;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --t:0.18s ease;
+}
+
+[data-theme="dark"]{
+  --bg:#0d0d0c;
+  --bg2:#131312;
+  --surface:#1a1a18;
+  --surface2:#1f1f1d;
+  --surface3:#252522;
+  --surface-hover:#2a2a26;
+  --border:rgba(255,255,255,0.07);
+  --border-s:rgba(255,255,255,0.13);
+  --border-m:rgba(255,255,255,0.22);
+  --text:#eeedea;
+  --text2:#a1a09a;
+  --text3:#64635e;
+  --accent:#4d86d8;
+  --accent-h:#6898e0;
+  --accent-lt:rgba(77,134,216,0.12);
+  --accent-sub:rgba(77,134,216,0.06);
+
+  --ok:#4cad78;
+  --ok-bg:rgba(76,173,120,0.12);
+  --ok-border:rgba(76,173,120,0.24);
+
+  --err:#d96a6a;
+  --err-bg:rgba(217,106,106,0.12);
+  --err-border:rgba(217,106,106,0.24);
+
+  --warn:#c9a84c;
+  --warn-bg:rgba(201,168,76,0.12);
+  --warn-border:rgba(201,168,76,0.24);
+
+  --neutral-bg:rgba(161,160,154,0.08);
+  --glass:rgba(26,26,24,0.88);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.38);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.50);
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:50;
+  overflow-y:auto;scrollbar-width:none;transition:transform .25s ease,background .25s;
+}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-logo{
+  display:flex;align-items:center;gap:8px;padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);font-size:15px;font-weight:700;
+  letter-spacing:-0.04em;color:var(--text);text-decoration:none;
+}
+.sb-mark{
+  width:26px;height:26px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-mark svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-sec{padding:10px 10px 0;}
+.sb-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);padding:0 8px;margin:10px 0 4px;
+}
+.sb-nav{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.sb-nav a{
+  display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:450;
+  color:var(--text2);padding:7px 10px;border-radius:var(--r-sm);
+  text-decoration:none;transition:all var(--t);
+}
+.sb-nav a:hover{background:var(--surface3);color:var(--text);}
+.sb-nav a.active{background:var(--accent-lt);color:var(--accent);font-weight:550;}
+.sb-nav a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.sb-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.5;
+}
+.sb-footer{margin-top:auto;border-top:1px solid var(--border);padding:12px 10px;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--t);}
+.sb-user:hover{background:var(--surface3);}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--accent-lt);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-weight:700;color:var(--accent);flex-shrink:0;
+}
+
+/* ── Main Layout ──────────────────────────────────── */
+.main{
+  margin-left:var(--sidebar-w);flex:1;min-width:0;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* ── Topbar ───────────────────────────────────────── */
+.topbar{
+  height:var(--topbar-h);background:var(--glass);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);display:flex;align-items:center;
+  padding:0 28px;gap:14px;position:sticky;top:0;z-index:40;
+  transition:background .25s;
+}
+.tb-left{flex:1;min-width:0;}
+.tb-title{font-size:15px;font-weight:650;letter-spacing:-0.02em;color:var(--text);}
+.tb-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+.ctrl{
+  height:32px;display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font);font-size:12.5px;font-weight:450;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:0 10px;cursor:pointer;transition:all var(--t);
+}
+.ctrl:hover{background:var(--surface);color:var(--text);}
+.ctrl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+
+.lang-sel{
+  font-family:var(--font);font-size:12.5px;color:var(--text2);
+  background:transparent;border:1px solid var(--border-s);border-radius:var(--r-sm);
+  padding:5px 9px;cursor:pointer;outline:none;height:32px;transition:all var(--t);
+}
+.lang-sel:hover{border-color:var(--accent);}
+.lang-sel option{background:var(--surface);color:var(--text);}
+
+.mobile-menu{
+  display:none;width:34px;height:34px;border:1px solid var(--border-s);
+  border-radius:var(--r-sm);background:transparent;cursor:pointer;
+  align-items:center;justify-content:center;color:var(--text2);
+}
+.mobile-menu svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* ── Page Body: Two-Column Workspace ──────────────── */
+.page{
+  flex:1;padding:24px 28px;
+  display:grid;grid-template-columns:360px 1fr;
+  gap:22px;max-width:1380px;width:100%;align-items:start;
+}
+@media(max-width:980px){
+  .page{grid-template-columns:1fr;}
+}
+
+/* ── LEFT COLUMN: Investigation Context ───────────── */
+.context-column{
+  display:flex;flex-direction:column;gap:16px;
+  position:sticky;top:calc(var(--topbar-h) + 24px);
+}
+@media(max-width:980px){
+  .context-column{position:static;}
+}
+
+.context-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;
+  gap:16px;
+}
+.cc-header{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:12px;
+}
+.cc-title{
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text3);display:flex;align-items:center;gap:6px;
+}
+.inv-tag{
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--border);
+  padding:2px 7px;border-radius:4px;color:var(--text2);
+}
+
+/* Active Claim Box */
+.claim-box{
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);padding:14px;display:flex;flex-direction:column;
+  gap:6px;
+}
+.cb-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3);}
+.cb-text{font-size:13px;font-weight:500;color:var(--text);line-height:1.55;font-style:italic;}
+
+/* Verdict & Confidence Strip */
+.verdict-box{
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:14px;
+}
+.vb-row{display:flex;align-items:center;justify-content:space-between;}
+.vb-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;}
+.vb-confidence{
+  font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;
+}
+
+.conf-track{
+  height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;
+}
+.conf-fill{
+  height:100%;border-radius:3px;background:var(--ok);width:88%;
+}
+
+/* Evidence Breakdown Mini Counts */
+.evidence-mini-counts{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.emc-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:8px 10px;text-align:center;
+  display:flex;flex-direction:column;gap:2px;
+}
+.emc-num{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;}
+.emc-lbl{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);}
+
+/* Top Indexed Sources List */
+.key-sources-section{
+  display:flex;flex-direction:column;gap:8px;
+}
+.kss-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);}
+.kss-list{display:flex;flex-direction:column;gap:6px;}
+.source-mini-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-sm);font-size:12px;color:var(--text);
+  cursor:pointer;transition:all var(--t);
+}
+.source-mini-item:hover{
+  background:var(--surface);border-color:var(--border-m);
+}
+.smi-name{font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px;}
+
+/* ── RIGHT COLUMN: Copilot Assistant Workspace ────── */
+.copilot-column{
+  display:flex;flex-direction:column;gap:16px;min-width:0;
+}
+
+.copilot-main-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Copilot Header */
+.copilot-header{
+  padding:18px 24px;border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:4px;
+  background:var(--glass);
+}
+.ch-top-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;
+}
+.ch-title{
+  font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.02em;
+  display:flex;align-items:center;gap:8px;
+}
+.ch-title svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;}
+.guardrail-pill{
+  font-size:11px;font-weight:600;background:var(--ok-bg);
+  color:var(--ok);border:1px solid var(--ok-border);
+  border-radius:12px;padding:3px 9px;display:flex;align-items:center;gap:5px;
+}
+.guardrail-pill::before{
+  content:'';width:5px;height:5px;border-radius:50%;background:var(--ok);
+}
+.ch-desc{
+  font-size:13px;color:var(--text2);line-height:1.45;
+}
+
+/* Suggested Questions Bar */
+.suggested-bar{
+  padding:12px 24px;border-bottom:1px solid var(--border);
+  background:var(--surface2);display:flex;flex-direction:column;
+  gap:8px;
+}
+.sb-title{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);
+}
+.suggested-pills{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.sq-pill{
+  font-size:12px;font-weight:500;color:var(--text2);
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:20px;padding:5px 12px;cursor:pointer;
+  transition:all var(--t);user-select:none;
+}
+.sq-pill:hover{
+  background:var(--accent-lt);color:var(--accent);
+  border-color:var(--accent);transform:translateY(-1px);
+}
+
+/* Interaction Q&A Stream */
+.qa-stream{
+  padding:22px 24px;display:flex;flex-direction:column;
+  gap:24px;max-height:580px;overflow-y:auto;
+  scrollbar-width:thin;
+}
+.qa-stream::-webkit-scrollbar{width:5px;}
+.qa-stream::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:4px;}
+
+/* User Inquiry Block */
+.user-query-block{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:14px 16px;
+}
+.query-avatar{
+  width:26px;height:26px;border-radius:50%;background:var(--accent-lt);
+  color:var(--accent);font-size:11px;font-weight:700;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+}
+.query-content{flex:1;min-width:0;}
+.query-author{font-size:11.5px;font-weight:600;color:var(--text3);margin-bottom:2px;}
+.query-text{font-size:13.5px;font-weight:600;color:var(--text);}
+
+/* Copilot Answer Block */
+.copilot-response-block{
+  display:flex;flex-direction:column;gap:12px;
+  border-left:2px solid var(--accent);padding-left:16px;
+  margin-left:4px;
+}
+.cr-header{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cr-badge{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);display:flex;align-items:center;gap:6px;
+}
+.cr-badge svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;}
+.cr-time{font-family:var(--font-mono);font-size:11px;color:var(--text3);}
+
+.cr-text{
+  font-size:13.5px;color:var(--text);line-height:1.65;
+}
+.cr-text p{margin-bottom:10px;}
+.cr-text p:last-child{margin-bottom:0;}
+
+/* Inline Citations */
+.citation-ref{
+  display:inline-flex;align-items:center;gap:3px;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  color:var(--accent);background:var(--accent-sub);border:1px solid rgba(28,78,158,.15);
+  border-radius:4px;padding:1px 6px;margin:0 2px;cursor:pointer;
+  transition:all var(--t);user-select:none;
+}
+.citation-ref:hover{
+  background:var(--accent-lt);border-color:var(--accent);
+}
+
+/* Cited Evidence Deck */
+.cited-evidence-deck{
+  display:flex;flex-direction:column;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;
+}
+.ced-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--text3);display:flex;align-items:center;gap:5px;
+}
+.cited-source-card{
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:var(--r-sm);padding:10px 12px;display:flex;
+  flex-direction:column;gap:6px;
+}
+.csc-top{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.csc-title{
+  font-size:12.5px;font-weight:600;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.csc-excerpt{
+  font-size:12px;color:var(--text2);line-height:1.5;font-style:italic;
+}
+.csc-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:2px;
+}
+.btn-view-source{
+  font-size:11.5px;font-weight:550;color:var(--accent);background:var(--accent-lt);
+  border:1px solid rgba(28,78,158,.15);border-radius:var(--r-sm);
+  padding:3px 8px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:4px;transition:all var(--t);
+}
+.btn-view-source:hover{background:var(--accent);color:#fff;}
+.btn-view-source svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* Unavailable / Guardrail Alert Box */
+.guardrail-alert{
+  background:var(--warn-bg);border:1px solid var(--warn-border);
+  border-radius:var(--r-md);padding:12px 14px;display:flex;
+  align-items:flex-start;gap:10px;font-size:13px;color:var(--warn);
+  line-height:1.55;
+}
+.guardrail-alert svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px;}
+
+/* Input Box */
+.copilot-input-area{
+  padding:16px 24px;border-top:1px solid var(--border);
+  background:var(--surface);display:flex;flex-direction:column;
+  gap:8px;
+}
+.input-row{
+  display:flex;align-items:center;gap:10px;
+}
+.copilot-input{
+  flex:1;height:42px;padding:0 14px;
+  font-family:var(--font);font-size:13.5px;color:var(--text);
+  background:var(--surface2);border:1px solid var(--border-s);
+  border-radius:var(--r-md);outline:none;
+  transition:border-color var(--t),box-shadow var(--t),background var(--t);
+}
+.copilot-input:focus{
+  border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 3px var(--accent-sub);
+}
+
+.btn-send{
+  height:42px;padding:0 18px;background:var(--accent);
+  color:#fff;border:none;border-radius:var(--r-md);
+  font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t);
+}
+.btn-send:hover{background:var(--accent-h);transform:translateY(-1px);}
+.btn-send svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;}
+
+.input-disclaimer{
+  font-size:11.5px;color:var(--text3);display:flex;
+  align-items:center;justify-content:space-between;
+}
+
+/* ── Badges ───────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;border-radius:12px;padding:3px 9px;
+  white-space:nowrap;
+}
+.badge-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border);}
+.badge-err{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.badge-neutral{background:var(--neutral-bg);color:var(--text2);border:1px solid var(--border-s);}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── Source Detail Slide-over / Modal ─────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  z-index:90;opacity:0;visibility:hidden;
+  transition:opacity .2s ease,visibility .2s;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{opacity:1;visibility:visible;}
+
+.source-modal{
+  background:var(--surface);border:1px solid var(--border-s);
+  border-radius:var(--r-lg);width:540px;max-width:100%;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+  display:flex;flex-direction:column;
+  transform:scale(0.96);transition:transform .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-overlay.open .source-modal{transform:scale(1);}
+
+.modal-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);
+}
+.modal-id-badge{
+  font-family:var(--font-mono);font-size:11.5px;font-weight:600;
+  color:var(--text2);background:var(--surface);border:1px solid var(--border);
+  padding:2px 8px;border-radius:4px;
+}
+.modal-close-btn{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  background:transparent;border:1px solid var(--border-s);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);transition:all var(--t);
+}
+.modal-close-btn:hover{background:var(--surface);color:var(--text);}
+.modal-close-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.modal-body{
+  padding:22px;display:flex;flex-direction:column;gap:16px;
+  max-height:75vh;overflow-y:auto;
+}
+.modal-source-title{
+  font-size:15px;font-weight:700;color:var(--text);line-height:1.35;
+}
+.modal-meta-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;font-size:12px;
+}
+.mm-item{display:flex;flex-direction:column;gap:2px;}
+.mm-lbl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3);}
+.mm-val{color:var(--text);font-weight:550;}
+
+.modal-excerpt{
+  background:var(--surface2);border-left:3px solid var(--accent);
+  padding:12px 14px;border-radius:0 var(--r-md) var(--r-md) 0;
+  font-size:12.5px;color:var(--text);line-height:1.6;font-style:italic;
+}
+.modal-citation{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--text2);
+  background:var(--surface3);padding:10px 12px;border-radius:var(--r-sm);
+  line-height:1.5;word-break:break-word;
+}
+
+.modal-footer{
+  padding:12px 20px;border-top:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:center;
+  justify-content:space-between;gap:10px;
+}
+
+/* ── Mobile Sidebar Overlay ───────────────────────── */
+.sb-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  z-index:49;
+}
+.sb-overlay.visible{display:block;}
+</style>
+</head>
+<body>
+
+<!-- ── Mobile Sidebar Overlay ────────────────────────── -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ── Persistent Left Sidebar ───────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a href="evidencex.html" class="sb-logo">
+    <div class="sb-mark">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+    </div>
+    EvidenceX
+  </a>
+
+  <div class="sb-sec">
+    <div class="sb-lbl" data-i18n="nav.workspace">Workspace</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidencex.html">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="nav.home">Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="verification-center.html">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
+          <span data-i18n="nav.verify">Verify</span>
+        </a>
+      </li>
+      <li>
+        <a href="results.html">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span data-i18n="nav.results">Results</span>
+          <span class="sb-badge">1</span>
+        </a>
+      </li>
+      <li>
+        <a href="investigation.html">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span data-i18n="nav.investigations">Investigations</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.tools">Tools</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="evidence-explorer.html">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="nav.evidence">Evidence</span>
+        </a>
+      </li>
+      <li>
+        <a href="evidence-timeline.html">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span data-i18n="nav.timeline">Timeline</span>
+        </a>
+      </li>
+      <li>
+        <a href="analytics.html">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
+        </a>
+      </li>
+      <li>
+        <!-- HIGHLIGHTED ACTIVE AI COPILOT -->
+        <a href="copilot.html" class="active">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span data-i18n="nav.copilot">AI Copilot</span>
+          <span class="sb-badge" style="background:var(--ok);">RAG</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sb-lbl" style="margin-top:14px;" data-i18n="nav.account">Account</div>
+    <ul class="sb-nav">
+      <li>
+        <a href="settings.html">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span data-i18n="nav.settings">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:550;color:var(--text);">Ananya Kumar</div>
+        <div style="font-size:11px;color:var(--text3);" data-i18n="role.analyst">Research Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main Workspace ─────────────────────────────────── -->
+<div class="main">
+
+  <!-- Sticky Topbar -->
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenuBtn" aria-label="Open menu">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-left">
+      <div class="tb-title" data-i18n="page.title">EvidenceX Copilot</div>
+      <div class="tb-sub" data-i18n="page.sub">Evidence-grounded assistant for investigation INV-2026-0847.</div>
+    </div>
+    <div class="tb-right">
+      <div class="guardrail-pill" data-i18n="top.grounding">Strict Evidence Grounding</div>
+      <select class="lang-sel" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+      <button class="ctrl" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Page Body: Two-Column Research Workspace -->
+  <main class="page">
+
+    <!-- ── LEFT: Investigation Context ───────────────── -->
+    <aside class="context-column">
+      <div class="context-card">
+        <div class="cc-header">
+          <span class="cc-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span data-i18n="ctx.title">Investigation Context</span>
+          </span>
+          <span class="inv-tag">INV-2026-0847</span>
+        </div>
+
+        <!-- Active Claim -->
+        <div class="claim-box">
+          <span class="cb-lbl" data-i18n="ctx.claimlbl">Target Claim 01</span>
+          <p class="cb-text" id="contextClaimText">
+            "Regular exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies."
+          </p>
+        </div>
+
+        <!-- Verdict & Confidence -->
+        <div class="verdict-box">
+          <div class="vb-row">
+            <span class="vb-lbl" data-i18n="ctx.verdict">Verdict</span>
+            <span class="badge badge-ok"><span class="badge-dot"></span>Mostly Supported</span>
+          </div>
+          <div class="vb-row">
+            <span class="vb-lbl" data-i18n="ctx.conf">Confidence</span>
+            <span class="vb-confidence">88%</span>
+          </div>
+          <div class="conf-track"><div class="conf-fill"></div></div>
+        </div>
+
+        <!-- Evidence Breakdown Counts -->
+        <div class="evidence-mini-counts">
+          <div class="emc-item">
+            <span class="emc-num" style="color:var(--ok);">11</span>
+            <span class="emc-lbl" data-i18n="ctx.supporting">Supporting</span>
+          </div>
+          <div class="emc-item">
+            <span class="emc-num" style="color:var(--err);">4</span>
+            <span class="emc-lbl" data-i18n="ctx.contradicting">Contra</span>
+          </div>
+          <div class="emc-item">
+            <span class="emc-num" style="color:var(--warn);">3</span>
+            <span class="emc-lbl" data-i18n="ctx.inconclusive">Inconcl.</span>
+          </div>
+        </div>
+
+        <!-- Top Indexed Sources -->
+        <div class="key-sources-section">
+          <span class="kss-title" data-i18n="ctx.keysources">Key Evidence Sources (18 Indexed)</span>
+          <div class="kss-list">
+            <div class="source-mini-item" onclick="openSourceModal('SRC-01')">
+              <span class="smi-name">American Heart Association (2023)</span>
+              <span class="badge badge-ok">94%</span>
+            </div>
+            <div class="source-mini-item" onclick="openSourceModal('SRC-02')">
+              <span class="smi-name">Cochrane Systematic Review (2021)</span>
+              <span class="badge badge-ok">96%</span>
+            </div>
+            <div class="source-mini-item" onclick="openSourceModal('SRC-03')">
+              <span class="smi-name">WHO Physical Activity Guidelines (2022)</span>
+              <span class="badge badge-ok">98%</span>
+            </div>
+            <div class="source-mini-item" onclick="openSourceModal('SRC-04')">
+              <span class="smi-name">Univ. of Alabama Huntsville (2018)</span>
+              <span class="badge badge-err">72%</span>
+            </div>
+            <div class="source-mini-item" onclick="openSourceModal('SRC-05')">
+              <span class="smi-name">British Medical Journal Editorial (2022)</span>
+              <span class="badge badge-err">82%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);padding-top:12px;">
+          <a href="results.html" style="font-size:12px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span data-i18n="ctx.link.results">View Complete Results Dashboard</span>
+          </a>
+          <a href="evidence-explorer.html" style="font-size:12px;color:var(--text2);text-decoration:none;display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span data-i18n="ctx.link.explorer">Inspect All 18 Sources in Explorer</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── RIGHT: Copilot Workspace ──────────────────── -->
+    <section class="copilot-column">
+      <div class="copilot-main-card">
+
+        <!-- Copilot Header -->
+        <div class="copilot-header">
+          <div class="ch-top-row">
+            <h1 class="ch-title">
+              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>EvidenceX Copilot</span>
+            </h1>
+            <span style="font-size:11.5px;color:var(--text3);font-family:var(--font-mono);">RAG Engine · v2.4</span>
+          </div>
+          <p class="ch-desc" data-i18n="cp.desc">
+            Ask questions about the evidence collected for this investigation. Responses are strictly grounded in indexed sources with traceable citations.
+          </p>
+        </div>
+
+        <!-- Suggested Questions Bar -->
+        <div class="suggested-bar">
+          <span class="sb-title" data-i18n="cp.suggested">Suggested Investigation Queries:</span>
+          <div class="suggested-pills">
+            <button class="sq-pill" onclick="handleSuggestedQuery('Why was this claim supported?')">
+              "Why was this claim supported?"
+            </button>
+            <button class="sq-pill" onclick="handleSuggestedQuery('Which source is strongest?')">
+              "Which source is strongest?"
+            </button>
+            <button class="sq-pill" onclick="handleSuggestedQuery('What evidence contradicts the claim?')">
+              "What evidence contradicts the claim?"
+            </button>
+            <button class="sq-pill" onclick="handleSuggestedQuery('What evidence is still missing?')">
+              "What evidence is still missing?"
+            </button>
+            <button class="sq-pill" onclick="handleSuggestedQuery('Summarize the investigation.')">
+              "Summarize the investigation."
+            </button>
+          </div>
+        </div>
+
+        <!-- Interaction Q&A Stream -->
+        <div class="qa-stream" id="qaStream">
+          <!-- Initial Default Q&A (Pre-loaded to immediately show format) -->
+          <div class="user-query-block">
+            <div class="query-avatar">AK</div>
+            <div class="query-content">
+              <div class="query-author">Ananya Kumar · Research Analyst</div>
+              <div class="query-text">Why was this claim supported?</div>
+            </div>
+          </div>
+
+          <div class="copilot-response-block">
+            <div class="cr-header">
+              <span class="cr-badge">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="cr.badge">Evidence-Grounded Synthesis</span>
+              </span>
+              <span class="cr-time">14:21:05 · Investigation INV-2026-0847</span>
+            </div>
+
+            <div class="cr-text">
+              <p>
+                Claim 01 was determined to be <strong>Mostly Supported</strong> with an <strong>88% confidence score</strong> because multiple independent clinical trials and public health bodies confirm that regular aerobic exercise reduces cardiovascular risk by up to 35%.
+              </p>
+              <p>
+                Specifically, the American Heart Association <span class="citation-ref" onclick="openSourceModal('SRC-01')">[SRC-01: AHA 2023]</span> and the Cochrane Systematic Review <span class="citation-ref" onclick="openSourceModal('SRC-02')">[SRC-02: Cochrane 2021]</span> document relative risk reductions between 30% and 35% across 28 randomized trials. The World Health Organization <span class="citation-ref" onclick="openSourceModal('SRC-03')">[SRC-03: WHO 2022]</span> also incorporates this benchmark.
+              </p>
+              <p>
+                However, EvidenceX added a "mostly" qualification rather than declaring absolute verification because this 35% ceiling is contingent upon completing at least <strong>150 minutes of moderate aerobic activity weekly</strong>, rather than minimal casual movement.
+              </p>
+            </div>
+
+            <!-- Cited Evidence Deck -->
+            <div class="cited-evidence-deck">
+              <span class="ced-title">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span data-i18n="ced.title">Cited Sources (3 Verified)</span>
+              </span>
+
+              <div class="cited-source-card">
+                <div class="csc-top">
+                  <span class="csc-title">Physical Activity and CVD Prevention Guidelines · Circulation</span>
+                  <span class="badge badge-ok">Supporting</span>
+                </div>
+                <div class="csc-excerpt">
+                  "Adherence to 150 minutes per week of aerobic exercise reduces cardiovascular events by up to 35%."
+                </div>
+                <div class="csc-footer">
+                  <span style="font-size:11px;color:var(--text3);">American Heart Association · 2023</span>
+                  <button class="btn-view-source" onclick="openSourceModal('SRC-01')">
+                    <span data-i18n="ced.view">View Source</span>
+                    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="cited-source-card">
+                <div class="csc-top">
+                  <span class="csc-title">Exercise Interventions in CVD: Cochrane Systematic Review</span>
+                  <span class="badge badge-ok">Supporting</span>
+                </div>
+                <div class="csc-excerpt">
+                  "Meta-analysis across 28 randomized controlled trials demonstrates consistent 30% to 35% relative risk reduction."
+                </div>
+                <div class="csc-footer">
+                  <span style="font-size:11px;color:var(--text3);">Cochrane Library · Nov 2021</span>
+                  <button class="btn-view-source" onclick="openSourceModal('SRC-02')">
+                    <span data-i18n="ced.view">View Source</span>
+                    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Box Area -->
+        <div class="copilot-input-area">
+          <form class="input-row" id="copilotForm" onsubmit="event.preventDefault(); submitUserQuery();">
+            <input
+              type="text"
+              class="copilot-input"
+              id="copilotInput"
+              placeholder="Ask about this investigation..."
+              data-i18n-ph="input.placeholder"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="submit" class="btn-send" id="btnSend">
+              <span data-i18n="btn.ask">Ask</span>
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+          <div class="input-disclaimer">
+            <span data-i18n="input.disclaimer">EvidenceX Copilot strictly cites sources indexed in INV-2026-0847 and does not generate speculative assertions.</span>
+            <button onclick="clearChatStream()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;" data-i18n="btn.clear">Reset Feed</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Source Details Modal / Slide-over ─────────────── -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
+  <div class="source-modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="modal-id-badge" id="modalSourceId">SRC-01</span>
+        <span class="badge badge-ok" id="modalStanceBadge">Supporting</span>
+      </div>
+      <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <h3 class="modal-source-title" id="modalSourceTitle">Source Title</h3>
+
+      <div class="modal-meta-grid">
+        <div class="mm-item">
+          <span class="mm-lbl" data-i18n="mm.pub">Publisher</span>
+          <span class="mm-val" id="modalPublisher">American Heart Association</span>
+        </div>
+        <div class="mm-item">
+          <span class="mm-lbl" data-i18n="mm.date">Publication Date</span>
+          <span class="mm-val" id="modalDate">March 2023</span>
+        </div>
+        <div class="mm-item">
+          <span class="mm-lbl" data-i18n="mm.type">Source Classification</span>
+          <span class="mm-val" id="modalType">Peer-reviewed Research</span>
+        </div>
+        <div class="mm-item">
+          <span class="mm-lbl" data-i18n="mm.auth">Authority Score</span>
+          <span class="mm-val" id="modalAuthority">94% (Tier 1 Authority)</span>
+        </div>
+      </div>
+
+      <div class="modal-excerpt" id="modalExcerpt">
+        "Relevant excerpt from the publication."
+      </div>
+
+      <div class="modal-citation" id="modalCitation">
+        APA Citation
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href="evidence-explorer.html" class="btn-view-source" style="padding:6px 12px;font-size:12px;">
+        <span data-i18n="mm.openexplorer">Open in Evidence Explorer</span>
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <button class="ctrl" onclick="closeSourceModal()" style="height:28px;" data-i18n="mm.close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── JavaScript Engine ─────────────────────────────── -->
+<script>
+/* ── Localization Dictionary ──────────────────────── */
+const i18n = {
+  en: {
+    'nav.workspace':'Workspace','nav.home':'Home','nav.verify':'Verify',
+    'nav.results':'Results','nav.investigations':'Investigations',
+    'nav.tools':'Tools','nav.evidence':'Evidence','nav.timeline':'Timeline',
+    'nav.analytics':'Analytics','nav.copilot':'AI Copilot','nav.account':'Account','nav.settings':'Settings',
+    'role.analyst':'Research Analyst',
+    'page.title':'EvidenceX Copilot',
+    'page.sub':'Evidence-grounded assistant for investigation INV-2026-0847.',
+    'top.grounding':'Strict Evidence Grounding',
+    'ctx.title':'Investigation Context','ctx.claimlbl':'Target Claim 01',
+    'ctx.verdict':'Verdict','ctx.conf':'Confidence',
+    'ctx.supporting':'Supporting','ctx.contradicting':'Contra','ctx.inconclusive':'Inconcl.',
+    'ctx.keysources':'Key Evidence Sources (18 Indexed)',
+    'ctx.link.results':'View Complete Results Dashboard',
+    'ctx.link.explorer':'Inspect All 18 Sources in Explorer',
+    'cp.desc':'Ask questions about the evidence collected for this investigation. Responses are strictly grounded in indexed sources with traceable citations.',
+    'cp.suggested':'Suggested Investigation Queries:',
+    'cr.badge':'Evidence-Grounded Synthesis',
+    'ced.title':'Cited Sources',
+    'ced.view':'View Source',
+    'input.placeholder':'Ask about this investigation...',
+    'btn.ask':'Ask','btn.clear':'Reset Feed',
+    'input.disclaimer':'EvidenceX Copilot strictly cites sources indexed in INV-2026-0847 and does not generate speculative assertions.',
+    'mm.pub':'Publisher','mm.date':'Publication Date','mm.type':'Source Classification',
+    'mm.auth':'Authority Score','mm.openexplorer':'Open in Evidence Explorer','mm.close':'Close'
+  },
+  hi: {
+    'nav.workspace':'कार्यक्षेत्र','nav.home':'होम','nav.verify':'सत्यापन',
+    'nav.results':'परिणाम','nav.investigations':'जांच',
+    'nav.tools':'टूल्स','nav.evidence':'साक्ष्य','nav.timeline':'समयरेखा',
+    'nav.analytics':'विश्लेषण','nav.copilot':'AI सहायक','nav.account':'खाता','nav.settings':'सेटिंग्स',
+    'role.analyst':'शोध विश्लेषक',
+    'page.title':'EvidenceX सहायक (Copilot)',
+    'page.sub':'जांच INV-2026-0847 के लिए साक्ष्य-आधारित विश्लेषक सहायक।',
+    'top.grounding':'सख्त साक्ष्य आधार',
+    'ctx.title':'जांच संदर्भ','ctx.claimlbl':'लक्षित दावा 01',
+    'ctx.verdict':'निर्णय','ctx.conf':'विश्वास',
+    'ctx.supporting':'समर्थक','ctx.contradicting':'विरोधी','ctx.inconclusive':'अनिर्णायक',
+    'ctx.keysources':'प्रमुख साक्ष्य स्रोत (18 अनुक्रमित)',
+    'ctx.link.results':'संपूर्ण परिणाम डैशबोर्ड देखें',
+    'ctx.link.explorer':'अन्वेषक में सभी 18 स्रोत देखें',
+    'cp.desc':'इस जांच के लिए एकत्र किए गए साक्ष्यों के बारे में प्रश्न पूछें। उत्तर अनुक्रमित स्रोतों के आधार पर सत्यापित उद्धरणों के साथ दिए जाते हैं।',
+    'cp.suggested':'सुझाए गए जांच प्रश्न:',
+    'cr.badge':'साक्ष्य-आधारित संश्लेषण',
+    'ced.title':'उद्धृत स्रोत',
+    'ced.view':'स्रोत देखें',
+    'input.placeholder':'इस जांच के बारे में पूछें...',
+    'btn.ask':'पूछें','btn.clear':'रीसेट करें',
+    'input.disclaimer':'EvidenceX Copilot केवल INV-2026-0847 में अनुक्रमित स्रोतों को उद्धृत करता है और काल्पनिक दावे नहीं करता।',
+    'mm.pub':'प्रकाशक','mm.date':'प्रकाशन तिथि','mm.type':'स्रोत वर्गीकरण',
+    'mm.auth':'प्राधिकरण स्कोर','mm.openexplorer':'साक्ष्य अन्वेषक में खोलें','mm.close':'बंद करें'
+  }
+};
+
+let currentLang = 'en';
+function t(k){ return (i18n[currentLang]||i18n.en)[k] || k; }
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if(t(k)) el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.dataset.i18nPh;
+    if(t(k)) el.placeholder = t(k);
+  });
+
+  localStorage.setItem('ex-lang', lang);
+}
+
+/* ── Theme Handling ───────────────────────────────── */
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  const dark = th === 'dark';
+  document.getElementById('icon-sun').style.display = dark ? 'block' : 'none';
+  document.getElementById('icon-moon').style.display = dark ? 'none' : 'block';
+  localStorage.setItem('ex-theme', th);
+}
+(function(){
+  const s = localStorage.getItem('ex-theme');
+  const sys = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(s || (sys ? 'dark' : 'light'));
+})();
+document.getElementById('themeToggle').onclick = () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+
+(function(){
+  const l = localStorage.getItem('ex-lang') || 'en';
+  document.getElementById('langSelect').value = l;
+  applyLang(l);
+})();
+document.getElementById('langSelect').onchange = function(){ applyLang(this.value); };
+
+/* ── Knowledge Base (Investigation INV-2026-0847) ── */
+const SOURCES_INDEX = {
+  'SRC-01': {
+    id: 'SRC-01',
+    title: 'Physical Activity and Cardiovascular Disease Prevention Guidelines',
+    publisher: 'American Heart Association (Circulation)',
+    date: 'March 2023',
+    type: 'Peer-reviewed Research',
+    authority: 94,
+    stance: 'Supporting',
+    badgeClass: 'badge-ok',
+    excerpt: 'Adherence to 150 minutes per week of moderate aerobic exercise reduces cardiovascular events by up to 35% compared to sedentary cohorts across multi-year observation.',
+    citation: 'American Heart Association. (2023). Circulation, 147(11), 112–129.'
+  },
+  'SRC-02': {
+    id: 'SRC-02',
+    title: 'Exercise Interventions in Cardiovascular Disease: Systematic Review of 28 Trials',
+    publisher: 'Cochrane Library',
+    date: 'November 2021',
+    type: 'Systematic Review / Meta-analysis',
+    authority: 96,
+    stance: 'Supporting',
+    badgeClass: 'badge-ok',
+    excerpt: 'Meta-analysis across 28 randomized controlled trials demonstrates consistent 30% to 35% relative risk reduction for coronary heart disease among active cohorts.',
+    citation: 'Taylor, R. S., et al. (2021). Cochrane Database of Systematic Reviews, Issue 11.'
+  },
+  'SRC-03': {
+    id: 'SRC-03',
+    title: 'WHO Global Guidelines on Physical Activity and Sedentary Behaviour',
+    publisher: 'World Health Organization (WHO)',
+    date: 'January 2022',
+    type: 'Official Institutional Guideline',
+    authority: 98,
+    stance: 'Supporting',
+    badgeClass: 'badge-ok',
+    excerpt: '150–300 minutes of moderate-intensity aerobic physical activity per week brings substantial health benefits, including 25–35% reduction in cardiovascular mortality.',
+    citation: 'World Health Organization. (2022). WHO Guidelines on Physical Activity, p. 44.'
+  },
+  'SRC-04': {
+    id: 'SRC-04',
+    title: 'Reassessment of Exercise-CVD Risk Quantification Using Satellite Datasets',
+    publisher: 'University of Alabama, Huntsville',
+    date: 'August 2018',
+    type: 'Methodological Study',
+    authority: 72,
+    stance: 'Contradicting',
+    badgeClass: 'badge-err',
+    excerpt: 'When passive accelerometer datasets replace self-reported recall questionnaires, general population risk reduction hovers between 18% and 22%, challenging blanket 35% claims.',
+    citation: 'Christy, J. R., & Spencer, R. W. (2018). Journal of Applied Biometrics, 32(4).'
+  },
+  'SRC-05': {
+    id: 'SRC-05',
+    title: 'Precision Limits of Exercise-Cardiovascular Benefit Claims: An Editorial Critique',
+    publisher: 'British Medical Journal (BMJ)',
+    date: 'February 2022',
+    type: 'Expert Editorial',
+    authority: 82,
+    stance: 'Contradicting',
+    badgeClass: 'badge-err',
+    excerpt: 'While 35% risk reduction is mathematically documented under optimal training conditions, presenting this as a standard expectation without duration prerequisites misinforms the public.',
+    citation: 'Gartlehner, G. (2022). BMJ, 376, o389.'
+  },
+  'SRC-07': {
+    id: 'SRC-07',
+    title: 'Cardiovascular Health Across the Lifespan: Age-Stratified Intervention Meta-Analysis',
+    publisher: 'The Lancet Healthy Longevity',
+    date: 'May 2023',
+    type: 'Age Stratification Research',
+    authority: 95,
+    stance: 'Inconclusive',
+    badgeClass: 'badge-warn',
+    excerpt: 'Cohorts aged 30–50 demonstrated 32% relative risk reduction, while cohorts aged 75+ showed only 14% to 22% reduction, heavily confounded by preexisting arterial calcification.',
+    citation: 'Kohl, H. W., et al. (2023). The Lancet Healthy Longevity, 4(5).'
+  }
+};
+
+/* ── Pre-programmed Evidence-Grounded Answers ──────── */
+const COPILOT_RESPONSES = {
+  strongest: {
+    text: `Based on EvidenceX's methodological ranking across all 18 evaluated sources, the two strongest sources in this investigation are:
+1. <strong onclick="openSourceModal('SRC-03')">World Health Organization Guidelines (2022)</strong> <span class="citation-ref" onclick="openSourceModal('SRC-03')">[SRC-03: WHO]</span> with an authority rating of <strong>98%</strong>. It provides normative regulatory validation across international health ministries.
+2. <strong onclick="openSourceModal('SRC-02')">Cochrane Systematic Review (2021)</strong> <span class="citation-ref" onclick="openSourceModal('SRC-02')">[SRC-02: Cochrane]</span> with an authority rating of <strong>96%</strong>. It is the gold-standard clinical synthesis, pooling 28 randomized controlled trials with zero industry funding bias.
+Both sources independently substantiate the 30% to 35% risk attenuation interval under structured aerobic adherence.`,
+    cited: ['SRC-03', 'SRC-02']
+  },
+  contradicts: {
+    text: `Four sources in this investigation present contradicting or qualifying findings that challenge unconditional claims:
+1. <strong onclick="openSourceModal('SRC-04')">Christy & Spencer (UAH 2018)</strong> <span class="citation-ref" onclick="openSourceModal('SRC-04')">[SRC-04: UAH 2018]</span>: Proved that when passive wearable sensor data is used instead of subjective recall questionnaires, average population risk reduction is <strong>18% to 22%</strong>, refuting the claim that 35% is achieved casually.
+2. <strong onclick="openSourceModal('SRC-05')">British Medical Journal Editorial (2022)</strong> <span class="citation-ref" onclick="openSourceModal('SRC-05')">[SRC-05: BMJ]</span>: Critiques public health messaging for omitting workout prerequisites, noting that the 35% figure requires adherence to rigorous weekly thresholds.
+These sources do not dispute that exercise reduces cardiovascular risk, but they refute the claim that 35% applies without strict duration standards.`,
+    cited: ['SRC-04', 'SRC-05']
+  },
+  missing: {
+    text: `The primary evidentiary gap identified in this investigation relates to <strong>Claim 04 (Age and Demographics Universality)</strong>:
+According to <strong onclick="openSourceModal('SRC-07')">The Lancet Healthy Longevity (2023)</strong> <span class="citation-ref" onclick="openSourceModal('SRC-07')">[SRC-07: Lancet]</span>, scientific data is currently <strong>insufficient</strong> to substantiate that cardiovascular percentage gains apply uniformly across elderly cohorts (75+ years).
+While young-to-middle-aged cohorts consistently achieve 30–35% reduction, elderly cohorts with preexisting arterial calcification show wide, heterogeneous outcomes (14% to 22%). EvidenceX classified Claim 04 as "Insufficient Evidence" because clinical trials on multi-morbid elderly populations remain sparse.`,
+    cited: ['SRC-07']
+  },
+  summary: {
+    text: `<strong>Executive Investigation Summary (INV-2026-0847):</strong>
+- <strong>Target Claim:</strong> "Regular exercise reduces cardiovascular disease risk by up to 35%, as confirmed by multiple peer-reviewed studies."
+- <strong>Verdict:</strong> <strong>Mostly Supported</strong> (Confidence: <strong>88%</strong>).
+- <strong>Evidence Pool:</strong> 18 total sources evaluated (11 Supporting, 4 Contradicting, 3 Inconclusive).
+- <strong>Key Finding:</strong> High-authority cardiology literature <span class="citation-ref" onclick="openSourceModal('SRC-01')">[SRC-01: AHA]</span> <span class="citation-ref" onclick="openSourceModal('SRC-02')">[SRC-02: Cochrane]</span> validates the 35% threshold, but establishes that this benefit requires <strong>150+ minutes of moderate weekly exercise</strong>. Unconditional claims that this applies to casual walking without volume qualifiers are contradicted <span class="citation-ref" onclick="openSourceModal('SRC-04')">[SRC-04: UAH]</span>.`,
+    cited: ['SRC-01', 'SRC-02', 'SRC-04']
+  }
+};
+
+/* ── Stream & Query Handler ────────────────────────── */
+function submitUserQuery(){
+  const input = document.getElementById('copilotInput');
+  const query = input.value.trim();
+  if(!query) return;
+
+  input.value = '';
+  processQuery(query);
+}
+
+function handleSuggestedQuery(text){
+  processQuery(text);
+}
+
+function processQuery(query){
+  const stream = document.getElementById('qaStream');
+
+  // Render User Message Block
+  const userBlock = document.createElement('div');
+  userBlock.className = 'user-query-block';
+  userBlock.innerHTML = `
+    <div class="query-avatar">AK</div>
+    <div class="query-content">
+      <div class="query-author">Ananya Kumar · Research Analyst</div>
+      <div class="query-text">${escapeHtml(query)}</div>
+    </div>
+  `;
+  stream.appendChild(userBlock);
+
+  // Match Query or Fallback to Strict Guardrail
+  const qLower = query.toLowerCase();
+  let matchedResponse = null;
+
+  if(qLower.includes('why') && (qLower.includes('support') || qLower.includes('verdict'))){
+    matchedResponse = {
+      text: `Claim 01 was determined to be <strong>Mostly Supported</strong> with an <strong>88% confidence score</strong> because multiple independent clinical trials and public health bodies confirm that regular aerobic exercise reduces cardiovascular risk by up to 35% <span class="citation-ref" onclick="openSourceModal('SRC-01')">[SRC-01: AHA]</span> <span class="citation-ref" onclick="openSourceModal('SRC-02')">[SRC-02: Cochrane]</span>. However, the 35% ceiling is contingent upon completing at least 150 minutes of moderate aerobic activity weekly.`,
+      cited: ['SRC-01', 'SRC-02', 'SRC-03']
+    };
+  } else if(qLower.includes('strongest') || qLower.includes('best source') || qLower.includes('top source')){
+    matchedResponse = COPILOT_RESPONSES.strongest;
+  } else if(qLower.includes('contradict') || qLower.includes('refut') || qLower.includes('oppose') || qLower.includes('against')){
+    matchedResponse = COPILOT_RESPONSES.contradicts;
+  } else if(qLower.includes('missing') || qLower.includes('insufficient') || qLower.includes('gap') || qLower.includes('age')){
+    matchedResponse = COPILOT_RESPONSES.missing;
+  } else if(qLower.includes('summar') || qLower.includes('overview') || qLower.includes('investigation')){
+    matchedResponse = COPILOT_RESPONSES.summary;
+  }
+
+  // Response Block
+  const respBlock = document.createElement('div');
+  respBlock.className = 'copilot-response-block';
+
+  const timeStr = new Date().toTimeString().slice(0, 8);
+
+  if(matchedResponse){
+    let citedDeckHtml = '';
+    if(matchedResponse.cited && matchedResponse.cited.length > 0){
+      const cardsHtml = matchedResponse.cited.map(srcId => {
+        const s = SOURCES_INDEX[srcId];
+        if(!s) return '';
+        return `
+          <div class="cited-source-card">
+            <div class="csc-top">
+              <span class="csc-title">${s.title}</span>
+              <span class="badge ${s.badgeClass}">${s.stance}</span>
+            </div>
+            <div class="csc-excerpt">"${s.excerpt}"</div>
+            <div class="csc-footer">
+              <span style="font-size:11px;color:var(--text3);">${s.publisher} · ${s.date}</span>
+              <button class="btn-view-source" onclick="openSourceModal('${s.id}')">
+                <span>${t('ced.view')}</span>
+                <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      citedDeckHtml = `
+        <div class="cited-evidence-deck">
+          <span class="ced-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span>${t('ced.title')} (${matchedResponse.cited.length} Verified)</span>
+          </span>
+          ${cardsHtml}
+        </div>
+      `;
+    }
+
+    respBlock.innerHTML = `
+      <div class="cr-header">
+        <span class="cr-badge">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>${t('cr.badge')}</span>
+        </span>
+        <span class="cr-time">${timeStr} · Investigation INV-2026-0847</span>
+      </div>
+      <div class="cr-text">${matchedResponse.text}</div>
+      ${citedDeckHtml}
+    `;
+  } else {
+    // Strict Guardrail Trigger
+    respBlock.innerHTML = `
+      <div class="cr-header">
+        <span class="cr-badge" style="color:var(--warn);">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Evidence Limitation</span>
+        </span>
+        <span class="cr-time">${timeStr}</span>
+      </div>
+      <div class="guardrail-alert">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <strong>I don't have enough evidence in this investigation to answer that reliably.</strong>
+          <div style="margin-top:4px;color:var(--text2);font-size:12.5px;">
+            This Copilot is strictly confined to the 18 sources evaluated for investigation <strong>INV-2026-0847</strong> regarding aerobic exercise and cardiovascular disease risk. To research a new topic, please launch a new query from the <a href="verification-center.html" style="color:var(--accent);font-weight:600;">Verification Center</a>.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  stream.appendChild(respBlock);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function clearChatStream(){
+  const stream = document.getElementById('qaStream');
+  stream.innerHTML = `
+    <div style="padding:16px;text-align:center;font-size:12.5px;color:var(--text3);background:var(--surface2);border-radius:var(--r-md);border:1px dashed var(--border);">
+      Investigation feed reset. Select a suggested query or type a question below.
+    </div>
+  `;
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ── Source Detail Modal ──────────────────────────── */
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+function openSourceModal(sourceId){
+  const src = SOURCES_INDEX[sourceId];
+  if(!src) return;
+
+  document.getElementById('modalSourceId').textContent = src.id;
+  document.getElementById('modalSourceTitle').textContent = src.title;
+  document.getElementById('modalPublisher').textContent = src.publisher;
+  document.getElementById('modalDate').textContent = src.date;
+  document.getElementById('modalType').textContent = src.type;
+  document.getElementById('modalAuthority').textContent = `${src.authority}% (Tier 1 Evidence)`;
+  document.getElementById('modalExcerpt').textContent = `"${src.excerpt}"`;
+  document.getElementById('modalCitation').textContent = src.citation;
+
+  const badgeEl = document.getElementById('modalStanceBadge');
+  badgeEl.className = `badge ${src.badgeClass}`;
+  badgeEl.textContent = src.stance;
+
+  modalOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSourceModal(){
+  modalOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+modalCloseBtn.onclick = closeSourceModal;
+modalOverlay.addEventListener('click', (e) => {
+  if(e.target === modalOverlay) closeSourceModal();
+});
+window.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && modalOverlay.classList.contains('open')) closeSourceModal();
+});
+
+/* ── Mobile Sidebar Drawer ────────────────────────── */
+const sbOverlay = document.getElementById('sbOverlay');
+const sidebar = document.getElementById('sidebar');
+document.getElementById('mobileMenuBtn').onclick = () => {
+  sidebar.classList.toggle('open');
+  sbOverlay.classList.toggle('visible');
+};
+sbOverlay.onclick = () => {
+  sidebar.classList.remove('open');
+  sbOverlay.classList.remove('visible');
+};
+</script>
+</body>
+</html>
