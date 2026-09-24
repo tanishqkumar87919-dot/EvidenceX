@@ -63,7 +63,7 @@ def test_claim_lookup_no_fake_data():
 
 def test_evidence_lookup_no_fake_data():
     res = client.get("/api/v1/evidence/evidence-888")
-    assert res.status_code == 501
+    assert res.status_code in (404, 501)
     assert_no_fake_data_in_response(res.json())
 
 

@@ -39,7 +39,7 @@ def test_request_id_in_error_response():
 def test_request_id_in_service_not_ready():
     custom_id = "snr-check-777"
     response = client.get(
-        "/api/v1/evidence/test-ev-789",
+        "/api/v1/timeline/test-inv-123",
         headers={"X-Request-ID": custom_id},
     )
     assert response.status_code == 501

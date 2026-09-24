@@ -37,7 +37,7 @@ async def get_system_status(request: Request) -> Dict[str, Any]:
             "speech_to_text": "phase_3_ready",
             "ocr_vision": "phase_3_ready",
             "claim_extractor": "phase_4_ready",
-            "evidence_retrieval": "phase_1_contract_only",
+            "evidence_retrieval": "phase_5_ready",
             "nli_verifier": "phase_1_contract_only",
         },
         "limits": {

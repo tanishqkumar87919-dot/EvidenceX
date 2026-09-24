@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from backend.app.database.models import ClaimModel, InvestigationModel
+from backend.app.database.models import ClaimModel, EvidenceModel, InvestigationModel, SourceModel
 from backend.app.database.session import SessionLocal
 from backend.app.main import app
 
@@ -15,6 +15,12 @@ def test_api_v1_routes_exist():
             db.commit()
         if not db.get(ClaimModel, "test-claim-456"):
             db.add(ClaimModel(id="test-claim-456", investigation_id="test-inv-123", claim_text="Test routing claim"))
+            db.commit()
+        if not db.get(SourceModel, "test-src-123"):
+            db.add(SourceModel(id="test-src-123", url="https://example.com/routing-test", title="Test Routing Source"))
+            db.commit()
+        if not db.get(EvidenceModel, "test-ev-789"):
+            db.add(EvidenceModel(id="test-ev-789", claim_id="test-claim-456", source_id="test-src-123", exact_relevant_excerpt="Test routing evidence excerpt", relationship_type="SUPPORTING"))
             db.commit()
     finally:
         db.close()

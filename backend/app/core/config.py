@@ -84,6 +84,21 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str = ""
     GEMINI_API_KEY: str = ""
 
+    # Web Search Provider (Phase 5)
+    WEB_SEARCH_PROVIDER: str = "duckduckgo"  # options: duckduckgo, tavily, google, mock
+    WEB_SEARCH_API_KEY: str = ""
+    WEB_SEARCH_MAX_RESULTS: int = 5
+
+    # Embedding Provider & RAG Vector Intelligence (Phase 5)
+    EMBEDDING_PROVIDER: str = "gemini"  # options: gemini, openai, local, mock
+    EMBEDDING_MODEL: str = "gemini-embedding-001"
+    EMBEDDING_DIMENSIONS: int = 768
+    EMBEDDING_API_KEY: str = ""
+    RAG_CHUNK_SIZE: int = 600
+    RAG_CHUNK_OVERLAP: int = 100
+    RAG_TOP_K: int = 4
+    RAG_SIMILARITY_THRESHOLD: float = 0.30
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),
         case_sensitive=True,

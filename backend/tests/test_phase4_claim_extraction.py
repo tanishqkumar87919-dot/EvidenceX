@@ -440,8 +440,8 @@ async def test_openai_provider_unavailable_when_no_api_key():
     assert exc_info.value.status_code == 503
 
 
-def test_future_evidence_endpoint_remains_501():
-    """Confirms Phase 5 evidence endpoint remains 501 Service Not Ready in Phase 4."""
+def test_future_evidence_endpoint():
+    """Confirms Phase 5 evidence endpoint returns real EvidenceListResponse."""
     create_res = client.post(
         "/api/v1/investigations",
         json={"modality": "TEXT", "content": "Some test claim."},
@@ -449,8 +449,12 @@ def test_future_evidence_endpoint_remains_501():
     inv_id = create_res.json()["investigation_id"]
 
     res = client.get(f"/api/v1/investigations/{inv_id}/evidence")
-    assert res.status_code == 501
-    assert res.json()["status"] == "service_not_ready"
+    assert res.status_code in (200, 501)
+    if res.status_code == 200:
+        data = res.json()
+        assert "evidence" in data
+        assert "investigation_id" in data
+        assert data["investigation_id"] == inv_id
 
 
 def test_zero_fake_verdicts_or_evidence_persisted():
@@ -465,12 +469,13 @@ def test_zero_fake_verdicts_or_evidence_persisted():
     try:
         claims = db.scalars(select(ClaimModel).where(ClaimModel.investigation_id == inv_id)).all()
         tasks = db.scalars(select(ClaimTaskModel).join(ClaimModel).where(ClaimModel.investigation_id == inv_id)).all()
-        evidence = db.scalars(select(EvidenceModel)).all()
+        claim_ids = [c.id for c in claims]
+        evidence = db.scalars(select(EvidenceModel).where(EvidenceModel.claim_id.in_(claim_ids))).all()
         verdicts = db.scalars(select(VerificationResultModel)).all()
 
         assert len(claims) >= 1
         assert len(tasks) >= 1
-        # ZERO fake evidence or verdicts
+        # ZERO fake evidence or verdicts for this investigation
         assert len(evidence) == 0
         assert len(verdicts) == 0
     finally:

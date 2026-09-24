@@ -27,6 +27,10 @@ class InvestigationCreateRequest(BaseModel):
         default=EvidencePreference.BALANCED,
         description="Evidence source preference.",
     )
+    retrieve_evidence: bool = Field(
+        default=False,
+        description="Whether to immediately execute evidence retrieval after claim extraction.",
+    )
 
 
 class InvestigationStatusResponse(BaseModel):

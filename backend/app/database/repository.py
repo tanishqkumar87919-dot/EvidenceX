@@ -10,6 +10,7 @@ from .models import (
     ClaimModel,
     ClaimTaskModel,
     CopilotMessageModel,
+    EvidenceChunkModel,
     EvidenceModel,
     InputModel,
     InvestigationModel,
@@ -285,10 +286,35 @@ class InvestigationRepository:
         publisher: Optional[str] = None,
         domain: Optional[str] = None,
         publication_date: Optional[datetime] = None,
+        author: Optional[str] = None,
+        source_type: Optional[str] = None,
+        canonical_url: Optional[str] = None,
     ) -> SourceModel:
         stmt = select(SourceModel).where(SourceModel.url == url)
         existing = db.scalars(stmt).first()
         if existing:
+            updated = False
+            if title and not existing.title:
+                existing.title = title
+                updated = True
+            if publisher and not existing.publisher:
+                existing.publisher = publisher
+                updated = True
+            if author and not existing.author:
+                existing.author = author
+                updated = True
+            if source_type and not existing.source_type:
+                existing.source_type = source_type
+                updated = True
+            if canonical_url and not existing.canonical_url:
+                existing.canonical_url = canonical_url
+                updated = True
+            if publication_date and not existing.publication_date:
+                existing.publication_date = publication_date
+                updated = True
+            if updated:
+                db.commit()
+                db.refresh(existing)
             return existing
 
         source = SourceModel(
@@ -297,6 +323,9 @@ class InvestigationRepository:
             publisher=publisher,
             domain=domain,
             publication_date=publication_date,
+            author=author,
+            source_type=source_type,
+            canonical_url=canonical_url,
         )
         db.add(source)
         db.commit()
@@ -311,6 +340,8 @@ class InvestigationRepository:
         exact_relevant_excerpt: str,
         relationship: str = "SUPPORTING",
         relevance: Optional[float] = None,
+        source_assessment: Optional[Dict[str, Any]] = None,
+        temporal_information: Optional[Dict[str, Any]] = None,
     ) -> EvidenceModel:
         evidence = EvidenceModel(
             claim_id=claim_id,
@@ -318,6 +349,8 @@ class InvestigationRepository:
             exact_relevant_excerpt=exact_relevant_excerpt,
             relationship_type=relationship,
             relevance=relevance,
+            source_assessment=source_assessment or {},
+            temporal_information=temporal_information or {},
         )
         db.add(evidence)
         db.flush()
@@ -333,6 +366,110 @@ class InvestigationRepository:
         db.commit()
         db.refresh(evidence)
         return evidence
+
+    @staticmethod
+    def create_evidence_chunk(
+        db: Session,
+        investigation_id: str,
+        source_id: str,
+        content: str,
+        chunk_index: int = 0,
+        claim_id: Optional[str] = None,
+        heading: Optional[str] = None,
+        character_count: int = 0,
+        token_count: Optional[int] = None,
+        embedding: Optional[List[float]] = None,
+        embedding_model: Optional[str] = None,
+        metadata_json: Optional[Dict[str, Any]] = None,
+    ) -> EvidenceChunkModel:
+        chunk = EvidenceChunkModel(
+            investigation_id=investigation_id,
+            claim_id=claim_id,
+            source_id=source_id,
+            chunk_index=chunk_index,
+            content=content,
+            heading=heading,
+            character_count=character_count or len(content),
+            token_count=token_count or len(content.split()),
+            embedding=embedding,
+            embedding_model=embedding_model,
+            metadata_json=metadata_json or {},
+        )
+        db.add(chunk)
+        db.commit()
+        db.refresh(chunk)
+        return chunk
+
+    @staticmethod
+    def get_evidence_chunks_for_investigation(
+        db: Session, investigation_id: str
+    ) -> List[EvidenceChunkModel]:
+        stmt = (
+            select(EvidenceChunkModel)
+            .where(EvidenceChunkModel.investigation_id == investigation_id)
+            .order_by(EvidenceChunkModel.chunk_index.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_evidence_chunks_for_claim(
+        db: Session, claim_id: str
+    ) -> List[EvidenceChunkModel]:
+        stmt = (
+            select(EvidenceChunkModel)
+            .where(EvidenceChunkModel.claim_id == claim_id)
+            .order_by(EvidenceChunkModel.chunk_index.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_evidence_by_id(db: Session, evidence_id: str) -> Optional[EvidenceModel]:
+        return db.get(EvidenceModel, evidence_id)
+
+    @staticmethod
+    def get_evidence_for_claim(db: Session, claim_id: str) -> List[EvidenceModel]:
+        stmt = (
+            select(EvidenceModel)
+            .where(EvidenceModel.claim_id == claim_id)
+            .order_by(EvidenceModel.created_at.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_sources_for_investigation(db: Session, investigation_id: str) -> List[SourceModel]:
+        """Returns all distinct sources referenced by evidence or evidence_chunks for this investigation."""
+        stmt = (
+            select(SourceModel)
+            .join(EvidenceModel, EvidenceModel.source_id == SourceModel.id)
+            .join(ClaimModel, EvidenceModel.claim_id == ClaimModel.id)
+            .where(ClaimModel.investigation_id == investigation_id)
+            .distinct()
+        )
+        sources = list(db.scalars(stmt).all())
+        if not sources:
+            stmt2 = (
+                select(SourceModel)
+                .join(EvidenceChunkModel, EvidenceChunkModel.source_id == SourceModel.id)
+                .where(EvidenceChunkModel.investigation_id == investigation_id)
+                .distinct()
+            )
+            sources = list(db.scalars(stmt2).all())
+        return sources
+
+    @staticmethod
+    def update_claim_task_status(
+        db: Session,
+        task_id: str,
+        status: str = "completed",
+    ) -> Optional[ClaimTaskModel]:
+        task = db.get(ClaimTaskModel, task_id)
+        if task:
+            task.task_status = status
+            if status == "completed":
+                task.completion_time = now_utc()
+            db.commit()
+            db.refresh(task)
+        return task
 
     @staticmethod
     def get_evidence_for_investigation(db: Session, investigation_id: str) -> List[EvidenceModel]:

@@ -9,7 +9,7 @@ from .common import (
     VerificationDepth,
 )
 from .copilot import CopilotQueryRequest, CopilotQueryResponse
-from .evidence import EvidenceItem, EvidenceListResponse
+from .evidence import EvidenceItem, EvidenceListResponse, SourceItem, SourceListResponse
 from .investigation import (
     InvestigationCreateRequest,
     InvestigationDetailResponse,
@@ -42,6 +42,8 @@ __all__ = [
     "ClaimListResponse",
     "EvidenceItem",
     "EvidenceListResponse",
+    "SourceItem",
+    "SourceListResponse",
     "TimelineEvent",
     "TimelineResponse",
     "CopilotQueryRequest",

@@ -21,3 +21,23 @@ class EvidenceListResponse(BaseModel):
     evidence: List[EvidenceItem] = Field(default_factory=list)
     total: int = 0
     request_id: str
+
+
+class SourceItem(BaseModel):
+    source_id: str
+    url: str
+    title: Optional[str] = None
+    publisher: Optional[str] = None
+    domain: Optional[str] = None
+    source_type: Optional[str] = None
+    author: Optional[str] = None
+    publication_date: Optional[str] = None
+    retrieved_date: Optional[str] = None
+
+
+class SourceListResponse(BaseModel):
+    investigation_id: str
+    sources: List[SourceItem] = Field(default_factory=list)
+    total: int = 0
+    request_id: str
+

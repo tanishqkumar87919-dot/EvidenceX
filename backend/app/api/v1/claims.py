@@ -5,6 +5,7 @@ from ...core.errors import NotFoundException
 from ...database.repository import InvestigationRepository
 from ...database.session import get_db
 from ...schemas.claim import ClaimDetailResponse, ClaimTaskItem
+from ...schemas.evidence import EvidenceItem, EvidenceListResponse
 
 router = APIRouter(prefix="/claims", tags=["Claim Intelligence & Extraction"])
 
@@ -57,3 +58,50 @@ async def get_claim(
         tasks=tasks,
         created_at=claim.created_at.isoformat() if claim.created_at else None,
     )
+
+
+@router.get(
+    "/{claim_id}/evidence",
+    response_model=EvidenceListResponse,
+    status_code=200,
+    summary="Get Evidence for Atomic Claim",
+)
+async def get_claim_evidence(
+    claim_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> EvidenceListResponse:
+    """
+    Retrieves ranked evidence items specifically attached to this atomic claim.
+    """
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or "req_claim_ev"
+    claim = InvestigationRepository.get_claim(db, claim_id)
+    if not claim:
+        raise NotFoundException(
+            message=f"Claim '{claim_id}' was not found.",
+            details={"claim_id": claim_id},
+        )
+
+    evidence_models = InvestigationRepository.get_evidence_for_claim(db, claim_id)
+    items = [
+        EvidenceItem(
+            evidence_id=str(ev.id),
+            claim_id=str(ev.claim_id) if ev.claim_id else None,
+            source_title=ev.source.title if ev.source and ev.source.title else (ev.source.url if ev.source else "External Source"),
+            source_url=ev.source.url if ev.source else "",
+            publisher=(ev.source.publisher or ev.source.domain or "Unknown") if ev.source else "Unknown",
+            snippet=ev.exact_relevant_excerpt,
+            stance=ev.relationship_type.lower() if ev.relationship_type else "inconclusive",
+            reliability_score=float(ev.relevance) if ev.relevance is not None else None,
+            published_date=ev.source.publication_date.isoformat() if ev.source and ev.source.publication_date else None,
+        )
+        for ev in evidence_models
+    ]
+
+    return EvidenceListResponse(
+        investigation_id=str(claim.investigation_id),
+        evidence=items,
+        total=len(items),
+        request_id=request_id,
+    )
+

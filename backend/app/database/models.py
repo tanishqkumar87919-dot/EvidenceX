@@ -16,10 +16,43 @@ from sqlalchemy import (
     JSON,
     TypeDecorator,
 )
+from sqlalchemy.types import UserDefinedType
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+
+class Vector(UserDefinedType):
+    """PostgreSQL pgvector type mapping.
+    Maps to vector(dim) on PostgreSQL, and Text/String on SQLite fallback.
+    """
+    def __init__(self, dim: int = 768):
+        self.dim = dim
+
+    def get_col_spec(self, **kw):
+        return f"vector({self.dim})"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is None:
+                return None
+            if isinstance(value, (list, tuple)):
+                return "[" + ",".join(str(float(x)) for x in value) + "]"
+            return str(value)
+        return process
+
+    def result_processor(self, dialect, coltype):
+        def process(value):
+            if value is None:
+                return None
+            if isinstance(value, str):
+                cleaned = value.strip("[]")
+                if not cleaned:
+                    return []
+                return [float(x) for x in cleaned.split(",") if x.strip()]
+            return value
+        return process
 
 
 class GUID(TypeDecorator):
@@ -102,6 +135,7 @@ class InvestigationModel(Base):
     timeline_events = relationship("TimelineEventModel", back_populates="investigation", cascade="all, delete-orphan")
     agent_events = relationship("AgentEventModel", back_populates="investigation", cascade="all, delete-orphan")
     copilot_messages = relationship("CopilotMessageModel", back_populates="investigation", cascade="all, delete-orphan")
+    evidence_chunks = relationship("EvidenceChunkModel", back_populates="investigation", cascade="all, delete-orphan")
 
 
 class InputModel(Base):
@@ -151,6 +185,7 @@ class ClaimModel(Base):
     investigation = relationship("InvestigationModel", back_populates="claims")
     tasks = relationship("ClaimTaskModel", back_populates="claim", cascade="all, delete-orphan")
     evidence_associations = relationship("ClaimEvidenceModel", back_populates="claim", cascade="all, delete-orphan")
+    evidence_chunks = relationship("EvidenceChunkModel", back_populates="claim", cascade="all, delete-orphan")
 
 
 class ClaimTaskModel(Base):
@@ -184,6 +219,7 @@ class SourceModel(Base):
     created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
 
     evidence_items = relationship("EvidenceModel", back_populates="source")
+    evidence_chunks = relationship("EvidenceChunkModel", back_populates="source", cascade="all, delete-orphan")
 
 
 class EvidenceModel(Base):
@@ -290,3 +326,26 @@ class UserSettingModel(Base):
     updated_at = Column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
 
     user = relationship("UserModel", back_populates="settings")
+
+
+class EvidenceChunkModel(Base):
+    __tablename__ = "evidence_chunks"
+
+    id = Column(GUID, primary_key=True, default=generate_uuid)
+    investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
+    source_id = Column(GUID, ForeignKey("sources.id", ondelete="CASCADE"), nullable=False, index=True)
+    chunk_index = Column(Integer, nullable=False, default=0)
+    content = Column(Text, nullable=False)
+    heading = Column(Text, nullable=True)
+    character_count = Column(Integer, nullable=False, default=0)
+    token_count = Column(Integer, nullable=True)
+    embedding = Column(Vector(768), nullable=True)
+    embedding_model = Column(String(100), nullable=True)
+    metadata_json = Column(JSON, default=dict, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+    investigation = relationship("InvestigationModel", back_populates="evidence_chunks")
+    claim = relationship("ClaimModel", back_populates="evidence_chunks")
+    source = relationship("SourceModel", back_populates="evidence_chunks")
+

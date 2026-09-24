@@ -16,12 +16,19 @@ from ...schemas.common import (
     InputModality,
     ServiceNotReadyResponse,
 )
+from ...schemas.evidence import (
+    EvidenceItem,
+    EvidenceListResponse,
+    SourceItem,
+    SourceListResponse,
+)
 from ...schemas.investigation import (
     InvestigationCreateRequest,
     InvestigationDetailResponse,
     InvestigationStatusResponse,
 )
 from ...services.claim_extraction import claim_extraction_service
+from ...services.rag import evidence_retrieval_service
 
 router = APIRouter(prefix="/investigations", tags=["Investigation Contracts & Orchestration"])
 
@@ -43,7 +50,8 @@ async def create_investigation(
 ) -> InvestigationDetailResponse:
     """
     Creates an investigation pipeline, ingests the provided content,
-    and runs real agentic claim extraction & task generation.
+    runs real agentic claim extraction & task generation, and optionally
+    executes Phase 5 real web evidence retrieval.
     """
     request_id = get_request_id(request)
 
@@ -76,6 +84,12 @@ async def create_investigation(
             raw_text=payload.content,
             language="en",
         )
+        # Phase 5: Retrieve real web evidence dynamically if requested
+        if payload.retrieve_evidence:
+            await evidence_retrieval_service.retrieve_for_investigation(
+                db=db,
+                investigation_id=inv.id,
+            )
         db.refresh(inv)
 
     return InvestigationDetailResponse(
@@ -154,6 +168,15 @@ async def get_investigation_status(
     elif status_upper in ("READY_FOR_RETRIEVAL",):
         progress_percent = 50
         current_stage = "READY_FOR_RETRIEVAL"
+    elif status_upper in ("RETRIEVING_EVIDENCE",):
+        progress_percent = 65
+        current_stage = "RETRIEVING_EVIDENCE"
+    elif status_upper in ("READY_FOR_VERIFICATION",):
+        progress_percent = 80
+        current_stage = "READY_FOR_VERIFICATION"
+    elif status_upper in ("NO_EVIDENCE_FOUND",):
+        progress_percent = 80
+        current_stage = "NO_EVIDENCE_FOUND"
     elif status_upper in ("RECEIVED", "PROCESSING"):
         progress_percent = 20
         current_stage = "INPUT_RECEIVED"
@@ -243,19 +266,145 @@ async def get_investigation_claims(
 
 @router.get(
     "/{investigation_id}/evidence",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Get Investigation Evidence (Contract)",
+    response_model=EvidenceListResponse,
+    status_code=200,
+    summary="Get Investigation Retrieved Evidence",
 )
 async def get_investigation_evidence(
-    investigation_id: str, request: Request
-) -> ServiceNotReadyResponse:
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> EvidenceListResponse:
     """
-    Evidence retrieval and source ranking is implemented in Phase 5.
-    Returns transparent service not ready response.
+    Retrieves real external evidence items dynamically discovered and ranked in Phase 5.
     """
-    raise ServiceNotReadyException(
-        message="Evidence retrieval pipeline is scheduled for Phase 5."
+    request_id = get_request_id(request)
+    inv = InvestigationRepository.get_investigation(db, investigation_id)
+    if not inv:
+        raise NotFoundException(
+            message=f"Investigation '{investigation_id}' not found.",
+            details={"investigation_id": investigation_id},
+        )
+
+    evidence_models = InvestigationRepository.get_evidence_for_investigation(db, investigation_id)
+    evidence_items = [
+        EvidenceItem(
+            evidence_id=str(ev.id),
+            claim_id=str(ev.claim_id) if ev.claim_id else None,
+            source_title=ev.source.title if ev.source and ev.source.title else (ev.source.url if ev.source else "External Source"),
+            source_url=ev.source.url if ev.source else "",
+            publisher=(ev.source.publisher or ev.source.domain or "Unknown") if ev.source else "Unknown",
+            snippet=ev.exact_relevant_excerpt,
+            stance=ev.relationship_type.lower() if ev.relationship_type else "inconclusive",
+            reliability_score=float(ev.relevance) if ev.relevance is not None else None,
+            published_date=ev.source.publication_date.isoformat() if ev.source and ev.source.publication_date else None,
+        )
+        for ev in evidence_models
+    ]
+
+    return EvidenceListResponse(
+        investigation_id=inv.id,
+        evidence=evidence_items,
+        total=len(evidence_items),
+        request_id=request_id,
+    )
+
+
+@router.get(
+    "/{investigation_id}/sources",
+    response_model=SourceListResponse,
+    status_code=200,
+    summary="Get Investigation External Sources",
+)
+async def get_investigation_sources(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> SourceListResponse:
+    """
+    Retrieves distinct external web sources discovered and used in this investigation.
+    """
+    request_id = get_request_id(request)
+    inv = InvestigationRepository.get_investigation(db, investigation_id)
+    if not inv:
+        raise NotFoundException(
+            message=f"Investigation '{investigation_id}' not found.",
+            details={"investigation_id": investigation_id},
+        )
+
+    sources = InvestigationRepository.get_sources_for_investigation(db, investigation_id)
+    source_items = [
+        SourceItem(
+            source_id=str(s.id),
+            url=s.url,
+            title=s.title,
+            publisher=s.publisher,
+            domain=s.domain,
+            source_type=s.source_type,
+            author=s.author,
+            publication_date=s.publication_date.isoformat() if s.publication_date else None,
+            retrieved_date=s.retrieved_date.isoformat() if s.retrieved_date else None,
+        )
+        for s in sources
+    ]
+
+    return SourceListResponse(
+        investigation_id=inv.id,
+        sources=source_items,
+        total=len(source_items),
+        request_id=request_id,
+    )
+
+
+@router.post(
+    "/{investigation_id}/retrieve-evidence",
+    response_model=EvidenceListResponse,
+    status_code=200,
+    summary="Trigger Real Web Evidence Retrieval",
+)
+async def trigger_evidence_retrieval(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> EvidenceListResponse:
+    """
+    Executes the real Web Search + RAG evidence retrieval pipeline for this investigation:
+    Searches web, fetches sources, extracts text, chunks, embeds with 768-dim vectors,
+    stores in Supabase pgvector, runs semantic vector retrieval, and ranks evidence.
+    """
+    request_id = get_request_id(request)
+    inv = InvestigationRepository.get_investigation(db, investigation_id)
+    if not inv:
+        raise NotFoundException(
+            message=f"Investigation '{investigation_id}' not found.",
+            details={"investigation_id": investigation_id},
+        )
+
+    evidence_models = await evidence_retrieval_service.retrieve_for_investigation(
+        db=db,
+        investigation_id=investigation_id,
+    )
+
+    evidence_items = [
+        EvidenceItem(
+            evidence_id=str(ev.id),
+            claim_id=str(ev.claim_id) if ev.claim_id else None,
+            source_title=ev.source.title if ev.source and ev.source.title else (ev.source.url if ev.source else "External Source"),
+            source_url=ev.source.url if ev.source else "",
+            publisher=(ev.source.publisher or ev.source.domain or "Unknown") if ev.source else "Unknown",
+            snippet=ev.exact_relevant_excerpt,
+            stance=ev.relationship_type.lower() if ev.relationship_type else "inconclusive",
+            reliability_score=float(ev.relevance) if ev.relevance is not None else None,
+            published_date=ev.source.publication_date.isoformat() if ev.source and ev.source.publication_date else None,
+        )
+        for ev in evidence_models
+    ]
+
+    return EvidenceListResponse(
+        investigation_id=inv.id,
+        evidence=evidence_items,
+        total=len(evidence_items),
+        request_id=request_id,
     )
 
 
