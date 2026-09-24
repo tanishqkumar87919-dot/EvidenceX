@@ -3,104 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EvidenceX — Verify Claims. See the Evidence.</title>
+  <title>EvidenceX — Investigate claims. Understand the evidence.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     /* ── Reset & Base ────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; height: 100%; }
 
-    /* ── CSS Custom Properties ───────────────────────── */
+    /* ── Liquid Glass Material Tokens ────────────────── */
     :root {
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-deva: 'Noto Sans Devanagari', sans-serif;
 
-      /* Light mode */
-      --bg:              #f8f7f5;
-      --bg-secondary:    #f0efe9;
-      --surface:         #ffffff;
-      --surface-2:       #f5f4f0;
-      --border:          rgba(0,0,0,0.08);
-      --border-strong:   rgba(0,0,0,0.14);
-      --text-primary:    #111110;
-      --text-secondary:  #5c5b57;
-      --text-muted:      #8a8980;
-      --accent:          #1c4e9e;
-      --accent-hover:    #163e80;
-      --accent-light:    rgba(28,78,158,0.08);
-      --accent-subtle:   rgba(28,78,158,0.05);
-      --verified:        #1a7a4a;
-      --verified-bg:     rgba(26,122,74,0.09);
-      --disputed:        #b94040;
-      --disputed-bg:     rgba(185,64,64,0.09);
-      --unverified:      #8a6d2f;
-      --unverified-bg:   rgba(138,109,47,0.09);
+      /* Base Canvas (Light Mode) */
+      --bg-base: #f8fafc;
+      --bg-gradient: radial-gradient(circle at 15% 10%, rgba(37, 99, 235, 0.04) 0%, transparent 45%),
+                     radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.035) 0%, transparent 50%),
+                     #f8fafc;
 
-      --glass-bg:        rgba(255,255,255,0.72);
-      --glass-border:    rgba(255,255,255,0.5);
-      --shadow-sm:       0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md:       0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
-      --shadow-lg:       0 10px 30px rgba(0,0,0,0.09), 0 4px 8px rgba(0,0,0,0.04);
-      --nav-blur:        blur(14px);
+      /* Liquid Glass Tiers */
+      /* Tier 1: Primary Glass (Panels, Nav Rail, Primary Workspace) */
+      --glass-t1-bg: rgba(255, 255, 255, 0.72);
+      --glass-t1-border: rgba(255, 255, 255, 0.95);
+      --glass-t1-border-outer: rgba(15, 23, 42, 0.06);
+      --glass-t1-shadow: 0 10px 32px -4px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
+      --glass-t1-blur: blur(20px);
 
-      --radius-sm:  6px;
-      --radius-md:  10px;
-      --radius-lg:  16px;
-      --radius-xl:  22px;
+      /* Tier 2: Secondary Glass (Cards, Toolbars, Filters, Meta) */
+      --glass-t2-bg: rgba(255, 255, 255, 0.55);
+      --glass-t2-border: rgba(255, 255, 255, 0.85);
+      --glass-t2-border-outer: rgba(15, 23, 42, 0.06);
+      --glass-t2-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      --glass-t2-blur: blur(12px);
 
-      --transition: 0.18s ease;
+      /* Tier 3: Scrim / High-Legibility Surface */
+      --surface-scrim: rgba(255, 255, 255, 0.92);
+      --surface-scrim-border: rgba(15, 23, 42, 0.07);
+
+      /* Controls & Interactive */
+      --glass-ctrl-bg: rgba(255, 255, 255, 0.65);
+      --glass-ctrl-hover: rgba(255, 255, 255, 0.95);
+      --glass-ctrl-border: rgba(15, 23, 42, 0.08);
+
+      /* Typography */
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-tertiary: #94a3b8;
+      --text-on-accent: #ffffff;
+
+      /* Brand Accents */
+      --accent-primary: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-subtle: rgba(37, 99, 235, 0.08);
+      --accent-border: rgba(37, 99, 235, 0.2);
+      --accent-cyan: #0284c7;
+
+      /* Semantics */
+      --status-supported: #059669;
+      --status-supported-bg: rgba(5, 150, 105, 0.08);
+      --status-supported-border: rgba(5, 150, 105, 0.2);
+
+      --status-refuted: #dc2626;
+      --status-refuted-bg: rgba(220, 38, 38, 0.08);
+      --status-refuted-border: rgba(220, 38, 38, 0.2);
+
+      --status-partial: #d97706;
+      --status-partial-bg: rgba(217, 119, 6, 0.08);
+      --status-partial-border: rgba(217, 119, 6, 0.2);
+
+      /* Geometry & Dynamics */
+      --r-container: 24px;
+      --r-card: 16px;
+      --r-control: 11px;
+      --r-pill: 9999px;
+
+      --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition: 0.2s var(--ease-smooth);
     }
 
     [data-theme="dark"] {
-      --bg:              #0e0e0d;
-      --bg-secondary:    #141413;
-      --surface:         #1a1a18;
-      --surface-2:       #222220;
-      --border:          rgba(255,255,255,0.07);
-      --border-strong:   rgba(255,255,255,0.12);
-      --text-primary:    #f0efe9;
-      --text-secondary:  #a5a49e;
-      --text-muted:      #6b6a65;
-      --accent:          #4d86d8;
-      --accent-hover:    #6898e0;
-      --accent-light:    rgba(77,134,216,0.12);
-      --accent-subtle:   rgba(77,134,216,0.06);
-      --verified:        #4cad78;
-      --verified-bg:     rgba(76,173,120,0.12);
-      --disputed:        #d96a6a;
-      --disputed-bg:     rgba(217,106,106,0.12);
-      --unverified:      #c9a84c;
-      --unverified-bg:   rgba(201,168,76,0.12);
+      /* Base Canvas (Dark Mode) */
+      --bg-base: #0b0f17;
+      --bg-gradient: radial-gradient(circle at 15% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 40%),
+                     radial-gradient(circle at 85% 90%, rgba(6, 182, 212, 0.05) 0%, transparent 45%),
+                     #0b0f17;
 
-      --glass-bg:        rgba(26,26,24,0.82);
-      --glass-border:    rgba(255,255,255,0.07);
-      --shadow-sm:       0 1px 3px rgba(0,0,0,0.3);
-      --shadow-md:       0 4px 12px rgba(0,0,0,0.35);
-      --shadow-lg:       0 10px 30px rgba(0,0,0,0.4);
+      /* Tier 1 Primary Glass */
+      --glass-t1-bg: rgba(17, 24, 39, 0.65);
+      --glass-t1-border: rgba(255, 255, 255, 0.14);
+      --glass-t1-border-outer: rgba(0, 0, 0, 0.4);
+      --glass-t1-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      --glass-t1-blur: blur(24px);
+
+      /* Tier 2 Secondary Glass */
+      --glass-t2-bg: rgba(23, 32, 51, 0.52);
+      --glass-t2-border: rgba(255, 255, 255, 0.09);
+      --glass-t2-border-outer: rgba(0, 0, 0, 0.3);
+      --glass-t2-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      --glass-t2-blur: blur(14px);
+
+      /* Tier 3 Scrim */
+      --surface-scrim: rgba(15, 23, 42, 0.88);
+      --surface-scrim-border: rgba(255, 255, 255, 0.08);
+
+      /* Controls */
+      --glass-ctrl-bg: rgba(30, 41, 59, 0.55);
+      --glass-ctrl-hover: rgba(51, 65, 85, 0.65);
+      --glass-ctrl-border: rgba(255, 255, 255, 0.12);
+
+      /* Typography */
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --text-tertiary: #64748b;
+
+      /* Accents */
+      --accent-primary: #3b82f6;
+      --accent-hover: #60a5fa;
+      --accent-subtle: rgba(59, 130, 246, 0.12);
+      --accent-border: rgba(59, 130, 246, 0.28);
+      --accent-cyan: #38bdf8;
+
+      /* Semantics */
+      --status-supported: #34d399;
+      --status-supported-bg: rgba(52, 211, 153, 0.12);
+      --status-supported-border: rgba(52, 211, 153, 0.25);
+
+      --status-refuted: #f87171;
+      --status-refuted-bg: rgba(248, 113, 113, 0.12);
+      --status-refuted-border: rgba(248, 113, 113, 0.25);
+
+      --status-partial: #fbbf24;
+      --status-partial-bg: rgba(251, 191, 36, 0.12);
+      --status-partial-border: rgba(251, 191, 36, 0.25);
     }
 
     /* ── Base Styles ─────────────────────────────────── */
     body {
-      font-family: var(--font);
-      background-color: var(--bg);
-      color: var(--text-primary);
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
       line-height: 1.6;
-      font-size: 16px;
+      font-size: 15px;
       -webkit-font-smoothing: antialiased;
-      transition: background-color 0.25s ease, color 0.25s ease;
+      transition: background-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth);
+      min-height: 100vh;
     }
 
     a { color: inherit; text-decoration: none; }
+    ::selection { background: var(--accent-primary); color: #fff; }
 
-    ::selection {
-      background: var(--accent);
-      color: white;
-    }
-
-    /* ── Utility ─────────────────────────────────────── */
+    /* ── Layout Container ────────────────────────────── */
     .container {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 0 auto;
       padding: 0 28px;
     }
@@ -109,154 +167,130 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--accent-primary);
       margin-bottom: 12px;
     }
 
     .section-label::before {
       content: '';
-      display: inline-block;
-      width: 16px; height: 1.5px;
-      background: var(--accent);
+      width: 12px;
+      height: 2px;
+      background: var(--accent-primary);
       border-radius: 2px;
     }
 
     .section-title {
-      font-size: clamp(26px, 3.5vw, 36px);
+      font-size: clamp(26px, 3.4vw, 38px);
       font-weight: 700;
       letter-spacing: -0.03em;
-      color: var(--text-primary);
+      color: var(--text-main);
       line-height: 1.2;
     }
 
     .section-sub {
-      font-size: 16px;
-      color: var(--text-secondary);
-      line-height: 1.65;
-      max-width: 540px;
+      font-size: 15.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 580px;
       margin-top: 10px;
     }
 
+    /* ── Buttons ─────────────────────────────────────── */
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      font-family: var(--font);
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-sans);
       font-size: 14px;
       font-weight: 500;
-      border-radius: var(--radius-md);
       padding: 9px 18px;
+      border-radius: var(--r-control);
       cursor: pointer;
-      border: 1.5px solid transparent;
+      border: 1px solid transparent;
       transition: all var(--transition);
       white-space: nowrap;
     }
 
+    .btn:active { transform: scale(0.985); }
+
     .btn-primary {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
+      background: var(--accent-primary);
+      color: var(--text-on-accent);
+      border-color: var(--accent-primary);
+      box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.35);
     }
+
     .btn-primary:hover {
       background: var(--accent-hover);
       border-color: var(--accent-hover);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(28,78,158,0.25);
+      box-shadow: 0 6px 20px -2px rgba(37, 99, 235, 0.45);
     }
 
     .btn-secondary {
-      background: transparent;
-      color: var(--text-primary);
-      border-color: var(--border-strong);
+      background: var(--glass-ctrl-bg);
+      color: var(--text-main);
+      border-color: var(--glass-ctrl-border);
+      backdrop-filter: var(--glass-t2-blur);
     }
+
     .btn-secondary:hover {
-      background: var(--surface);
+      background: var(--glass-ctrl-hover);
+      color: var(--text-main);
       transform: translateY(-1px);
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-
-    .badge-verified {
-      background: var(--verified-bg);
-      color: var(--verified);
-    }
-
-    .badge-disputed {
-      background: var(--disputed-bg);
-      color: var(--disputed);
-    }
-
-    .badge-unverified {
-      background: var(--unverified-bg);
-      color: var(--unverified);
-    }
-
-    /* ── Divider ─────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── NAV ─────────────────────────────────────────── */
+    /* ── Floating Liquid Glass Nav ───────────────────── */
     nav {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       z-index: 100;
-      height: 58px;
-      background: var(--glass-bg);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: var(--nav-blur);
-      -webkit-backdrop-filter: var(--nav-blur);
-      transition: background 0.25s ease, border-color 0.25s ease;
+      height: 64px;
+      background: var(--glass-t1-bg);
+      border-bottom: 1px solid var(--glass-t1-border);
+      backdrop-filter: var(--glass-t1-blur);
+      -webkit-backdrop-filter: var(--glass-t1-blur);
+      box-shadow: var(--glass-t1-shadow);
+      transition: background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth);
     }
 
     .nav-inner {
       display: flex;
       align-items: center;
       height: 100%;
-      gap: 0;
     }
 
     .nav-logo {
       font-size: 16px;
       font-weight: 700;
-      letter-spacing: -0.04em;
-      color: var(--text-primary);
+      letter-spacing: -0.03em;
+      color: var(--text-main);
       margin-right: 36px;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 9px;
     }
 
     .nav-logo-mark {
-      width: 26px;
-      height: 26px;
-      background: var(--accent);
-      border-radius: 7px;
+      width: 28px; height: 28px;
+      background: var(--accent-primary);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
     }
 
     .nav-logo-mark svg {
       width: 14px; height: 14px;
       fill: none;
-      stroke: white;
-      stroke-width: 2;
+      stroke: #ffffff;
+      stroke-width: 2.2;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
@@ -264,80 +298,81 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 0;
+      gap: 2px;
       list-style: none;
       flex: 1;
     }
 
     .nav-links a {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 450;
-      color: var(--text-secondary);
-      padding: 6px 13px;
-      border-radius: var(--radius-sm);
-      transition: color var(--transition), background var(--transition);
+      color: var(--text-muted);
+      padding: 7px 13px;
+      border-radius: var(--r-control);
+      transition: all var(--transition);
     }
 
     .nav-links a:hover {
-      color: var(--text-primary);
-      background: var(--accent-light);
+      color: var(--text-main);
+      background: var(--glass-ctrl-hover);
     }
 
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
       margin-left: auto;
     }
 
     .lang-select {
-      font-family: var(--font);
-      font-size: 13px;
-      font-weight: 450;
-      color: var(--text-secondary);
-      background: transparent;
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      padding: 5px 9px;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      color: var(--text-muted);
+      background: var(--glass-ctrl-bg);
+      border: 1px solid var(--glass-ctrl-border);
+      border-radius: var(--r-control);
+      padding: 6px 10px;
       cursor: pointer;
       outline: none;
       transition: all var(--transition);
+      backdrop-filter: var(--glass-t2-blur);
     }
 
     .lang-select:hover {
-      border-color: var(--accent);
-      color: var(--text-primary);
+      border-color: var(--accent-primary);
+      color: var(--text-main);
     }
 
     .lang-select option {
-      background: var(--surface);
-      color: var(--text-primary);
+      background: var(--bg-base);
+      color: var(--text-main);
     }
 
     .theme-btn {
       width: 34px; height: 34px;
-      border-radius: var(--radius-sm);
-      background: transparent;
-      border: 1px solid var(--border-strong);
+      border-radius: var(--r-control);
+      background: var(--glass-ctrl-bg);
+      border: 1px solid var(--glass-ctrl-border);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       transition: all var(--transition);
+      backdrop-filter: var(--glass-t2-blur);
     }
 
     .theme-btn:hover {
-      background: var(--accent-light);
-      color: var(--accent);
-      border-color: var(--accent);
+      background: var(--glass-ctrl-hover);
+      color: var(--accent-primary);
+      border-color: var(--accent-border);
     }
 
     .theme-btn svg {
       width: 15px; height: 15px;
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.75;
+      stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
@@ -347,332 +382,265 @@
       padding: 7px 15px;
     }
 
-    /* ── HERO ────────────────────────────────────────── */
+    /* ── HERO SECTION ────────────────────────────────── */
     .hero {
-      padding: 140px 0 80px;
+      padding: 130px 0 80px;
       position: relative;
-      overflow: hidden;
     }
 
-    .hero-bg-pattern {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.4;
-      background-image:
-        radial-gradient(circle at 20% 40%, rgba(28,78,158,0.06) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(28,78,158,0.04) 0%, transparent 40%);
-    }
-
-    [data-theme="dark"] .hero-bg-pattern {
-      background-image:
-        radial-gradient(circle at 20% 40%, rgba(77,134,216,0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(77,134,216,0.05) 0%, transparent 40%);
-    }
-
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
-      position: relative;
-      z-index: 1;
+    .hero-header {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 44px;
     }
 
     .hero-eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      font-size: 12px;
-      font-weight: 550;
-      color: var(--accent);
-      letter-spacing: 0.04em;
-      background: var(--accent-light);
-      border: 1px solid rgba(28,78,158,0.15);
-      border-radius: 20px;
-      padding: 4px 12px;
-      margin-bottom: 22px;
-    }
-
-    [data-theme="dark"] .hero-eyebrow {
-      border-color: rgba(77,134,216,0.2);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent-primary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      box-shadow: var(--glass-t2-shadow);
+      backdrop-filter: var(--glass-t2-blur);
+      border-radius: var(--r-pill);
+      padding: 5px 14px;
+      margin-bottom: 20px;
     }
 
     .hero-eyebrow-dot {
-      width: 5px; height: 5px;
-      background: var(--accent);
+      width: 6px; height: 6px;
+      background: var(--accent-cyan);
       border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-cyan);
     }
 
     .hero-title {
-      font-size: clamp(32px, 5vw, 54px);
+      font-size: clamp(34px, 5.2vw, 58px);
       font-weight: 700;
       letter-spacing: -0.04em;
       line-height: 1.1;
-      color: var(--text-primary);
+      color: var(--text-main);
       margin-bottom: 18px;
     }
 
     .hero-title em {
       font-style: normal;
-      color: var(--accent);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .hero-sub {
-      font-size: 16.5px;
-      color: var(--text-secondary);
-      line-height: 1.65;
-      max-width: 460px;
-      margin-bottom: 32px;
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 620px;
+      margin: 0 auto;
     }
 
-    .hero-cta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    /* ── Liquid Glass Unified Investigation Input ───── */
+    .hero-intake-wrap {
+      max-width: 860px;
+      margin: 0 auto;
     }
 
-    .hero-cta .btn-primary {
-      font-size: 14.5px;
-      padding: 11px 22px;
-    }
-
-    .hero-cta .btn-secondary {
-      font-size: 14.5px;
-      padding: 11px 22px;
-    }
-
-    /* ── Hero Product Visualization ──────────────────── */
-    .hero-visual {
+    .glass-intake-card {
+      background: var(--glass-t1-bg);
+      border: 1px solid var(--glass-t1-border);
+      box-shadow: var(--glass-t1-shadow);
+      backdrop-filter: var(--glass-t1-blur);
+      -webkit-backdrop-filter: var(--glass-t1-blur);
+      border-radius: var(--r-container);
+      padding: 24px;
       position: relative;
+      transition: all var(--transition);
     }
 
-    .viz-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 22px;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .viz-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-
-    .viz-header {
+    .intake-topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
     }
 
-    .viz-title-row {
+    .intake-heading {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .viz-title-row span {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .viz-dot-row {
-      display: flex;
-      gap: 5px;
-    }
-
-    .viz-dot {
-      width: 9px; height: 9px;
+    .intake-status-dot {
+      width: 7px; height: 7px;
+      background: var(--status-supported);
       border-radius: 50%;
+      box-shadow: 0 0 6px var(--status-supported);
     }
 
-    .dot-red   { background: #e05252; }
-    .dot-yellow { background: #e0b952; }
-    .dot-green { background: #52c278; }
-
-    /* Claim node */
-    .claim-node {
-      background: var(--surface-2);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      padding: 12px 15px;
-      margin-bottom: 18px;
-    }
-
-    .claim-node-label {
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .claim-node-text {
-      font-size: 14px;
+    .intake-status-text {
+      font-size: 11.5px;
       font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.4;
+      color: var(--text-tertiary);
     }
 
-    /* Evidence grid */
-    .evidence-cols {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
+    /* Tier 3 Scrim Textarea Box */
+    .intake-scrim {
+      background: var(--surface-scrim);
+      border: 1px solid var(--surface-scrim-border);
+      border-radius: var(--r-card);
+      padding: 16px 18px;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+      position: relative;
     }
 
-    .evidence-col-head {
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
+    .intake-textarea {
+      width: 100%;
+      height: 94px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text-main);
     }
 
-    .evidence-col-head.support { color: var(--verified); }
-    .evidence-col-head.contra  { color: var(--disputed); }
-
-    .evidence-item {
-      border-radius: var(--radius-sm);
-      padding: 9px 11px;
-      margin-bottom: 7px;
-      font-size: 12px;
-      line-height: 1.4;
-      border: 1px solid transparent;
+    .intake-textarea::placeholder {
+      color: var(--text-tertiary);
     }
 
-    .evidence-item.support {
-      background: var(--verified-bg);
-      border-color: rgba(26,122,74,0.12);
-      color: var(--verified);
-    }
-
-    .evidence-item.contra {
-      background: var(--disputed-bg);
-      border-color: rgba(185,64,64,0.12);
-      color: var(--disputed);
-    }
-
-    .evidence-item-source {
-      font-size: 10px;
-      font-weight: 500;
-      opacity: 0.75;
-      margin-top: 4px;
-    }
-
-    /* Verdict row */
-    .verdict-row {
-      background: var(--accent-subtle);
-      border: 1px solid rgba(28,78,158,0.12);
-      border-radius: var(--radius-md);
-      padding: 12px 15px;
+    /* Bottom Control Bar */
+    .intake-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-top: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    [data-theme="dark"] .verdict-row {
-      border-color: rgba(77,134,216,0.15);
+    .intake-modes {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      border-radius: var(--r-pill);
+      padding: 3px;
     }
 
-    .verdict-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
+    .intake-mode-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-muted);
+      background: transparent;
+      border: none;
+      padding: 6px 13px;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      transition: all var(--transition);
     }
 
-    .verdict-value {
-      font-size: 14px;
+    .intake-mode-btn svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+    }
+
+    .intake-mode-btn.active {
+      color: var(--accent-primary);
+      background: var(--surface-scrim);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       font-weight: 600;
-      color: var(--verified);
     }
 
-    .confidence-bar-wrap {
+    .intake-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .confidence-bar {
-      width: 80px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .confidence-fill {
-      height: 100%;
-      background: var(--verified);
-      border-radius: 4px;
-      transition: width 0.6s ease;
-    }
-
-    .confidence-pct {
+    .sample-pill-btn {
+      font-family: var(--font-sans);
       font-size: 12px;
-      font-weight: 600;
-      color: var(--verified);
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--glass-ctrl-bg);
+      border: 1px solid var(--glass-ctrl-border);
+      border-radius: var(--r-pill);
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .sample-pill-btn:hover {
+      color: var(--text-main);
+      background: var(--glass-ctrl-hover);
+    }
+
+    .verify-cta-btn {
+      font-size: 13.5px;
+      padding: 9px 20px;
+      border-radius: var(--r-pill);
     }
 
     /* ── MULTIMODAL SECTION ──────────────────────────── */
     .section-multimodal {
       padding: 96px 0;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      position: relative;
     }
 
     .multimodal-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 18px;
-      margin-top: 44px;
+      margin-top: 40px;
     }
 
-    @media (max-width: 1080px) {
-      .multimodal-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    @media (max-width: 1040px) {
+      .multimodal-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .multimodal-grid { grid-template-columns: 1fr; }
     }
 
     .input-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      box-shadow: var(--glass-t2-shadow);
+      backdrop-filter: var(--glass-t2-blur);
+      -webkit-backdrop-filter: var(--glass-t2-blur);
+      border-radius: var(--r-card);
       padding: 24px;
-      transition: all 0.2s ease;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
 
     .input-card:hover {
-      border-color: var(--accent);
-      box-shadow: var(--shadow-md);
+      border-color: var(--accent-border);
       transform: translateY(-2px);
+      box-shadow: var(--glass-t1-shadow);
     }
 
     .input-card-icon {
-      width: 40px; height: 40px;
-      background: var(--accent-light);
-      border-radius: var(--radius-sm);
+      width: 42px; height: 42px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--r-control);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -680,725 +648,508 @@
     }
 
     .input-card-icon svg {
-      width: 19px; height: 19px;
-      stroke: var(--accent);
+      width: 20px; height: 20px;
+      stroke: var(--accent-primary);
       fill: none;
-      stroke-width: 1.75;
+      stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
 
     .input-card-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 7px;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
     }
 
     .input-card-desc {
       font-size: 13.5px;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       line-height: 1.55;
+      flex: 1;
     }
 
     .input-card-tag {
-      display: inline-block;
-      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 11px;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--accent-subtle);
-      padding: 3px 9px;
-      border-radius: 12px;
-      letter-spacing: 0.03em;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--glass-t2-border);
     }
 
-    /* ── HOW IT WORKS ────────────────────────────────── */
+    /* ── HOW IT WORKS ───────────────────────────────── */
     .section-how {
       padding: 96px 0;
+      position: relative;
     }
 
     .steps-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 0;
-      margin-top: 52px;
+      gap: 20px;
+      margin-top: 48px;
       position: relative;
     }
 
-    .steps-connector {
-      position: absolute;
-      top: 28px;
-      left: 68px;
-      right: 68px;
-      height: 1px;
-      background: var(--border);
-      z-index: 0;
+    @media (max-width: 900px) {
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .steps-grid { grid-template-columns: 1fr; }
     }
 
-    .step-item {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 0 24px 0 0;
+    .step-card {
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      box-shadow: var(--glass-t2-shadow);
+      backdrop-filter: var(--glass-t2-blur);
+      border-radius: var(--r-card);
+      padding: 24px;
+      transition: all var(--transition);
       position: relative;
-      z-index: 1;
     }
 
-    .step-num-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
+    .step-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-border);
     }
 
-    .step-num {
-      width: 40px; height: 40px;
-      background: var(--surface);
-      border: 1.5px solid var(--border-strong);
-      border-radius: 50%;
-      display: flex;
+    .step-num-pill {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      width: 36px; height: 36px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--r-control);
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      transition: all 0.2s;
-    }
-
-    .step-item:hover .step-num {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: white;
+      color: var(--accent-primary);
+      margin-bottom: 16px;
     }
 
     .step-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--text-main);
       margin-bottom: 8px;
+      letter-spacing: -0.01em;
     }
 
     .step-desc {
       font-size: 13.5px;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       line-height: 1.55;
     }
 
-    .step-num-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    /* ── SAMPLE VERIFICATION ─────────────────────────── */
+    /* ── SAMPLE VERIFICATION ────────────────────────── */
     .section-sample {
       padding: 96px 0;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sample-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      box-shadow: var(--shadow-lg);
-      max-width: 820px;
-      margin: 48px auto 0;
-    }
-
-    .sample-card-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--surface-2);
-    }
-
-    .sample-card-title {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .sample-card-body {
-      padding: 28px 28px;
-    }
-
-    .sample-claim {
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.5;
-      margin-bottom: 26px;
-      padding-bottom: 22px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sample-meta-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-      margin-bottom: 24px;
-    }
-
-    .sample-meta-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .sample-meta-label {
-      font-size: 10.5px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-    }
-
-    .sample-meta-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-    }
-
-    .sample-meta-value.green { color: var(--verified); }
-    .sample-meta-value.red   { color: var(--disputed); }
-
-    .sample-meta-sub {
-      font-size: 11.5px;
-      color: var(--text-muted);
-      font-weight: 450;
-    }
-
-    .sample-sources {
-      border-top: 1px solid var(--border);
-      padding-top: 20px;
-    }
-
-    .sample-sources-title {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .source-list {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .source-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 13px;
-      border-radius: var(--radius-sm);
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-    }
-
-    .source-stance-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 5px;
-    }
-
-    .source-stance-dot.support { background: var(--verified); }
-    .source-stance-dot.contra  { background: var(--disputed); }
-
-    .source-text {
-      flex: 1;
-    }
-
-    .source-name {
-      font-size: 12.5px;
-      font-weight: 550;
-      color: var(--text-primary);
-    }
-
-    .source-excerpt {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.45;
-      margin-top: 2px;
-    }
-
-    .source-type {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 2px 7px;
-      background: var(--border);
-      border-radius: 10px;
-      white-space: nowrap;
-      align-self: flex-start;
-    }
-
-    /* Confidence bar (sample) */
-    .confidence-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .conf-bar-wide {
-      flex: 1;
-      height: 6px;
-      background: var(--bg-secondary);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .conf-fill-wide {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--verified));
-      border-radius: 6px;
-      width: 0;
-      transition: width 1s ease;
-    }
-
-    /* ── TRUST PRINCIPLES ────────────────────────────── */
-    .section-trust {
-      padding: 96px 0;
-    }
-
-    .trust-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 52px;
-    }
-
-    .trust-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      transition: all 0.2s;
       position: relative;
     }
 
-    .trust-card:hover {
-      border-color: var(--border-strong);
-      box-shadow: var(--shadow-md);
+    .sample-glass-container {
+      background: var(--glass-t1-bg);
+      border: 1px solid var(--glass-t1-border);
+      box-shadow: var(--glass-t1-shadow);
+      backdrop-filter: var(--glass-t1-blur);
+      border-radius: var(--r-container);
+      padding: 32px;
+      margin-top: 40px;
     }
 
-    .trust-icon {
-      width: 38px; height: 38px;
-      background: var(--accent-light);
-      border-radius: var(--radius-sm);
+    .sample-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin-bottom: 18px;
-    }
-
-    .trust-icon svg {
-      width: 18px; height: 18px;
-      stroke: var(--accent);
-      fill: none;
-      stroke-width: 1.75;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .trust-title {
-      font-size: 15px;
-      font-weight: 650;
-      color: var(--text-primary);
-      margin-bottom: 9px;
-    }
-
-    .trust-desc {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    /* ── FINAL CTA ───────────────────────────────────── */
-    .section-cta {
-      padding: 96px 0;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-    }
-
-    .cta-box {
-      max-width: 580px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .cta-title {
-      font-size: clamp(24px, 3vw, 36px);
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      color: var(--text-primary);
-      line-height: 1.15;
-      margin-bottom: 14px;
-    }
-
-    .cta-sub {
-      font-size: 15.5px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: 32px;
-    }
-
-    .cta-actions {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--glass-t1-border);
       flex-wrap: wrap;
     }
 
-    .cta-actions .btn-primary {
-      font-size: 15px;
-      padding: 12px 26px;
+    .sample-claim-box {
+      background: var(--surface-scrim);
+      border: 1px solid var(--surface-scrim-border);
+      border-radius: var(--r-card);
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+
+    .sample-claim-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .sample-verdict-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--status-supported-bg);
+      border: 1px solid var(--status-supported-border);
+      border-radius: var(--r-card);
+      padding: 16px 22px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--status-supported);
+    }
+
+    .confidence-meter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .confidence-track {
+      width: 140px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: var(--r-pill);
+      overflow: hidden;
+    }
+    [data-theme="dark"] .confidence-track { background: rgba(255, 255, 255, 0.1); }
+
+    .confidence-bar-fill {
+      height: 100%;
+      background: var(--status-supported);
+      border-radius: var(--r-pill);
+      transition: width 0.8s var(--ease-smooth);
+    }
+
+    .sample-evidence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 760px) {
+      .sample-evidence-grid { grid-template-columns: 1fr; }
+    }
+
+    .evidence-column {
+      background: var(--surface-scrim);
+      border: 1px solid var(--surface-scrim-border);
+      border-radius: var(--r-card);
+      padding: 20px;
+    }
+
+    .evidence-col-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .evidence-col-title.support { color: var(--status-supported); }
+    .evidence-col-title.contra { color: var(--status-refuted); }
+
+    .evidence-pill-item {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      padding: 10px 12px;
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      border-radius: var(--r-control);
+      margin-bottom: 10px;
+    }
+
+    .evidence-pill-item strong {
+      color: var(--text-main);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 12px;
+    }
+
+    /* ── PRINCIPLES SECTION ──────────────────────────── */
+    .section-principles {
+      padding: 96px 0;
+      position: relative;
+    }
+
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 860px) {
+      .principles-grid { grid-template-columns: 1fr; }
+    }
+
+    .principle-card {
+      background: var(--glass-t2-bg);
+      border: 1px solid var(--glass-t2-border);
+      box-shadow: var(--glass-t2-shadow);
+      backdrop-filter: var(--glass-t2-blur);
+      border-radius: var(--r-card);
+      padding: 26px;
+      transition: all var(--transition);
+    }
+
+    .principle-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-border);
+    }
+
+    .principle-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .principle-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── CTA STRIP ───────────────────────────────────── */
+    .section-cta {
+      padding: 80px 0 110px;
+    }
+
+    .cta-card {
+      background: var(--glass-t1-bg);
+      border: 1px solid var(--glass-t1-border);
+      box-shadow: var(--glass-t1-shadow);
+      backdrop-filter: var(--glass-t1-blur);
+      border-radius: var(--r-container);
+      padding: 56px 40px;
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .cta-card h2 {
+      font-size: clamp(26px, 3.2vw, 36px);
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .cta-card p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 30px;
+      line-height: 1.6;
     }
 
     /* ── FOOTER ──────────────────────────────────────── */
     footer {
-      padding: 52px 0 32px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--glass-t1-border);
+      background: var(--glass-t1-bg);
+      backdrop-filter: var(--glass-t1-blur);
+      padding: 40px 0;
     }
 
     .footer-inner {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 48px;
-      margin-bottom: 40px;
-    }
-
-    .footer-brand-name {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--text-primary);
-      margin-bottom: 9px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .footer-brand-desc {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-      max-width: 260px;
-    }
-
-    .footer-col-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-    }
-
-    .footer-links {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .footer-links a {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      transition: color var(--transition);
-    }
-
-    .footer-links a:hover { color: var(--text-primary); }
-
-    .footer-bottom {
-      padding-top: 22px;
-      border-top: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 20px;
     }
 
     .footer-copy {
       font-size: 12.5px;
-      color: var(--text-muted);
+      color: var(--text-tertiary);
     }
 
-    .footer-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* ── SCROLL ANIMATIONS ───────────────────────────── */
+    /* ── Scroll Reveal ───────────────────────────────── */
     .reveal {
       opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.55s ease, transform 0.55s ease;
+      transform: translateY(16px);
+      transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-smooth);
     }
     .reveal.visible {
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* ── MOBILE RESPONSIVE ───────────────────────────── */
-    @media (max-width: 900px) {
-      .hero-inner {
-        grid-template-columns: 1fr;
-        gap: 44px;
-      }
-
-      .steps-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 32px;
-      }
-
-      .steps-connector { display: none; }
-
-      .multimodal-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      .trust-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      .sample-meta-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .footer-inner {
-        grid-template-columns: 1fr 1fr;
-        gap: 32px;
-      }
-
-      .evidence-cols {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .nav-links { display: none; }
-      .container { padding: 0 18px; }
-
-      .steps-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .footer-inner {
-        grid-template-columns: 1fr;
-        gap: 28px;
-      }
-
-      .sample-meta-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
+    [lang="hi"] { font-family: var(--font-deva); }
   </style>
 </head>
 <body>
 
-<!-- ── NAVBAR ──────────────────────────────────────── -->
-<nav id="navbar">
-  <div class="container">
-    <div class="nav-inner">
-      <a href="evidencex.html" class="nav-logo" aria-label="EvidenceX home">
-        <div class="nav-logo-mark">
-          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
-        </div>
-        EvidenceX
-      </a>
-
-      <ul class="nav-links">
-        <li><a href="verification-center.html" data-i18n="nav.verify">Verify</a></li>
-        <li><a href="#how-it-works" data-i18n="nav.how">How It Works</a></li>
-        <li><a href="#evidence" data-i18n="nav.evidence">Evidence</a></li>
-        <li><a href="#about" data-i18n="nav.about">About</a></li>
-      </ul>
-
-      <div class="nav-right">
-        <select class="lang-select" id="langSelect" aria-label="Language">
-          <option value="en">English</option>
-          <option value="hi">हिन्दी</option>
-        </select>
-
-        <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
-          <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-
-        <a href="verification-center.html" class="btn btn-primary nav-start-btn" data-i18n="btn.start">Start Verification</a>
+<!-- ── FLOATING GLASS NAV ───────────────────────────── -->
+<nav>
+  <div class="container nav-inner">
+    <a href="evidencex.html" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
       </div>
+      EvidenceX
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="verification-center.html" data-i18n="nav.verify">Verify</a></li>
+      <li><a href="#how-it-works" data-i18n="nav.how">How It Works</a></li>
+      <li><a href="#evidence" data-i18n="nav.evidence">Evidence</a></li>
+      <li><a href="#principles" data-i18n="nav.about">Principles</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <select class="lang-select" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg id="icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+
+      <a href="verification-center.html" class="btn btn-primary nav-start-btn" data-i18n="btn.start">Start Verification</a>
     </div>
   </div>
 </nav>
 
-<!-- ── HERO ────────────────────────────────────────── -->
+<!-- ── HERO WITH UNIFIED INVESTIGATION INTAKE ───────── -->
 <section class="hero" id="verify">
-  <div class="hero-bg-pattern"></div>
   <div class="container">
-    <div class="hero-inner">
-
-      <!-- Left: Copy -->
-      <div class="hero-copy">
-        <div class="hero-eyebrow">
-          <span class="hero-eyebrow-dot"></span>
-          <span data-i18n="hero.badge">Multimodal Claim Verification</span>
-        </div>
-        <h1 class="hero-title" data-i18n="hero.title">
-          Verify Claims.<br>
-          <em>See the Evidence.</em>
-        </h1>
-        <p class="hero-sub" data-i18n="hero.sub">
-          EvidenceX analyzes text, images, and online content to break claims into verifiable facts, investigate credible sources, compare evidence, and explain what the evidence actually supports.
-        </p>
-        <div class="hero-cta">
-          <a href="verification-center.html" class="btn btn-primary" data-i18n="btn.start">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
-            Start Verification
-          </a>
-          <a href="#how-it-works" class="btn btn-secondary" data-i18n="hero.how">See How It Works</a>
-        </div>
+    <div class="hero-header reveal">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-dot"></span>
+        <span data-i18n="hero.badge">Multimodal Claim Verification</span>
       </div>
+      <h1 class="hero-title" data-i18n="hero.title">
+        Investigate claims.<br>
+        <em>Understand the evidence.</em>
+      </h1>
+      <p class="hero-sub" data-i18n="hero.sub">
+        EvidenceX transforms text, images, URLs and audio into evidence-backed investigations.
+      </p>
+    </div>
 
-      <!-- Right: Product Visualization -->
-      <div class="hero-visual">
-        <div class="viz-card">
-          <div class="viz-header">
-            <div class="viz-title-row">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
-              <span>Verification Report</span>
-            </div>
-            <div class="viz-dot-row">
-              <div class="viz-dot dot-red"></div>
-              <div class="viz-dot dot-yellow"></div>
-              <div class="viz-dot dot-green"></div>
-            </div>
+    <!-- Centerpiece Unified Glass Intake -->
+    <div class="hero-intake-wrap reveal">
+      <div class="glass-intake-card">
+        <div class="intake-topbar">
+          <div class="intake-heading">
+            <span class="intake-status-dot"></span>
+            <span data-i18n="hero.intake.heading">What would you like to verify?</span>
+          </div>
+          <span class="intake-status-text" data-i18n="hero.intake.status">Engine operational · Ready for input</span>
+        </div>
+
+        <div class="intake-scrim">
+          <textarea
+            class="intake-textarea"
+            id="heroClaimInput"
+            placeholder="Paste a claim, article statement, social media excerpt, or question to investigate…"
+            data-i18n-placeholder="hero.intake.placeholder"
+          ></textarea>
+        </div>
+
+        <div class="intake-footer">
+          <div class="intake-modes" role="tablist">
+            <button class="intake-mode-btn active" data-mode="text" type="button">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+              <span>Text</span>
+            </button>
+            <button class="intake-mode-btn" data-mode="image" type="button">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Image</span>
+            </button>
+            <button class="intake-mode-btn" data-mode="url" type="button">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>URL</span>
+            </button>
+            <button class="intake-mode-btn" data-mode="audio" type="button">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              <span>Audio</span>
+            </button>
           </div>
 
-          <!-- Claim -->
-          <div class="claim-node">
-            <div class="claim-node-label">Claim</div>
-            <div class="claim-node-text">"Regular exercise reduces the risk of cardiovascular disease by up to 35%."</div>
-          </div>
-
-          <!-- Evidence columns -->
-          <div class="evidence-cols">
-            <div>
-              <div class="evidence-col-head support">Supporting Evidence</div>
-              <div class="evidence-item support">
-                American Heart Association (2023): aerobic activity 3×/week reduces CVD risk by 27–35%.
-                <div class="evidence-item-source">peer-reviewed · high credibility</div>
-              </div>
-              <div class="evidence-item support">
-                Meta-analysis across 18 studies confirms 30–35% reduction for sustained moderate exercise.
-                <div class="evidence-item-source">peer-reviewed · high credibility</div>
-              </div>
-            </div>
-            <div>
-              <div class="evidence-col-head contra">Contradicting Evidence</div>
-              <div class="evidence-item contra">
-                Effect size varies: sedentary populations show 20–28%; claimed "35%" applies only to specific groups.
-                <div class="evidence-item-source">peer-reviewed · medium credibility</div>
-              </div>
-              <div class="evidence-item contra">
-                2021 Cochrane review: upper bound requires 150+ min/week — figure may overstate general population.
-                <div class="evidence-item-source">systematic review · high credibility</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Verdict -->
-          <div class="verdict-row">
-            <div>
-              <div class="verdict-label">Verdict</div>
-              <div class="verdict-value">Mostly Supported</div>
-            </div>
-            <div class="confidence-bar-wrap">
-              <div class="confidence-bar">
-                <div class="confidence-fill" id="heroConfBar" style="width: 78%"></div>
-              </div>
-              <span class="confidence-pct">78% confidence</span>
-            </div>
+          <div class="intake-actions">
+            <button class="sample-pill-btn" id="heroSampleBtn" type="button" data-i18n="hero.sample">Use Sample Claim</button>
+            <button class="btn btn-primary verify-cta-btn" id="heroVerifyBtn" type="button">
+              <span data-i18n="btn.verify">Verify Claim</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ── MULTIMODAL INPUTS ──────────────────────────── -->
+<!-- ── MULTIMODAL INPUT MODES ─────────────────────── -->
 <section class="section-multimodal" id="evidence">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Input Modes</div>
+      <div class="section-label">Input Modalities</div>
       <h2 class="section-title">Any Format. Any Claim.</h2>
-      <p class="section-sub">Submit claims however you encounter them — whether it's something you read, a screenshot of a post, or a link to an article.</p>
+      <p class="section-sub">Submit claims however you encounter them — whether it's something you read, a screenshot, an article link, or spoken audio.</p>
     </div>
 
     <div class="multimodal-grid">
-
       <!-- Text -->
-      <div class="input-card reveal">
+      <a href="verification-center.html?type=text" class="input-card reveal">
         <div class="input-card-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         </div>
         <div class="input-card-title">Text Input</div>
-        <div class="input-card-desc">Paste a paragraph, headline, quote, or statement. EvidenceX identifies every verifiable claim embedded in free-form text.</div>
-        <div class="input-card-tag">plain text · articles · quotes</div>
-      </div>
+        <div class="input-card-desc">Paste a statement, article excerpt, headline, or claim. EvidenceX decomposes text into atomic verifiable assertions.</div>
+        <div class="input-card-tag">plain text · quotes · assertions</div>
+      </a>
 
       <!-- Image -->
-      <div class="input-card reveal">
+      <a href="verification-center.html?type=image" class="input-card reveal">
         <div class="input-card-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </div>
         <div class="input-card-title">Image &amp; Screenshots</div>
-        <div class="input-card-desc">Upload screenshots of social posts, headlines, or documents. Our vision model extracts and analyzes the claims within them.</div>
-        <div class="input-card-tag">screenshots · photos · documents</div>
-      </div>
+        <div class="input-card-desc">Upload screenshots of social media posts, news headlines, or infographic graphs. OCR and vision models isolate embedded claims.</div>
+        <div class="input-card-tag">screenshots · documents · photos</div>
+      </a>
 
       <!-- URL -->
-      <div class="input-card reveal">
+      <a href="verification-center.html?type=url" class="input-card reveal">
         <div class="input-card-icon">
           <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
         <div class="input-card-title">URL Submission</div>
-        <div class="input-card-desc">Submit a link to a web article, news story, or post. EvidenceX fetches, parses, and fact-checks the content automatically.</div>
-        <div class="input-card-tag">articles · news · web pages</div>
-      </div>
+        <div class="input-card-desc">Submit any web link or article URL. EvidenceX crawls, parses the document tree, and fact-checks key factual assertions.</div>
+        <div class="input-card-tag">news · research papers · web pages</div>
+      </a>
 
       <!-- Audio -->
-      <div class="input-card reveal">
+      <a href="verification-center.html?type=audio" class="input-card reveal">
         <div class="input-card-icon">
           <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
         <div class="input-card-title">Audio &amp; Speech</div>
-        <div class="input-card-desc">Upload audio recordings or record statements directly. Speech-to-text transcribes spoken content and isolates factual claims.</div>
-        <div class="input-card-tag">podcasts · press briefings · recordings</div>
-      </div>
-
+        <div class="input-card-desc">Upload audio files or record spoken statements directly. High-precision Whisper ASR transcribes speech before evidence extraction.</div>
+        <div class="input-card-tag">recordings · press briefings · podcasts</div>
+      </a>
     </div>
   </div>
 </section>
@@ -1407,127 +1158,104 @@
 <section class="section-how" id="how-it-works">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Process</div>
+      <div class="section-label">Investigation Process</div>
       <h2 class="section-title">How Verification Works</h2>
-      <p class="section-sub">A structured four-stage pipeline turns raw input into an evidence-backed, explainable verdict.</p>
+      <p class="section-sub">A structured, reproducible pipeline turns raw input into traceable, evidence-grounded intelligence.</p>
     </div>
 
     <div class="steps-grid reveal">
-      <div class="steps-connector"></div>
-
-      <div class="step-item">
-        <div class="step-num-wrap">
-          <div class="step-num">01</div>
-        </div>
-        <div class="step-title">Extract Claims</div>
-        <div class="step-desc">The system parses your input and isolates every discrete, verifiable factual assertion — separating claims from opinion and context.</div>
+      <div class="step-card">
+        <div class="step-num-pill">01</div>
+        <div class="step-title">Claim Extraction</div>
+        <div class="step-desc">Isolates discrete verifiable factual assertions, stripping subjective opinion and irrelevant conversational filler.</div>
       </div>
 
-      <div class="step-item">
-        <div class="step-num-wrap">
-          <div class="step-num">02</div>
-        </div>
-        <div class="step-title">Find Evidence</div>
-        <div class="step-desc">Each claim is researched across credible sources: academic databases, peer-reviewed journals, established news archives, and official publications.</div>
+      <div class="step-card">
+        <div class="step-num-pill">02</div>
+        <div class="step-title">Evidence Retrieval</div>
+        <div class="step-desc">Searches academic repositories, official statistical databases, and vetted journalism archives via agentic web queries.</div>
       </div>
 
-      <div class="step-item">
-        <div class="step-num-wrap">
-          <div class="step-num">03</div>
-        </div>
-        <div class="step-title">Compare Sources</div>
-        <div class="step-desc">Supporting and contradicting evidence is weighed by source credibility, recency, and methodological strength — not just quantity.</div>
+      <div class="step-card">
+        <div class="step-num-pill">03</div>
+        <div class="step-title">Source Comparison</div>
+        <div class="step-desc">Weighs supporting vs contradicting evidence based on authority, recency, independence, and methodology.</div>
       </div>
 
-      <div class="step-item">
-        <div class="step-num-wrap">
-          <div class="step-num">04</div>
-        </div>
-        <div class="step-title">Explain the Verdict</div>
-        <div class="step-desc">A clear, structured verdict is produced with traceable reasoning. Every conclusion links to the evidence that generated it.</div>
+      <div class="step-card">
+        <div class="step-num-pill">04</div>
+        <div class="step-title">Explainable Verdict</div>
+        <div class="step-desc">Produces a calibrated confidence score, sufficiency assessment, and transparent audit trail of reasoning.</div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ── SAMPLE VERIFICATION ────────────────────────── -->
+<!-- ── SAMPLE VERIFICATION REPORT ─────────────────── -->
 <section class="section-sample">
   <div class="container">
     <div class="reveal" style="text-align: center;">
-      <div class="section-label">Demo</div>
+      <div class="section-label">Intelligence Output</div>
       <h2 class="section-title">Sample Verification Report</h2>
-      <p class="section-sub" style="margin: 10px auto 0;">A real example of what EvidenceX produces — structured, sourced, and transparent.</p>
+      <p class="section-sub" style="margin: 10px auto 0;">A transparent preview of an EvidenceX multimodal investigation result.</p>
     </div>
 
-    <div class="sample-card reveal">
-      <div class="sample-card-header">
-        <span class="sample-card-title">Verification Result</span>
-        <span class="badge badge-verified">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Supported
-        </span>
+    <div class="sample-glass-container reveal">
+      <div class="sample-header">
+        <div>
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);">Investigation #INV-2026-0847</span>
+          <div style="font-size:17px;font-weight:600;color:var(--text-main);margin-top:2px;">Aerobic Exercise Cardiovascular Risk Study</div>
+        </div>
+        <a href="results.html" class="btn btn-secondary" style="font-size:12.5px;">View Full Interactive Results →</a>
       </div>
 
-      <div class="sample-card-body">
-        <div class="sample-claim">
-          "The global average temperature has increased by approximately 1.1°C since the pre-industrial period."
+      <div class="sample-claim-box">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:6px;">Analyzed Claim</div>
+        <div class="sample-claim-text">"Regular aerobic exercise reduces the risk of cardiovascular disease by up to 35%, as confirmed by multiple peer-reviewed studies published in major medical journals."</div>
+      </div>
+
+      <div class="sample-verdict-banner">
+        <div class="verdict-badge">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Mostly Supported</span>
+        </div>
+        <div class="confidence-meter">
+          <span style="font-size:12.5px;color:var(--text-muted);">Confidence Score</span>
+          <div class="confidence-track">
+            <div class="confidence-bar-fill" id="sampleConfBar" style="width: 82%;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:600;color:var(--text-main);">82%</span>
+        </div>
+      </div>
+
+      <div class="sample-evidence-grid">
+        <div class="evidence-column">
+          <div class="evidence-col-title support">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Supporting Evidence (11 sources)</span>
+          </div>
+          <div class="evidence-pill-item">
+            <strong>American Heart Association (2024)</strong>
+            Aerobic physical activity 150 min/week correlates with 28–35% reduction in primary CVD incidents across longitudinal cohorts.
+          </div>
+          <div class="evidence-pill-item">
+            <strong>The Lancet Cardiovascular Health</strong>
+            Systematic review confirming significant mortality reduction in adult participants maintaining regular aerobic routines.
+          </div>
         </div>
 
-        <div class="sample-meta-grid">
-          <div class="sample-meta-item">
-            <span class="sample-meta-label">Verdict</span>
-            <span class="sample-meta-value green">Supported</span>
-            <span class="sample-meta-sub">Strong consensus</span>
+        <div class="evidence-column">
+          <div class="evidence-col-title contra">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Nuances &amp; Context (4 sources)</span>
           </div>
-          <div class="sample-meta-item">
-            <span class="sample-meta-label">Confidence</span>
-            <span class="sample-meta-value">92%</span>
-            <div class="confidence-row" style="margin-top:4px">
-              <div class="conf-bar-wide">
-                <div class="conf-fill-wide" id="sampleConfBar" style="width:0%"></div>
-              </div>
-            </div>
+          <div class="evidence-pill-item">
+            <strong>Cochrane Meta-Analysis (2023)</strong>
+            Upper bound of 35% observed primarily in previously sedentary demographics; active cohorts display 18–24% relative reduction.
           </div>
-          <div class="sample-meta-item">
-            <span class="sample-meta-label">Supporting</span>
-            <span class="sample-meta-value green">14</span>
-            <span class="sample-meta-sub">sources</span>
-          </div>
-          <div class="sample-meta-item">
-            <span class="sample-meta-label">Contradicting</span>
-            <span class="sample-meta-value red">2</span>
-            <span class="sample-meta-sub">sources</span>
-          </div>
-        </div>
-
-        <div class="sample-sources">
-          <div class="sample-sources-title">Key Sources</div>
-          <div class="source-list">
-            <div class="source-item">
-              <div class="source-stance-dot support"></div>
-              <div class="source-text">
-                <div class="source-name">IPCC Sixth Assessment Report (AR6), 2021</div>
-                <div class="source-excerpt">"It is unequivocal that human influence has warmed the atmosphere, ocean and land. Global surface temperature has increased faster since 1970 than in any other 50-year period."</div>
-              </div>
-              <span class="source-type">peer-reviewed</span>
-            </div>
-            <div class="source-item">
-              <div class="source-stance-dot support"></div>
-              <div class="source-text">
-                <div class="source-name">NASA GISS Surface Temperature Analysis, 2023</div>
-                <div class="source-excerpt">Instrumental record confirms ~1.1°C warming relative to 1850–1900 pre-industrial baseline, consistent with IPCC figures.</div>
-              </div>
-              <span class="source-type">dataset</span>
-            </div>
-            <div class="source-item">
-              <div class="source-stance-dot contra"></div>
-              <div class="source-text">
-                <div class="source-name">Christy et al., 2018 — UAH Satellite Temperature Record</div>
-                <div class="source-excerpt">Satellite-derived estimates show slightly lower warming (~0.9°C) due to methodological differences in dataset construction — contested in peer review.</div>
-              </div>
-              <span class="source-type">disputed</span>
-            </div>
+          <div class="evidence-pill-item">
+            <strong>WHO Global Guidelines</strong>
+            Emphasizes that benefit is heavily conditioned on dietary, genetic, and baseline lifestyle covariates.
           </div>
         </div>
       </div>
@@ -1535,123 +1263,66 @@
   </div>
 </section>
 
-<!-- ── TRUST PRINCIPLES ───────────────────────────── -->
-<section class="section-trust" id="about">
+<!-- ── PRINCIPLES SECTION ──────────────────────────── -->
+<section class="section-principles" id="principles">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">Our Principles</div>
-      <h2 class="section-title">Built on Trust</h2>
-      <p class="section-sub">Information verification requires epistemic honesty. These principles are not marketing — they are design constraints.</p>
+      <div class="section-label">Trust &amp; Rigor</div>
+      <h2 class="section-title">Evidence Architecture</h2>
+      <p class="section-sub">EvidenceX operates under strict principles of epistemic humility, transparent sourcing, and lateral reading.</p>
     </div>
 
-    <div class="trust-grid">
-
-      <div class="trust-card reveal">
-        <div class="trust-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div class="trust-title">Evidence First</div>
-        <div class="trust-desc">Every verdict is derived from traceable, cited evidence — not model intuition. If the evidence is thin, the verdict reflects that uncertainty explicitly.</div>
+    <div class="principles-grid reveal">
+      <div class="principle-card">
+        <h3>Lateral Source Reading</h3>
+        <p>Instead of taking claims or websites at face value, EvidenceX cross-examines external consensus, institutional affiliations, and historical credibility.</p>
       </div>
 
-      <div class="trust-card reveal">
-        <div class="trust-icon">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-        </div>
-        <div class="trust-title">Transparent Reasoning</div>
-        <div class="trust-desc">You can see exactly why a verdict was reached. Every inference step, source weight, and comparison is exposed — there are no black-box conclusions.</div>
+      <div class="principle-card">
+        <h3>Epistemic Humility</h3>
+        <p>When evidence is insufficient or conflicting, EvidenceX explicitly assigns 'Insufficient Evidence' or 'Inconclusive' rather than guessing.</p>
       </div>
 
-      <div class="trust-card reveal">
-        <div class="trust-icon">
-          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div class="trust-title">Uncertainty Aware</div>
-        <div class="trust-desc">EvidenceX does not fabricate confidence. When evidence is genuinely mixed or insufficient, the system communicates that clearly rather than defaulting to a false verdict.</div>
+      <div class="principle-card">
+        <h3>Explainable Reasoning</h3>
+        <p>Every verdict is supported by human-readable reasoning traces with exact source citations, publication dates, and strength assessments.</p>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ── FINAL CTA ──────────────────────────────────── -->
+<!-- ── CTA SECTION ─────────────────────────────────── -->
 <section class="section-cta">
   <div class="container">
-    <div class="cta-box reveal">
-      <div class="section-label" style="justify-content:center;" data-i18n="cta.label">Get Started</div>
-      <h2 class="cta-title" data-i18n="cta.title">Ready to investigate a claim?</h2>
-      <p class="cta-sub" data-i18n="cta.sub">Paste a claim, upload a screenshot, or submit a URL. EvidenceX will trace the evidence and tell you what it actually supports.</p>
-      <div class="cta-actions">
-        <a href="verification-center.html" class="btn btn-primary" data-i18n="btn.start">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
-          Start Verification
-        </a>
-        <a href="#how-it-works" class="btn btn-secondary" data-i18n="hero.how">How It Works</a>
-      </div>
+    <div class="cta-card reveal">
+      <div class="section-label" style="margin-bottom:8px;">Ready to Investigate?</div>
+      <h2>Start your first verification</h2>
+      <p>Submit any text statement, screenshot, article URL, or soundbite to inspect the evidence behind the claim.</p>
+      <a href="verification-center.html" class="btn btn-primary" style="font-size:15px;padding:12px 28px;border-radius:var(--r-pill);" data-i18n="btn.start">
+        Open Verification Center
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ── FOOTER ─────────────────────────────────────── -->
+<!-- ── FOOTER ──────────────────────────────────────── -->
 <footer>
-  <div class="container">
-    <div class="footer-inner">
-      <div>
-        <div class="footer-brand-name">
-          <div class="nav-logo-mark" style="width:22px;height:22px;">
-            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
-          </div>
-          EvidenceX
-        </div>
-        <div class="footer-brand-desc">Multimodal AI-powered claim verification and evidence intelligence. Verify what you read, see, and hear.</div>
+  <div class="container footer-inner">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="nav-logo-mark" style="width:24px;height:24px;border-radius:6px;">
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;"><path d="M9 12l2 2 4-4M5 12a7 7 0 1 0 14 0A7 7 0 0 0 5 12z"/></svg>
       </div>
-
-      <div>
-        <div class="footer-col-title">Product</div>
-        <ul class="footer-links">
-          <li><a href="verification-center.html" data-i18n="nav.verifyClaim">Verify a Claim</a></li>
-          <li><a href="#how-it-works" data-i18n="nav.how">How It Works</a></li>
-          <li><a href="#evidence" data-i18n="nav.evidence">Evidence</a></li>
-          <li><a href="results.html">Sample Results</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <div class="footer-col-title">Company</div>
-        <ul class="footer-links">
-          <li><a href="#about" data-i18n="nav.about">About</a></li>
-          <li><a href="#">Research</a></li>
-          <li><a href="#">Press</a></li>
-          <li><a href="#">Careers</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <div class="footer-col-title">Legal</div>
-        <ul class="footer-links">
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Use</a></li>
-          <li><a href="#">Editorial Policy</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </div>
+      <span style="font-weight:700;font-size:14px;color:var(--text-main);">EvidenceX</span>
     </div>
-
-    <div class="footer-bottom">
-      <span class="footer-copy">&copy; 2026 EvidenceX. All rights reserved.</span>
-      <div class="footer-controls">
-        <select class="lang-select" aria-label="Language">
-          <option value="en">English</option>
-          <option value="hi">हिन्दी</option>
-        </select>
-        <button class="theme-btn" id="themeToggle2" aria-label="Toggle theme">
-          <svg id="icon-sun2" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <svg id="icon-moon2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-      </div>
+    <div class="footer-copy">
+      Multimodal AI-Powered Claim Verification &amp; Evidence Intelligence.
     </div>
   </div>
 </footer>
+
+<!-- ── Shared API Client ─────────────────────────────── -->
+<script src="api.js"></script>
 
 <script>
   // ── Theme Toggle ────────────────────────────────────
@@ -1660,28 +1331,20 @@
   function applyTheme(theme) {
     html.setAttribute('data-theme', theme);
     const isDark = theme === 'dark';
-    // Navbar icons
     document.getElementById('icon-sun').style.display   = isDark ? 'block' : 'none';
     document.getElementById('icon-moon').style.display  = isDark ? 'none'  : 'block';
-    document.getElementById('icon-sun2').style.display  = isDark ? 'block' : 'none';
-    document.getElementById('icon-moon2').style.display = isDark ? 'none'  : 'block';
     localStorage.setItem('ex-theme', theme);
-    localStorage.setItem('evidencex-theme', theme);
   }
 
-  // Initialise from stored preference or system
   (function() {
-    const stored = localStorage.getItem('ex-theme') || localStorage.getItem('evidencex-theme');
+    const stored = localStorage.getItem('ex-theme');
     const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(stored || (sysDark ? 'dark' : 'light'));
   })();
 
-  function toggleTheme() {
+  document.getElementById('themeToggle').addEventListener('click', () => {
     applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  }
-
-  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-  document.getElementById('themeToggle2').addEventListener('click', toggleTheme);
+  });
 
   // ── i18n Language System ────────────────────────────
   const i18nLanding = {
@@ -1689,31 +1352,29 @@
       'nav.verify': 'Verify',
       'nav.how': 'How It Works',
       'nav.evidence': 'Evidence',
-      'nav.about': 'About',
+      'nav.about': 'Principles',
       'btn.start': 'Start Verification',
+      'btn.verify': 'Verify Claim',
       'hero.badge': 'Multimodal Claim Verification',
-      'hero.title': 'Verify Claims.<br><em>See the Evidence.</em>',
-      'hero.sub': 'EvidenceX analyzes text, images, and online content to break claims into verifiable facts, investigate credible sources, compare evidence, and explain what the evidence actually supports.',
-      'hero.how': 'See How It Works',
-      'cta.label': 'Get Started',
-      'cta.title': 'Ready to investigate a claim?',
-      'cta.sub': 'Paste a claim, upload a screenshot, or submit a URL. EvidenceX will trace the evidence and tell you what it actually supports.',
-      'nav.verifyClaim': 'Verify a Claim',
+      'hero.title': 'Investigate claims.<br><em>Understand the evidence.</em>',
+      'hero.sub': 'EvidenceX transforms text, images, URLs and audio into evidence-backed investigations.',
+      'hero.intake.heading': 'What would you like to verify?',
+      'hero.intake.status': 'Engine operational · Ready for input',
+      'hero.sample': 'Use Sample Claim',
     },
     hi: {
       'nav.verify': 'सत्यापन',
-      'nav.how': 'यह कैसे काम करता है',
+      'nav.how': 'कार्यप्रणाली',
       'nav.evidence': 'साक्ष्य',
-      'nav.about': 'परिचय',
+      'nav.about': 'सिद्धांत',
       'btn.start': 'सत्यापन शुरू करें',
+      'btn.verify': 'दावा सत्यापित करें',
       'hero.badge': 'मल्टीमॉडल दावा सत्यापन',
-      'hero.title': 'दावों की जांच करें।<br><em>साक्ष्य देखें।</em>',
-      'hero.sub': 'EvidenceX पाठ, छवियों और ऑनलाइन सामग्री का विश्लेषण करता है ताकि दावों को सत्यापन योग्य तथ्यों में विभाजित किया जा सके, विश्वसनीय स्रोतों की जांच की जा सके और साक्ष्य की स्पष्ट व्याख्या की जा सके।',
-      'hero.how': 'कार्यप्रणाली देखें',
-      'cta.label': 'शुरू करें',
-      'cta.title': 'क्या आप दावे की जांच करने के लिए तैयार हैं?',
-      'cta.sub': 'एक दावा पेस्ट करें, स्क्रीनशॉट अपलोड करें या URL सबमिट करें। EvidenceX साक्ष्य की खोज करेगा और बताएगा कि साक्ष्य वास्तव में क्या समर्थन करता है।',
-      'nav.verifyClaim': 'दावे का सत्यापन करें',
+      'hero.title': 'दावों की जांच करें।<br><em>साक्ष्य समझें।</em>',
+      'hero.sub': 'EvidenceX पाठ, छवियों, URL और ऑडियो को साक्ष्य-आधारित जांच में बदलता है।',
+      'hero.intake.heading': 'आप क्या सत्यापित करना चाहते हैं?',
+      'hero.intake.status': 'प्रणाली सक्रिय · इनपुट के लिए तैयार',
+      'hero.sample': 'नमूना दावा उपयोग करें',
     }
   };
 
@@ -1722,7 +1383,8 @@
     currentLang = lang;
     document.documentElement.setAttribute('lang', lang === 'hi' ? 'hi' : 'en');
     localStorage.setItem('ex-lang', lang);
-    document.querySelectorAll('.lang-select').forEach(s => s.value = lang);
+    const sel = document.getElementById('langSelect');
+    if (sel) sel.value = lang;
     const dict = i18nLanding[lang] || i18nLanding.en;
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const k = el.dataset.i18n;
@@ -1738,11 +1400,60 @@
     applyLang(storedLang);
   })();
 
-  document.querySelectorAll('.lang-select').forEach(sel => {
-    sel.addEventListener('change', function() {
+  const langSelectEl = document.getElementById('langSelect');
+  if (langSelectEl) {
+    langSelectEl.addEventListener('change', function() {
       applyLang(this.value);
     });
+  }
+
+  // ── Hero Intake Interactions ────────────────────────
+  let activeIntakeMode = 'text';
+  const heroClaimInput = document.getElementById('heroClaimInput');
+  const heroSampleBtn = document.getElementById('heroSampleBtn');
+  const heroVerifyBtn = document.getElementById('heroVerifyBtn');
+
+  const sampleClaims = {
+    text: "Climate scientists have reached a 97% consensus that human activity is the primary driver of recent climate change.",
+    image: "Screenshot excerpt: 'Study claims drinking 4 cups of coffee daily reverses cognitive aging by 12 years.'",
+    url: "https://www.who.int/news-room/fact-sheets/detail/depression",
+    audio: "Press briefing audio: 'Central bank confirms phased interest rate reductions beginning third quarter.'"
+  };
+
+  document.querySelectorAll('.intake-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.intake-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeIntakeMode = btn.dataset.mode;
+      if (activeIntakeMode === 'url') {
+        heroClaimInput.placeholder = "Enter article or webpage URL (https://...)";
+      } else if (activeIntakeMode === 'image') {
+        heroClaimInput.placeholder = "Describe or paste details of the screenshot/image to verify...";
+      } else if (activeIntakeMode === 'audio') {
+        heroClaimInput.placeholder = "Audio mode selected: type context or click verify to upload/record speech...";
+      } else {
+        heroClaimInput.placeholder = "Paste a claim, article statement, social media excerpt, or question to investigate…";
+      }
+    });
   });
+
+  if (heroSampleBtn) {
+    heroSampleBtn.addEventListener('click', () => {
+      heroClaimInput.value = sampleClaims[activeIntakeMode] || sampleClaims.text;
+    });
+  }
+
+  if (heroVerifyBtn) {
+    heroVerifyBtn.addEventListener('click', () => {
+      const claimText = heroClaimInput.value.trim();
+      const targetUrl = new URL('verification-center.html', window.location.href);
+      targetUrl.searchParams.set('type', activeIntakeMode);
+      if (claimText) {
+        targetUrl.searchParams.set('claim', claimText);
+      }
+      window.location.href = targetUrl.toString();
+    });
+  }
 
   // ── Scroll Reveal ───────────────────────────────────
   const revealEls = document.querySelectorAll('.reveal');
@@ -1753,37 +1464,9 @@
         observer.unobserve(e.target);
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
 
   revealEls.forEach(el => observer.observe(el));
-
-  // ── Confidence Bar Animation ────────────────────────
-  const sampleBarObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        document.getElementById('sampleConfBar').style.width = '92%';
-        sampleBarObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.3 });
-
-  const sampleSection = document.querySelector('.section-sample');
-  if (sampleSection) sampleBarObserver.observe(sampleSection);
-
-  // ── Smooth active nav highlight ─────────────────────
-  const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('.nav-links a');
-
-  window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(s => {
-      if (window.scrollY >= s.offsetTop - 100) current = s.id;
-    });
-    navLinks.forEach(a => {
-      a.style.color = a.getAttribute('href') === '#' + current ? 'var(--text-primary)' : '';
-      a.style.background = a.getAttribute('href') === '#' + current ? 'var(--accent-light)' : '';
-    });
-  }, { passive: true });
 </script>
 </body>
 </html>

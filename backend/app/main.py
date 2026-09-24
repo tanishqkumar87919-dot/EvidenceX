@@ -37,10 +37,19 @@ register_error_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount Frontend static files
+import os
+from fastapi.staticfiles import StaticFiles
+_frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend")
+if os.path.exists(_frontend_dir):
+    app.mount("/frontend", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
+
 
 
 @app.middleware("http")
