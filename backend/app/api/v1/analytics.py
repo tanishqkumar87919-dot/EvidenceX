@@ -1,22 +1,26 @@
-from typing import Any, Dict
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
+from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/analytics", tags=["Analytics Contracts"])
+from ...database.session import get_db
+from ...schemas.analytics import AnalyticsOverviewResponse
+from ...services.analytics import analytics_service
+
+router = APIRouter(prefix="/analytics", tags=["Analytics & Global Intelligence"])
 
 
 @router.get(
     "/overview",
-    summary="Get Analytics Overview (Contract)",
+    response_model=AnalyticsOverviewResponse,
+    status_code=200,
+    summary="Get Analytics Overview",
 )
-async def get_analytics_overview(request: Request) -> Dict[str, Any]:
+async def get_analytics_overview(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> AnalyticsOverviewResponse:
     """
-    Contract for aggregated verification metrics, veracity trends, and source diversity.
-    Phase 1: Returns transparent empty/not-ready response. Strictly does NOT invent fake numbers.
+    Computes and aggregates real verification metrics, veracity trends,
+    and source diversity strictly derived from persisted database records.
     """
-    request_id = getattr(request.state, "request_id", "unknown-request-id")
-    return {
-        "status": "service_not_ready",
-        "message": "Analytics metrics are not available yet. Database layer is not initialized in Phase 1.",
-        "request_id": request_id,
-        "data": None,
-    }
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or "req_analytics"
+    return analytics_service.get_overview(db=db, request_id=request_id)

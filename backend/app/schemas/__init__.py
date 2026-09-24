@@ -1,4 +1,23 @@
-from .claim import ClaimItem, ClaimListResponse
+from .analytics import (
+    AnalyticsOverviewResponse,
+    EvidenceSufficiencyDistribution,
+    RecentInvestigationItem,
+    TimeseriesDataPoint,
+    VerdictDistribution,
+)
+from .claim import (
+    ClaimDetailResponse,
+    ClaimInvestigationDetail,
+    ClaimInvestigationResponse,
+    ClaimItem,
+    ClaimListResponse,
+    ClaimStatus,
+    ClaimTaskItem,
+    ClaimType,
+    ExtractedClaimCandidate,
+    SourcePreference,
+    VerificationTaskPlan,
+)
 from .common import (
     ErrorDetail,
     ErrorResponse,
@@ -8,22 +27,43 @@ from .common import (
     ServiceNotReadyResponse,
     VerificationDepth,
 )
-from .copilot import CopilotQueryRequest, CopilotQueryResponse
-from .evidence import EvidenceItem, EvidenceListResponse, SourceItem, SourceListResponse
+from .copilot import (
+    ClaimCitation,
+    CopilotHistoryResponse,
+    CopilotMessageItem,
+    CopilotQueryRequest,
+    CopilotQueryResponse,
+    CopilotResponse,
+    EvidenceCitation,
+)
+from .evidence import (
+    AssociatedClaimItem,
+    AssociatedVerificationResultItem,
+    EvidenceDetailResponse,
+    EvidenceItem,
+    EvidenceListResponse,
+    SourceItem,
+    SourceListResponse,
+)
+from .ingest import IngestResponse, NormalizedInput
 from .investigation import (
     InvestigationCreateRequest,
     InvestigationDetailResponse,
     InvestigationStatusResponse,
 )
-from .settings import SettingsResponse, UserSettings
-from .timeline import TimelineEvent, TimelineResponse
-from .ingest import IngestResponse, NormalizedInput
-from .verify import (
-    TextVerifyRequest,
-    UrlVerifyRequest,
-    VerifyFormMetadata,
+from .results import (
+    ClaimResultItem,
+    EvidenceReferenceItem,
+    InvestigationResultsResponse,
+    ResultSummary,
 )
-
+from .settings import SettingsResponse, UserSettings
+from .timeline import (
+    InvestigationTimelineResponse,
+    TimelineEvent,
+    TimelineEventItem,
+    TimelineResponse,
+)
 from .verification import (
     ClaimVerificationDetailResponse,
     ClaimVerificationResultItem,
@@ -31,6 +71,11 @@ from .verification import (
     InvestigationVerificationListResponse,
     InvestigationVerificationResponse,
     VerdictType,
+)
+from .verify import (
+    TextVerifyRequest,
+    UrlVerifyRequest,
+    VerifyFormMetadata,
 )
 
 __all__ = [
@@ -49,14 +94,33 @@ __all__ = [
     "InvestigationDetailResponse",
     "ClaimItem",
     "ClaimListResponse",
+    "ClaimType",
+    "ClaimStatus",
+    "SourcePreference",
+    "VerificationTaskPlan",
+    "ClaimTaskItem",
+    "ExtractedClaimCandidate",
+    "ClaimDetailResponse",
+    "ClaimInvestigationDetail",
+    "ClaimInvestigationResponse",
     "EvidenceItem",
     "EvidenceListResponse",
     "SourceItem",
     "SourceListResponse",
+    "AssociatedClaimItem",
+    "AssociatedVerificationResultItem",
+    "EvidenceDetailResponse",
     "TimelineEvent",
     "TimelineResponse",
+    "TimelineEventItem",
+    "InvestigationTimelineResponse",
     "CopilotQueryRequest",
     "CopilotQueryResponse",
+    "CopilotResponse",
+    "CopilotMessageItem",
+    "CopilotHistoryResponse",
+    "EvidenceCitation",
+    "ClaimCitation",
     "UserSettings",
     "SettingsResponse",
     "VerdictType",
@@ -65,4 +129,15 @@ __all__ = [
     "InvestigationVerificationResponse",
     "InvestigationVerificationListResponse",
     "ClaimVerificationDetailResponse",
+    "InvestigationResultsResponse",
+    "ClaimResultItem",
+    "ResultSummary",
+    "EvidenceReferenceItem",
+    "AnalyticsOverviewResponse",
+    "VerdictDistribution",
+    "EvidenceSufficiencyDistribution",
+    "RecentInvestigationItem",
+    "TimeseriesDataPoint",
+    "IngestResponse",
+    "NormalizedInput",
 ]

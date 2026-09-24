@@ -101,3 +101,33 @@ class ClaimListResponse(BaseModel):
     claims: List[ClaimDetailResponse] = Field(default_factory=list)
     total: int = 0
     request_id: str
+
+
+class ClaimInvestigationDetail(BaseModel):
+    id: str
+    investigation_id: str
+    claim_text: str
+    claim_type: str = "OTHER"
+    language: str = "en"
+    context: Optional[str] = None
+    order_index: int = 0
+    extraction_confidence: Optional[float] = None
+    status: str = "extracted"
+    temporal_info: Optional[str] = None
+    entities: List[str] = Field(default_factory=list)
+    tasks: List[ClaimTaskItem] = Field(default_factory=list)
+    created_at: Optional[str] = None
+
+
+class ClaimInvestigationResponse(BaseModel):
+    claim_id: str
+    investigation_id: str
+    claim: ClaimInvestigationDetail
+    verification: Optional[Dict[str, Any]] = None
+    supporting_evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    contradicting_evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    all_evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    source_assessment: Dict[str, Any] = Field(default_factory=dict)
+    conflict_summary: Optional[str] = None
+    temporal_analysis: Optional[str] = None
+    request_id: str

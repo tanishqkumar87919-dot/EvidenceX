@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .models import (
@@ -664,6 +664,231 @@ class InvestigationRepository:
         db: Session, result_id: str
     ) -> Optional[VerificationResultModel]:
         return db.get(VerificationResultModel, result_id)
+
+    @staticmethod
+    def get_copilot_messages_for_investigation(
+        db: Session, investigation_id: str
+    ) -> List[CopilotMessageModel]:
+        stmt = (
+            select(CopilotMessageModel)
+            .where(CopilotMessageModel.investigation_id == investigation_id)
+            .order_by(CopilotMessageModel.created_at.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_timeline_events_for_investigation(
+        db: Session, investigation_id: str
+    ) -> List[TimelineEventModel]:
+        stmt = (
+            select(TimelineEventModel)
+            .where(TimelineEventModel.investigation_id == investigation_id)
+            .order_by(TimelineEventModel.event_date.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_agent_events_for_investigation(
+        db: Session, investigation_id: str
+    ) -> List[AgentEventModel]:
+        stmt = (
+            select(AgentEventModel)
+            .where(AgentEventModel.investigation_id == investigation_id)
+            .order_by(AgentEventModel.created_at.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_filtered_evidence_for_investigation(
+        db: Session,
+        investigation_id: str,
+        claim_id: Optional[str] = None,
+        stance: Optional[str] = None,
+        source_category: Optional[str] = None,
+        source_quality: Optional[str] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        query_str: Optional[str] = None,
+    ) -> List[EvidenceModel]:
+        claim_subquery = select(ClaimModel.id).where(ClaimModel.investigation_id == investigation_id)
+        stmt = (
+            select(EvidenceModel)
+            .distinct()
+            .join(EvidenceModel.source)
+            .outerjoin(ClaimEvidenceModel, ClaimEvidenceModel.evidence_id == EvidenceModel.id)
+            .where(
+                (EvidenceModel.claim_id.in_(claim_subquery))
+                | (ClaimEvidenceModel.claim_id.in_(claim_subquery))
+            )
+        )
+        if claim_id:
+            stmt = stmt.where(
+                (EvidenceModel.claim_id == claim_id)
+                | (ClaimEvidenceModel.claim_id == claim_id)
+            )
+        if stance:
+            stmt = stmt.where(EvidenceModel.relationship_type.ilike(f"%{stance}%"))
+        if source_category:
+            stmt = stmt.where(SourceModel.source_type.ilike(f"%{source_category}%"))
+        if source_quality:
+            sq = source_quality.upper()
+            if sq == "HIGH":
+                stmt = stmt.where(EvidenceModel.relevance >= 0.80)
+            elif sq == "MEDIUM":
+                stmt = stmt.where(EvidenceModel.relevance >= 0.50, EvidenceModel.relevance < 0.80)
+            elif sq == "LOW":
+                stmt = stmt.where(EvidenceModel.relevance < 0.50)
+        if start_date:
+            try:
+                dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+                stmt = stmt.where(EvidenceModel.created_at >= dt)
+            except Exception:
+                pass
+        if end_date:
+            try:
+                dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
+                stmt = stmt.where(EvidenceModel.created_at <= dt)
+            except Exception:
+                pass
+        if query_str:
+            q = f"%{query_str.strip()}%"
+            stmt = stmt.where(
+                (EvidenceModel.exact_relevant_excerpt.ilike(q))
+                | (SourceModel.title.ilike(q))
+                | (SourceModel.domain.ilike(q))
+                | (SourceModel.url.ilike(q))
+            )
+        stmt = stmt.order_by(EvidenceModel.created_at.asc())
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_analytics_summary(db: Session) -> Dict[str, Any]:
+        total_inv = db.scalar(select(func.count(InvestigationModel.id))) or 0
+        total_claims = db.scalar(select(func.count(ClaimModel.id))) or 0
+
+        v_results = list(db.scalars(select(VerificationResultModel)).all())
+        total_verified = len(v_results)
+
+        verdicts = {
+            "supported": 0,
+            "contradicted": 0,
+            "partially_supported": 0,
+            "inconclusive": 0,
+            "insufficient_evidence": 0,
+        }
+        sufficiencies = {
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "insufficient": 0,
+        }
+        conf_sum = 0.0
+        conf_count = 0
+
+        for vr in v_results:
+            v_lower = (vr.verdict or "").lower()
+            if v_lower in ("supported",):
+                verdicts["supported"] += 1
+            elif v_lower in ("contradicted", "refuted"):
+                verdicts["contradicted"] += 1
+            elif v_lower in ("partially_supported",):
+                verdicts["partially_supported"] += 1
+            elif v_lower in ("inconclusive",):
+                verdicts["inconclusive"] += 1
+            elif v_lower in ("insufficient_evidence", "insufficient"):
+                verdicts["insufficient_evidence"] += 1
+
+            s_lower = (vr.evidence_sufficiency or "").lower()
+            if s_lower in sufficiencies:
+                sufficiencies[s_lower] += 1
+
+            if vr.model_confidence is not None:
+                conf_sum += float(vr.model_confidence)
+                conf_count += 1
+
+        avg_conf = round(conf_sum / conf_count, 4) if conf_count > 0 else 0.0
+
+        total_evidence = db.scalar(select(func.count(EvidenceModel.id))) or 0
+        total_sources = db.scalar(select(func.count(SourceModel.id))) or 0
+
+        source_types: Dict[str, int] = {}
+        for s in db.scalars(select(SourceModel)).all():
+            stype = s.source_type or "OTHER"
+            source_types[stype] = source_types.get(stype, 0) + 1
+
+        inv_statuses: Dict[str, int] = {}
+        all_invs = list(db.scalars(select(InvestigationModel).order_by(InvestigationModel.created_at.desc())).all())
+        for inv in all_invs:
+            st = inv.status or "unknown"
+            inv_statuses[st] = inv_statuses.get(st, 0) + 1
+
+        recent_items = []
+        for inv in all_invs[:10]:
+            claims_cnt = len(inv.claims)
+            inv_vr = [c.verification_result for c in inv.claims if c.verification_result]
+            ov_verdict = inv_vr[0].verdict if inv_vr else ("VERIFIED" if inv.status == "verified" else inv.status)
+            src_cnt = len(
+                set(
+                    assoc.evidence.source_id
+                    for c in inv.claims
+                    for assoc in getattr(c, "evidence_associations", [])
+                    if assoc.evidence and assoc.evidence.source_id
+                )
+            )
+            recent_items.append({
+                "investigation_id": str(inv.id),
+                "title": inv.title or f"Investigation {str(inv.id)[:8]}",
+                "status": inv.status,
+                "modality": inv.input_type or "TEXT",
+                "claims_count": claims_cnt,
+                "sources_count": src_cnt,
+                "overall_verdict": ov_verdict,
+                "created_at": inv.created_at.isoformat() if inv.created_at else None,
+            })
+
+        daily_inv: Dict[str, int] = {}
+        daily_claims: Dict[str, int] = {}
+        for inv in all_invs:
+            if inv.created_at:
+                d_str = inv.created_at.strftime("%Y-%m-%d")
+                daily_inv[d_str] = daily_inv.get(d_str, 0) + 1
+
+        for vr in v_results:
+            t = vr.created_at or vr.generated_timestamp
+            if t:
+                d_str = t.strftime("%Y-%m-%d")
+                daily_claims[d_str] = daily_claims.get(d_str, 0) + 1
+
+        all_dates = sorted(set(list(daily_inv.keys()) + list(daily_claims.keys())))
+        timeseries = [
+            {
+                "date": d,
+                "investigations_count": daily_inv.get(d, 0),
+                "verified_claims_count": daily_claims.get(d, 0),
+            }
+            for d in all_dates
+        ]
+
+        return {
+            "total_investigations": total_inv,
+            "total_claims": total_claims,
+            "total_verified_claims": total_verified,
+            "supported_count": verdicts["supported"],
+            "contradicted_count": verdicts["contradicted"],
+            "partially_supported_count": verdicts["partially_supported"],
+            "inconclusive_count": verdicts["inconclusive"],
+            "insufficient_evidence_count": verdicts["insufficient_evidence"],
+            "evidence_count": total_evidence,
+            "source_count": total_sources,
+            "average_confidence": avg_conf,
+            "verdict_distribution": verdicts,
+            "evidence_sufficiency_distribution": sufficiencies,
+            "source_type_distribution": source_types,
+            "investigation_status_distribution": inv_statuses,
+            "recent_investigations": recent_items,
+            "timeseries": timeseries,
+        }
+
 
     @staticmethod
     def delete_investigation(db: Session, investigation_id: str) -> bool:

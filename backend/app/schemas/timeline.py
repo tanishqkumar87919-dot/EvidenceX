@@ -2,21 +2,25 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class TimelineEvent(BaseModel):
+class TimelineEventItem(BaseModel):
     event_id: str
-    investigation_id: str
-    timestamp: str
+    event_type: str
+    timestamp: Optional[str] = None
     title: str
     description: str
-    source_url: Optional[str] = None
-    event_type: str = Field(
-        default="evidence",
-        description="Event classification: claim_origin, corroboration, debunk, etc.",
-    )
+    source_id: Optional[str] = None
+    claim_id: Optional[str] = None
+    relationship: Optional[str] = None
 
 
-class TimelineResponse(BaseModel):
+class InvestigationTimelineResponse(BaseModel):
     investigation_id: str
-    events: List[TimelineEvent] = Field(default_factory=list)
+    events: List[TimelineEventItem] = Field(default_factory=list)
     total: int = 0
+    total_events: int = 0
     request_id: str
+
+
+# Aliases for backwards compatibility
+TimelineEvent = TimelineEventItem
+TimelineResponse = InvestigationTimelineResponse

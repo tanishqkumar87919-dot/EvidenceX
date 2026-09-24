@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 from ...core.errors import NotFoundException
 from ...database.repository import InvestigationRepository
 from ...database.session import get_db
-from ...schemas.claim import ClaimDetailResponse, ClaimTaskItem
+from ...schemas.claim import (
+    ClaimDetailResponse,
+    ClaimInvestigationDetail,
+    ClaimInvestigationResponse,
+    ClaimTaskItem,
+)
 from ...schemas.evidence import EvidenceItem, EvidenceListResponse
 from ...schemas.verification import (
     ClaimVerificationDetailResponse,
@@ -156,5 +161,152 @@ async def get_claim_verification(
         claim_id=claim.id,
         investigation_id=claim.investigation_id,
         result=result_item,
+        request_id=request_id,
+    )
+
+
+@router.get(
+    "/{claim_id}/investigation",
+    response_model=ClaimInvestigationResponse,
+    status_code=200,
+    summary="Deep Dive Claim Investigation",
+)
+async def get_claim_investigation(
+    claim_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> ClaimInvestigationResponse:
+    """
+    Comprehensive investigation view for a single atomic claim:
+    tasks, verification result, rationale, supporting/contradicting evidence with quotes,
+    source credibility assessment, and temporal analysis.
+    """
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or "req_default"
+    claim = InvestigationRepository.get_claim(db, claim_id)
+    if not claim:
+        raise NotFoundException(
+            message=f"Claim '{claim_id}' was not found.",
+            details={"claim_id": claim_id},
+        )
+
+    tasks = [
+        ClaimTaskItem(
+            id=t.id,
+            claim_id=t.claim_id,
+            task_description=t.task_description,
+            search_query=t.search_query,
+            task_status=t.task_status,
+            completion_time=t.completion_time.isoformat() if t.completion_time else None,
+            created_at=t.created_at.isoformat() if t.created_at else None,
+        )
+        for t in claim.tasks
+    ]
+
+    claim_detail = ClaimInvestigationDetail(
+        id=claim.id,
+        investigation_id=claim.investigation_id,
+        claim_text=claim.claim_text,
+        claim_type=claim.claim_type or "OTHER",
+        language=claim.language or "en",
+        context=claim.context,
+        order_index=claim.order_index,
+        extraction_confidence=float(claim.extraction_confidence) if claim.extraction_confidence is not None else None,
+        status=claim.status,
+        tasks=tasks,
+        created_at=claim.created_at.isoformat() if claim.created_at else None,
+    )
+
+    v_res = InvestigationRepository.get_verification_result_for_claim(db, claim_id)
+    verification_dict = None
+    if v_res:
+        verification_dict = {
+            "id": str(v_res.id),
+            "verdict": v_res.verdict,
+            "confidence": float(v_res.model_confidence) if v_res.model_confidence is not None else 0.85,
+            "evidence_sufficiency": v_res.evidence_sufficiency or "MEDIUM",
+            "evidence_strength": float(v_res.evidence_strength) if v_res.evidence_strength is not None else 0.75,
+            "explanation": v_res.explanation or "",
+            "uncertainty": v_res.uncertainty,
+            "model_provider": v_res.model_provider,
+            "supporting_evidence_ids": [str(eid) for eid in (v_res.supporting_evidence_ids or [])],
+            "contradicting_evidence_ids": [str(eid) for eid in (v_res.contradicting_evidence_ids or [])],
+            "created_at": v_res.created_at.isoformat() if v_res.created_at else (v_res.generated_timestamp.isoformat() if v_res.generated_timestamp else None),
+        }
+
+    evidence_models = InvestigationRepository.get_evidence_for_claim(db, claim_id)
+    supporting_list = []
+    contradicting_list = []
+    all_evidence_list = []
+    domains = set()
+    total_rel = 0.0
+
+    for ev in evidence_models:
+        stance = ev.relationship_type.lower() if ev.relationship_type else "inconclusive"
+        rel_score = float(ev.relevance) if ev.relevance is not None else None
+        if rel_score is not None:
+            total_rel += rel_score
+
+        domain = ev.source.domain if ev.source else None
+        if domain:
+            domains.add(domain)
+
+        ev_data = {
+            "evidence_id": str(ev.id),
+            "claim_id": str(ev.claim_id) if ev.claim_id else None,
+            "source_title": ev.source.title if ev.source and ev.source.title else (ev.source.url if ev.source else "External Source"),
+            "source_url": ev.source.url if ev.source else "",
+            "publisher": (ev.source.publisher or ev.source.domain or "Unknown") if ev.source else "Unknown",
+            "domain": domain,
+            "snippet": ev.exact_relevant_excerpt,
+            "excerpt": ev.exact_relevant_excerpt,
+            "stance": stance,
+            "relevance_score": rel_score,
+            "reliability_score": rel_score,
+            "published_date": ev.source.publication_date.isoformat() if ev.source and ev.source.publication_date else None,
+        }
+        all_evidence_list.append(ev_data)
+        if "support" in stance:
+            supporting_list.append(ev_data)
+        elif "contradict" in stance or "refut" in stance:
+            contradicting_list.append(ev_data)
+
+    n_ev = len(all_evidence_list)
+    avg_rel = round(total_rel / n_ev, 3) if n_ev > 0 else 0.0
+
+    source_assessment = {
+        "total_sources": n_ev,
+        "unique_domains": list(domains),
+        "domain_count": len(domains),
+        "average_relevance": avg_rel,
+        "quality_distribution": {
+            "high": sum(1 for e in all_evidence_list if (e["relevance_score"] or 0) >= 0.8),
+            "medium": sum(1 for e in all_evidence_list if 0.5 <= (e["relevance_score"] or 0) < 0.8),
+            "low": sum(1 for e in all_evidence_list if (e["relevance_score"] or 0) < 0.5),
+        },
+    }
+
+    conflict_summary = None
+    if supporting_list and contradicting_list:
+        conflict_summary = f"Conflicting evidence found: {len(supporting_list)} supporting vs {len(contradicting_list)} contradicting sources."
+    elif supporting_list:
+        conflict_summary = f"Consistently supported across {len(supporting_list)} corroborating sources."
+    elif contradicting_list:
+        conflict_summary = f"Consistently contradicted across {len(contradicting_list)} refuting sources."
+    else:
+        conflict_summary = "No decisive supporting or contradicting evidence found."
+
+    temporal_analysis = f"Claim extracted at {claim.created_at.isoformat() if claim.created_at else 'unknown'}. Evaluated against {n_ev} external sources."
+
+    return ClaimInvestigationResponse(
+        claim_id=claim.id,
+        investigation_id=claim.investigation_id,
+        claim=claim_detail,
+        verification=verification_dict,
+        supporting_evidence=supporting_list,
+        contradicting_evidence=contradicting_list,
+        all_evidence=all_evidence_list,
+        source_assessment=source_assessment,
+        conflict_summary=conflict_summary,
+        temporal_analysis=temporal_analysis,
         request_id=request_id,
     )

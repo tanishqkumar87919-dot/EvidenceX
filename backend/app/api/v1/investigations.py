@@ -27,13 +27,23 @@ from ...schemas.investigation import (
     InvestigationDetailResponse,
     InvestigationStatusResponse,
 )
+from ...schemas.copilot import (
+    CopilotHistoryResponse,
+    CopilotQueryRequest,
+    CopilotResponse,
+)
+from ...schemas.results import InvestigationResultsResponse
+from ...schemas.timeline import InvestigationTimelineResponse
 from ...schemas.verification import (
     ClaimVerificationResultItem,
     InvestigationVerificationListResponse,
     InvestigationVerificationResponse,
 )
 from ...services.claim_extraction import claim_extraction_service
+from ...services.copilot import copilot_service
 from ...services.rag import evidence_retrieval_service
+from ...services.results import results_service
+from ...services.timeline import timeline_service
 from ...services.verification import verification_service
 
 
@@ -289,10 +299,19 @@ async def get_investigation_claims(
 async def get_investigation_evidence(
     investigation_id: str,
     request: Request,
+    claim_id: Optional[str] = None,
+    stance: Optional[str] = None,
+    source_category: Optional[str] = None,
+    source_quality: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    query: Optional[str] = None,
     db: Session = Depends(get_db),
 ) -> EvidenceListResponse:
     """
-    Retrieves real external evidence items dynamically discovered and ranked in Phase 5.
+    Retrieves real external evidence items dynamically discovered and ranked,
+    with full filtering support across claims, stance, source category, source quality,
+    date ranges, and textual keywords.
     """
     request_id = get_request_id(request)
     inv = InvestigationRepository.get_investigation(db, investigation_id)
@@ -302,7 +321,27 @@ async def get_investigation_evidence(
             details={"investigation_id": investigation_id},
         )
 
-    evidence_models = InvestigationRepository.get_evidence_for_investigation(db, investigation_id)
+    evidence_models = InvestigationRepository.get_filtered_evidence_for_investigation(
+        db=db,
+        investigation_id=investigation_id,
+        claim_id=claim_id,
+        stance=stance,
+        source_category=source_category,
+        source_quality=source_quality,
+        start_date=start_date,
+        end_date=end_date,
+        query_str=query,
+    )
+
+    def _qual(auth):
+        if auth is None:
+            return "MEDIUM"
+        if auth >= 0.8:
+            return "HIGH"
+        if auth >= 0.5:
+            return "MEDIUM"
+        return "LOW"
+
     evidence_items = [
         EvidenceItem(
             evidence_id=str(ev.id),
@@ -311,9 +350,17 @@ async def get_investigation_evidence(
             source_url=ev.source.url if ev.source else "",
             publisher=(ev.source.publisher or ev.source.domain or "Unknown") if ev.source else "Unknown",
             snippet=ev.exact_relevant_excerpt,
+            excerpt=ev.exact_relevant_excerpt,
             stance=ev.relationship_type.lower() if ev.relationship_type else "inconclusive",
+            relationship=ev.relationship_type or "INCONCLUSIVE",
             reliability_score=float(ev.relevance) if ev.relevance is not None else None,
+            relevance_score=float(ev.relevance) if ev.relevance is not None else None,
             published_date=ev.source.publication_date.isoformat() if ev.source and ev.source.publication_date else None,
+            domain=ev.source.domain if ev.source else None,
+            source_category=ev.source.source_type if ev.source else None,
+            source_quality=_qual(float(ev.relevance) if ev.relevance is not None else None),
+            authority=float(ev.relevance) if ev.relevance is not None else None,
+            retrieved_date=ev.source.retrieved_date.isoformat() if ev.source and ev.source.retrieved_date else (ev.created_at.isoformat() if ev.created_at else None),
         )
         for ev in evidence_models
     ]
@@ -534,34 +581,92 @@ async def get_investigation_verification_results(
 
 
 @router.get(
+    "/{investigation_id}/results",
+    response_model=InvestigationResultsResponse,
+    status_code=200,
+    summary="Get Investigation Results Dashboard",
+)
+async def get_investigation_results(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> InvestigationResultsResponse:
+    """
+    Returns complete, structured investigation results, verdict breakdown,
+    confidence metrics, and supporting vs contradicting evidence references.
+    """
+    request_id = get_request_id(request)
+    return results_service.get_investigation_results(
+        db=db,
+        investigation_id=investigation_id,
+        request_id=request_id,
+    )
+
+
+@router.get(
     "/{investigation_id}/timeline",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Get Investigation Timeline (Contract)",
+    response_model=InvestigationTimelineResponse,
+    status_code=200,
+    summary="Get Investigation Timeline",
 )
 async def get_investigation_timeline(
-    investigation_id: str, request: Request
-) -> ServiceNotReadyResponse:
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> InvestigationTimelineResponse:
     """
-    Timeline analysis is scheduled for Phase 6.
+    Returns the chronological evidence timeline assembled from real persisted database records.
     """
-    raise ServiceNotReadyException(
-        message="Timeline analysis pipeline is scheduled for Phase 6."
+    request_id = get_request_id(request)
+    return timeline_service.get_investigation_timeline(
+        db=db,
+        investigation_id=investigation_id,
+        request_id=request_id,
     )
 
 
 @router.post(
     "/{investigation_id}/copilot",
-    response_model=ServiceNotReadyResponse,
-    status_code=501,
-    summary="Query AI Copilot for Investigation (Contract)",
+    response_model=CopilotResponse,
+    status_code=200,
+    summary="Query AI Copilot for Investigation",
 )
 async def query_investigation_copilot(
-    investigation_id: str, request: Request
-) -> ServiceNotReadyResponse:
+    investigation_id: str,
+    payload: CopilotQueryRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> CopilotResponse:
     """
-    Evidence-grounded Copilot is scheduled for Phase 7.
+    Evidence-grounded conversational inquiry strictly citing investigation claims and sources.
     """
-    raise ServiceNotReadyException(
-        message="Evidence-grounded AI Copilot is scheduled for Phase 7."
+    request_id = get_request_id(request)
+    query_text = (payload.message or payload.query or "").strip()
+    return await copilot_service.answer_query(
+        db=db,
+        investigation_id=investigation_id,
+        user_message=query_text,
+        request_id=request_id,
+    )
+
+
+@router.get(
+    "/{investigation_id}/copilot",
+    response_model=CopilotHistoryResponse,
+    status_code=200,
+    summary="Get AI Copilot Conversation History",
+)
+async def get_investigation_copilot_history(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> CopilotHistoryResponse:
+    """
+    Retrieves full copilot conversation history for this investigation.
+    """
+    request_id = get_request_id(request)
+    return copilot_service.get_conversation_history(
+        db=db,
+        investigation_id=investigation_id,
+        request_id=request_id,
     )
