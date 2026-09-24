@@ -24,6 +24,15 @@ from .verify import (
     VerifyFormMetadata,
 )
 
+from .verification import (
+    ClaimVerificationDetailResponse,
+    ClaimVerificationResultItem,
+    EvidenceSufficiencyLevel,
+    InvestigationVerificationListResponse,
+    InvestigationVerificationResponse,
+    VerdictType,
+)
+
 __all__ = [
     "InputModality",
     "ExecutionMode",
@@ -50,4 +59,10 @@ __all__ = [
     "CopilotQueryResponse",
     "UserSettings",
     "SettingsResponse",
+    "VerdictType",
+    "EvidenceSufficiencyLevel",
+    "ClaimVerificationResultItem",
+    "InvestigationVerificationResponse",
+    "InvestigationVerificationListResponse",
+    "ClaimVerificationDetailResponse",
 ]

@@ -38,7 +38,7 @@ async def get_system_status(request: Request) -> Dict[str, Any]:
             "ocr_vision": "phase_3_ready",
             "claim_extractor": "phase_4_ready",
             "evidence_retrieval": "phase_5_ready",
-            "nli_verifier": "phase_1_contract_only",
+            "nli_verifier": "phase_6_ready",
         },
         "limits": {
             "max_audio_mb": round(settings.MAX_AUDIO_SIZE_BYTES / (1024 * 1024), 1),

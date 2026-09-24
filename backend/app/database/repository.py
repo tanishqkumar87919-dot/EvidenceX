@@ -576,6 +576,96 @@ class InvestigationRepository:
         return msg
 
     @staticmethod
+    def create_or_update_verification_result(
+        db: Session,
+        investigation_id: str,
+        verdict: str,
+        claim_id: Optional[str] = None,
+        model_confidence: Optional[float] = None,
+        evidence_sufficiency: Optional[str] = None,
+        evidence_strength: Optional[float] = None,
+        supporting_count: int = 0,
+        contradicting_count: int = 0,
+        inconclusive_count: int = 0,
+        supporting_evidence_ids: Optional[List[str]] = None,
+        contradicting_evidence_ids: Optional[List[str]] = None,
+        explanation: Optional[str] = None,
+        uncertainty: Optional[str] = None,
+        model_provider: Optional[str] = None,
+    ) -> VerificationResultModel:
+        """
+        Creates or updates a claim verification result in Supabase PostgreSQL.
+        Guarantees that each claim has a single canonical verification result.
+        """
+        existing = None
+        if claim_id:
+            stmt = select(VerificationResultModel).where(VerificationResultModel.claim_id == claim_id)
+            existing = db.scalars(stmt).first()
+
+        if existing:
+            existing.verdict = verdict
+            existing.model_confidence = model_confidence
+            existing.evidence_sufficiency = evidence_sufficiency
+            existing.evidence_strength = evidence_strength
+            existing.supporting_count = supporting_count
+            existing.contradicting_count = contradicting_count
+            existing.inconclusive_count = inconclusive_count
+            existing.supporting_evidence_ids = supporting_evidence_ids or []
+            existing.contradicting_evidence_ids = contradicting_evidence_ids or []
+            existing.explanation = explanation
+            existing.uncertainty = uncertainty
+            existing.model_provider = model_provider
+            existing.updated_at = now_utc()
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+        res = VerificationResultModel(
+            investigation_id=investigation_id,
+            claim_id=claim_id,
+            verdict=verdict,
+            model_confidence=model_confidence,
+            evidence_sufficiency=evidence_sufficiency,
+            evidence_strength=evidence_strength,
+            supporting_count=supporting_count,
+            contradicting_count=contradicting_count,
+            inconclusive_count=inconclusive_count,
+            supporting_evidence_ids=supporting_evidence_ids or [],
+            contradicting_evidence_ids=contradicting_evidence_ids or [],
+            explanation=explanation,
+            uncertainty=uncertainty,
+            model_provider=model_provider,
+        )
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+        return res
+
+    @staticmethod
+    def get_verification_results_for_investigation(
+        db: Session, investigation_id: str
+    ) -> List[VerificationResultModel]:
+        stmt = (
+            select(VerificationResultModel)
+            .where(VerificationResultModel.investigation_id == investigation_id)
+            .order_by(VerificationResultModel.generated_timestamp.asc())
+        )
+        return list(db.scalars(stmt).all())
+
+    @staticmethod
+    def get_verification_result_for_claim(
+        db: Session, claim_id: str
+    ) -> Optional[VerificationResultModel]:
+        stmt = select(VerificationResultModel).where(VerificationResultModel.claim_id == claim_id)
+        return db.scalars(stmt).first()
+
+    @staticmethod
+    def get_verification_result_by_id(
+        db: Session, result_id: str
+    ) -> Optional[VerificationResultModel]:
+        return db.get(VerificationResultModel, result_id)
+
+    @staticmethod
     def delete_investigation(db: Session, investigation_id: str) -> bool:
         """
         Safely deletes investigation and cascades to all child records

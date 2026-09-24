@@ -471,7 +471,9 @@ def test_zero_fake_verdicts_or_evidence_persisted():
         tasks = db.scalars(select(ClaimTaskModel).join(ClaimModel).where(ClaimModel.investigation_id == inv_id)).all()
         claim_ids = [c.id for c in claims]
         evidence = db.scalars(select(EvidenceModel).where(EvidenceModel.claim_id.in_(claim_ids))).all()
-        verdicts = db.scalars(select(VerificationResultModel)).all()
+        verdicts = db.scalars(
+            select(VerificationResultModel).where(VerificationResultModel.investigation_id == inv_id)
+        ).all()
 
         assert len(claims) >= 1
         assert len(tasks) >= 1

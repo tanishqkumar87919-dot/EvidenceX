@@ -186,6 +186,7 @@ class ClaimModel(Base):
     tasks = relationship("ClaimTaskModel", back_populates="claim", cascade="all, delete-orphan")
     evidence_associations = relationship("ClaimEvidenceModel", back_populates="claim", cascade="all, delete-orphan")
     evidence_chunks = relationship("EvidenceChunkModel", back_populates="claim", cascade="all, delete-orphan")
+    verification_result = relationship("VerificationResultModel", back_populates="claim", uselist=False, cascade="all, delete-orphan")
 
 
 class ClaimTaskModel(Base):
@@ -259,16 +260,29 @@ class VerificationResultModel(Base):
     id = Column(GUID, primary_key=True, default=generate_uuid)
     investigation_id = Column(GUID, ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
     claim_id = Column(GUID, ForeignKey("claims.id", ondelete="CASCADE"), nullable=True, index=True)
-    verdict = Column(String(50), nullable=False)  # SUPPORTED, REFUTED, INSUFFICIENT_EVIDENCE
+    verdict = Column(String(50), nullable=False)  # SUPPORTED, CONTRADICTED, PARTIALLY_SUPPORTED, INCONCLUSIVE, INSUFFICIENT_EVIDENCE
     model_confidence = Column(Numeric(5, 4), nullable=True)
-    evidence_sufficiency = Column(String(50), nullable=True)
+    evidence_sufficiency = Column(String(50), nullable=True)  # HIGH, MEDIUM, LOW, INSUFFICIENT
+    evidence_strength = Column(Numeric(5, 4), nullable=True)
     supporting_count = Column(Integer, default=0, nullable=False)
     contradicting_count = Column(Integer, default=0, nullable=False)
     inconclusive_count = Column(Integer, default=0, nullable=False)
+    supporting_evidence_ids = Column(JSON, default=list, nullable=False)
+    contradicting_evidence_ids = Column(JSON, default=list, nullable=False)
     explanation = Column(Text, nullable=True)
+    uncertainty = Column(Text, nullable=True)
+    model_provider = Column(String(100), nullable=True)
     generated_timestamp = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
 
     investigation = relationship("InvestigationModel", back_populates="verification_results")
+    claim = relationship("ClaimModel", back_populates="verification_result")
+
+    @property
+    def confidence(self) -> Optional[float]:
+        return float(self.model_confidence) if self.model_confidence is not None else None
+
 
 
 class TimelineEventModel(Base):

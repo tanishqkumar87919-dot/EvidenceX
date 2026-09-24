@@ -27,8 +27,15 @@ from ...schemas.investigation import (
     InvestigationDetailResponse,
     InvestigationStatusResponse,
 )
+from ...schemas.verification import (
+    ClaimVerificationResultItem,
+    InvestigationVerificationListResponse,
+    InvestigationVerificationResponse,
+)
 from ...services.claim_extraction import claim_extraction_service
 from ...services.rag import evidence_retrieval_service
+from ...services.verification import verification_service
+
 
 router = APIRouter(prefix="/investigations", tags=["Investigation Contracts & Orchestration"])
 
@@ -174,6 +181,15 @@ async def get_investigation_status(
     elif status_upper in ("READY_FOR_VERIFICATION",):
         progress_percent = 80
         current_stage = "READY_FOR_VERIFICATION"
+    elif status_upper in ("VERIFYING",):
+        progress_percent = 90
+        current_stage = "VERIFYING"
+    elif status_upper in ("VERIFIED",):
+        progress_percent = 100
+        current_stage = "VERIFIED"
+    elif status_upper in ("VERIFICATION_PARTIAL",):
+        progress_percent = 95
+        current_stage = "VERIFICATION_PARTIAL"
     elif status_upper in ("NO_EVIDENCE_FOUND",):
         progress_percent = 80
         current_stage = "NO_EVIDENCE_FOUND"
@@ -404,6 +420,115 @@ async def trigger_evidence_retrieval(
         investigation_id=inv.id,
         evidence=evidence_items,
         total=len(evidence_items),
+        request_id=request_id,
+    )
+
+
+@router.post(
+    "/{investigation_id}/verify",
+    response_model=InvestigationVerificationResponse,
+    status_code=200,
+    summary="Trigger Grounded Claim Verification",
+)
+async def trigger_investigation_verification(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> InvestigationVerificationResponse:
+    """
+    Executes grounded verification across all claims and retrieved evidence for this investigation.
+    Produces structured verdicts, confidence, sufficiency, strength, and explainable evidence citations.
+    """
+    request_id = get_request_id(request)
+    inv = InvestigationRepository.get_investigation(db, investigation_id)
+    if not inv:
+        raise NotFoundException(
+            message=f"Investigation '{investigation_id}' not found.",
+            details={"investigation_id": investigation_id},
+        )
+
+    results = await verification_service.verify_investigation(
+        db=db,
+        investigation_id=investigation_id,
+    )
+
+    db.refresh(inv)
+
+    items = [
+        ClaimVerificationResultItem(
+            verification_id=str(r.id),
+            claim_id=str(r.claim_id),
+            claim_text=r.claim.claim_text if r.claim else "",
+            verdict=r.verdict,
+            confidence=float(r.model_confidence) if r.model_confidence is not None else 0.85,
+            evidence_sufficiency=r.evidence_sufficiency or "MEDIUM",
+            evidence_strength=float(r.evidence_strength) if r.evidence_strength is not None else 0.75,
+            explanation=r.explanation or "",
+            supporting_evidence_ids=[str(eid) for eid in (r.supporting_evidence_ids or [])],
+            contradicting_evidence_ids=[str(eid) for eid in (r.contradicting_evidence_ids or [])],
+            uncertainty=r.uncertainty,
+            model_provider=r.model_provider,
+            created_at=r.created_at.isoformat() if r.created_at else r.generated_timestamp.isoformat(),
+        )
+        for r in results
+    ]
+
+    return InvestigationVerificationResponse(
+        investigation_id=inv.id,
+        status=inv.status,
+        claims_verified=len(items),
+        results=items,
+        request_id=request_id,
+    )
+
+
+@router.get(
+    "/{investigation_id}/verification-results",
+    response_model=InvestigationVerificationListResponse,
+    status_code=200,
+    summary="Get Investigation Verification Results",
+)
+async def get_investigation_verification_results(
+    investigation_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> InvestigationVerificationListResponse:
+    """
+    Retrieves all persisted claim verification results for this investigation.
+    """
+    request_id = get_request_id(request)
+    inv = InvestigationRepository.get_investigation(db, investigation_id)
+    if not inv:
+        raise NotFoundException(
+            message=f"Investigation '{investigation_id}' not found.",
+            details={"investigation_id": investigation_id},
+        )
+
+    results = InvestigationRepository.get_verification_results_for_investigation(db, investigation_id)
+
+    items = [
+        ClaimVerificationResultItem(
+            verification_id=str(r.id),
+            claim_id=str(r.claim_id),
+            claim_text=r.claim.claim_text if r.claim else "",
+            verdict=r.verdict,
+            confidence=float(r.model_confidence) if r.model_confidence is not None else 0.85,
+            evidence_sufficiency=r.evidence_sufficiency or "MEDIUM",
+            evidence_strength=float(r.evidence_strength) if r.evidence_strength is not None else 0.75,
+            explanation=r.explanation or "",
+            supporting_evidence_ids=[str(eid) for eid in (r.supporting_evidence_ids or [])],
+            contradicting_evidence_ids=[str(eid) for eid in (r.contradicting_evidence_ids or [])],
+            uncertainty=r.uncertainty,
+            model_provider=r.model_provider,
+            created_at=r.created_at.isoformat() if r.created_at else r.generated_timestamp.isoformat(),
+        )
+        for r in results
+    ]
+
+    return InvestigationVerificationListResponse(
+        investigation_id=inv.id,
+        results=items,
+        total=len(items),
         request_id=request_id,
     )
 

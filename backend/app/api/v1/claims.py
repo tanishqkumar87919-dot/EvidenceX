@@ -6,6 +6,11 @@ from ...database.repository import InvestigationRepository
 from ...database.session import get_db
 from ...schemas.claim import ClaimDetailResponse, ClaimTaskItem
 from ...schemas.evidence import EvidenceItem, EvidenceListResponse
+from ...schemas.verification import (
+    ClaimVerificationDetailResponse,
+    ClaimVerificationResultItem,
+)
+
 
 router = APIRouter(prefix="/claims", tags=["Claim Intelligence & Extraction"])
 
@@ -105,3 +110,51 @@ async def get_claim_evidence(
         request_id=request_id,
     )
 
+
+@router.get(
+    "/{claim_id}/verification",
+    response_model=ClaimVerificationDetailResponse,
+    status_code=200,
+    summary="Get Single Claim Verification Result",
+)
+async def get_claim_verification(
+    claim_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> ClaimVerificationDetailResponse:
+    """
+    Retrieves the persisted verification result and grounded rationale for a specific claim.
+    """
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID") or "req_default"
+    claim = InvestigationRepository.get_claim(db, claim_id)
+    if not claim:
+        raise NotFoundException(
+            message=f"Claim '{claim_id}' was not found.",
+            details={"claim_id": claim_id},
+        )
+
+    result = InvestigationRepository.get_verification_result_for_claim(db, claim_id)
+    result_item = None
+    if result:
+        result_item = ClaimVerificationResultItem(
+            verification_id=str(result.id),
+            claim_id=str(result.claim_id),
+            claim_text=claim.claim_text,
+            verdict=result.verdict,
+            confidence=float(result.model_confidence) if result.model_confidence is not None else 0.85,
+            evidence_sufficiency=result.evidence_sufficiency or "MEDIUM",
+            evidence_strength=float(result.evidence_strength) if result.evidence_strength is not None else 0.75,
+            explanation=result.explanation or "",
+            supporting_evidence_ids=[str(eid) for eid in (result.supporting_evidence_ids or [])],
+            contradicting_evidence_ids=[str(eid) for eid in (result.contradicting_evidence_ids or [])],
+            uncertainty=result.uncertainty,
+            model_provider=result.model_provider,
+            created_at=result.created_at.isoformat() if result.created_at else result.generated_timestamp.isoformat(),
+        )
+
+    return ClaimVerificationDetailResponse(
+        claim_id=claim.id,
+        investigation_id=claim.investigation_id,
+        result=result_item,
+        request_id=request_id,
+    )

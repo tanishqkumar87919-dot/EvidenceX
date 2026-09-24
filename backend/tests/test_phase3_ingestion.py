@@ -419,11 +419,16 @@ def test_all_four_modalities_db_persistence():
 
 
 def test_zero_fake_claims_or_evidence_persisted():
-    """Confirms strict constraint: real claims may be extracted, but ZERO fake evidence or verdicts fabricated."""
+    """Confirms strict constraint: real claims may be extracted, but ZERO fake evidence or verdicts fabricated during ingestion."""
+    res = client.post("/api/v1/verify/text", json={"text": "The boiling point of nitrogen is 77 Kelvin."})
+    inv_id = res.json().get("investigation_id")
     db = SessionLocal()
     try:
-        verdicts = db.scalars(select(VerificationResultModel)).all()
-        assert len(verdicts) == 0, f"Found {len(verdicts)} unexpectedly created verification results!"
+        if inv_id:
+            verdicts = db.scalars(
+                select(VerificationResultModel).where(VerificationResultModel.investigation_id == inv_id)
+            ).all()
+            assert len(verdicts) == 0, f"Found {len(verdicts)} unexpectedly created verification results!"
     finally:
         db.close()
 

@@ -99,6 +99,10 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 4
     RAG_SIMILARITY_THRESHOLD: float = 0.30
 
+    # Verification Engine (Phase 6)
+    VERIFICATION_PROVIDER: str = "gemini"  # options: gemini, openai, local, deterministic
+    VERIFICATION_MODEL: str = "gemini-3.6-flash"
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),
         case_sensitive=True,
